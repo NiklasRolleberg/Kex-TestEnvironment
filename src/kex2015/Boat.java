@@ -9,14 +9,14 @@ public class Boat implements Runnable {
 	private long dt = 100;
 	private boolean stop = false;
 	
-	public Boat(double pauseTime) {
+	public Boat(long dt) {
+		this.dt = dt;
 		//TODO fixa saker
 		
 	}
 	
-	private void updatePos(long dt) {
+	private void updatePos(double elapsedTime) {
 		System.out.println("UpdatePosition");
-		this.dt = dt;
 		//TODO Update position of boat
 	}
 	
