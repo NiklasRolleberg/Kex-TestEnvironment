@@ -9,10 +9,14 @@ public class Boat implements Runnable {
 	private long dt = 100;
 	private boolean stop = false;
 	
-	public Boat(long dt) {
+	private Map map;
+	
+	public Boat(Map map, long dt) {
 		this.dt = dt;
 		//TODO fixa saker
 		
+		
+		System.out.println("Boat created");
 	}
 	
 	private void updatePos(double elapsedTime) {
