@@ -33,7 +33,7 @@ public class Boat implements Runnable {
 		
 		while(!stop) {
 			
-			System.out.println("JAG ÄR EN BÅT!");
+			System.out.println("Boat running!");
 			
 			try {
 				Thread.sleep(dt);
@@ -43,6 +43,8 @@ public class Boat implements Runnable {
 			}
 			
 		}
+		
+		System.out.println("Boat stopped");
 		
 	}
 

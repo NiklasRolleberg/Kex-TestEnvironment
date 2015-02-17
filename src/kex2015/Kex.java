@@ -35,7 +35,9 @@ public class Kex implements Runnable {
 	@Override
 	public void run() {
 		
-		while (!false) {
+		while (!stop) {
+			
+			System.out.println("Kex running");
 			
 			try {
 				Thread.sleep(dt);
@@ -45,6 +47,8 @@ public class Kex implements Runnable {
 			}
 			
 		}
+		
+		System.out.println("Kex stopped");
 		
 	}
 
