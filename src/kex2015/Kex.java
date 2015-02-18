@@ -29,6 +29,7 @@ public class Kex implements Runnable {
 	}
 
 	public void stop() {
+		System.out.println("KEX stop");
 		stop = true;
 	}
 	

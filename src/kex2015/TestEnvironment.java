@@ -7,9 +7,11 @@ public class TestEnvironment {
 	Map map;
 	Boat boat;
 	Kex kex;
+	View view;
 	
 	Thread boatThread;
 	Thread kexThread;
+	Thread viewThread;
 	
 	public TestEnvironment() {
 		
@@ -17,26 +19,29 @@ public class TestEnvironment {
 		map = new Map();
 		
 		/**Create boat*/
-		boat = new Boat(map, 100);
+		boat = new Boat(map, 200);
 		
 		/**Create kex*/
 		//polygon
 		ArrayList<Integer> x = new ArrayList<Integer>();
 		ArrayList<Integer> y = new ArrayList<Integer>();
 		int[] endPos = {1,3};
-		
 		kex = new Kex(boat, x, y , 0.24 , endPos , 200 );
 		
+		/**Create view*/
+		view = new View(map, boat,100);
 		
 		/**create and start threads*/
 		boatThread = new Thread(boat);
 		kexThread = new Thread(kex);
+		viewThread = new Thread(view);
 		
 		boatThread.start();
 		kexThread.start();
+		viewThread.start();
 		
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(10000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -45,6 +50,7 @@ public class TestEnvironment {
 		
 		kex.stop();
 		boat.stop();
+		view.stop();
 		
 		
 		

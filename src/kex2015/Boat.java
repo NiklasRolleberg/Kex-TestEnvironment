@@ -7,6 +7,7 @@ public class Boat implements Runnable {
 	private double speed = 0;
 	
 	private long dt = 100;
+	private long lastUpdate = 0;;
 	private boolean stop = false;
 	
 	private Map map;
@@ -19,9 +20,17 @@ public class Boat implements Runnable {
 		System.out.println("Boat created");
 	}
 	
-	private void updatePos(double elapsedTime) {
+	private void updatePos() {
 		System.out.println("UpdatePosition");
-		//TODO Update position of boat
+		if(lastUpdate == 0) {
+			lastUpdate = System.currentTimeMillis();
+			return;
+		}
+		
+		long elapsedTime = System.currentTimeMillis() - lastUpdate;
+		//TODO Update boat position;
+		
+		lastUpdate = System.currentTimeMillis();
 	}
 	
 	public void stop() {
@@ -31,9 +40,11 @@ public class Boat implements Runnable {
 	@Override
 	public void run() {
 		
+		System.out.println("Boat running!");
+		
 		while(!stop) {
 			
-			System.out.println("Boat running!");
+			updatePos();
 			
 			try {
 				Thread.sleep(dt);
