@@ -34,15 +34,15 @@ public class View extends JFrame implements Runnable {
 		g2d.clearRect(0, 0, size, size);
 		g.setColor(Color.BLUE);
 		g.fillRect(0, 0, size, size);
+		double[] limits = seafloor.getLimits();
 		
-		//TODO Ta reda på max/min lat och long
-		double longStart = 0;
-		double longStop = size;
-		double stepLong = (longStop + 0) / size;
+		double longStart = limits[0];
+		double longStop = limits[2];
+		double stepLong = (longStop + longStart) / size;
 		
-		double latStart = 0;
-		double latStop = size;
-		double stepLat = (longStop + 0) / size;
+		double latStart = limits[1];
+		double latStop = limits[3];
+		double stepLat = (latStop + latStart) / size;
 		
 		for(int x=0; x < size; x++) {
 			for(int y=0; y < size; y++) {
@@ -55,13 +55,13 @@ public class View extends JFrame implements Runnable {
 					color = Color.green;
 				}
 				
-				/*
+				
+				
 				double longitude = longStart + stepLong*x;
 				double latitude = latStart + stepLat*y;
 				
-				double[] data = seafloor.getSensorData(longitude, latitude);
-				double depth = data[0];
-				System.out.println(depth);
+				double depth = seafloor.getDepth(longitude, latitude);
+				//System.out.println(depth);
 				if(depth < -20) {
 					color = color.BLACK; 
 				}
@@ -82,7 +82,6 @@ public class View extends JFrame implements Runnable {
 				else{
 					color = color.GREEN;
 				}
-				*/
 				g2d.setColor(color);
 				g2d.drawLine(x, y, x, y);
 			}

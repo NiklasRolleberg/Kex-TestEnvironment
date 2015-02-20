@@ -16,7 +16,7 @@ public class TestEnvironment {
 	public TestEnvironment() {
 		
 		/**Create map*/
-		map = new Map();
+		map = new Map("MapTest.csv");
 		
 		/**Create boat*/
 		boat = new Boat(map, 200);
