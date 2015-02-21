@@ -43,25 +43,19 @@ public class View extends JFrame implements Runnable {
 		double latStart = limits[1];
 		double latStop = limits[3];
 		double stepLat = (latStop + latStart) / size;
-		
+	
 		for(int x=0; x < size; x++) {
 			for(int y=0; y < size; y++) {
-				Color color;
-				
-				if(Math.random() < 0.5) {
-					color = Color.CYAN;
-				}
-				else { 
-					color = Color.green;
-				}
-				
-				
+				Color color = Color.GREEN;
+			
 				
 				double longitude = longStart + stepLong*x;
 				double latitude = latStart + stepLat*y;
 				
 				double depth = seafloor.getDepth(longitude, latitude);
+				
 				//System.out.println(depth);
+				
 				if(depth < -21) {
 					 color = new Color(0x050068);
 				}
@@ -89,8 +83,38 @@ public class View extends JFrame implements Runnable {
 				else{
 					color = color.GREEN;
 				}
+				
+				// more linear
+				/*
+				if (depth > 0) {
+					color = color.GREEN;
+				}
+				else {
+					double step = 255/21;
+					int blue = (int)((-21-depth)*-step);
+					int green = (int)((-21-depth)*-step);
+					if(blue < 0)
+						blue = 0;
+					color = new Color(0, green, blue);
+				}
+				*/
+				
 				g2d.setColor(color);
 				g2d.drawLine(x, y, x, y);
+			}
+		}
+		
+		/*Writh depth numbers on map*/
+		g2d.setColor(Color.BLACK);
+		for(int x=5; x < size; x+=75) {
+			for(int y=10; y < size; y+=75) {			
+				double longitude = longStart + stepLong*x;
+				double latitude = latStart + stepLat*y;			
+				double depth = seafloor.getDepth(longitude, latitude);
+				
+				String s = ""+ ((double)((int)(depth*10)))/10;
+				char[] d = s.toCharArray();
+				g2d.drawChars(d, 0, s.length(), x-5, y);
 			}
 		}
 		

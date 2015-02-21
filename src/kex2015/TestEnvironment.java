@@ -65,31 +65,13 @@ public class TestEnvironment {
 		Double[][] matrix = new Double[sizeX][sizeY];
 		
 		//Generate random depth
-		
-		
-		/*idea 01 -> blev inte så bra...
-		double startX = Math.random()*Math.PI*2;
-		double startY = Math.random()*Math.PI*2;
-		double stepX = (Math.random()+0.5)/sizeX;
-		double stepY = (Math.random()+0.5)/sizeY;
-		double maxHeight = 5;
-		
-		for(int i = 0; i<sizeX; i++) {
-			for(int j=0; j<sizeY; j++) {
-				matrix[i][j] = maxHeight*Math.sin(startX + i*stepX) + maxHeight*Math.cos(startY + stepY*j);
-			}
-		}*/
-		
-		
-		
-		/*idea 02*/ //Bäst hittils!
 		for(int i = 0; i<sizeX; i++) {
 			for(int j=0; j<sizeY; j++) {
 				matrix[i][j] = -15.;
 			}
 		}
 		
-		//generate "islands" at radom places -> ser nästan bra ut
+		//generate "islands" at radom places -> ser nästan bra ut		
 		int islands = 600;
 		for(int k = 0; k<islands; k++) {
 			int posX = (int) (Math.random()*sizeX);
@@ -98,14 +80,14 @@ public class TestEnvironment {
 			for(int i = 0; i<sizeX; i++) {
 				for(int j=0; j<sizeY; j++) {
 					if( (posX-i)*(posX-i) + (posY-j)*(posY-j) < r*r)
-						matrix[i][j] += 0.5;
+						matrix[i][j] += Math.random();//0.5;
 				}
 			}
 		}
 		
-		//generate "squares" at radom places ->massa små landmassor
+		//push the world down a bit
 		/*
-		int islands = 23000;
+		islands = 1000;
 		for(int k = 0; k<islands; k++) {
 			int posX = (int) (Math.random()*sizeX);
 			int posY = (int) (Math.random()*sizeY);
@@ -114,11 +96,40 @@ public class TestEnvironment {
 			for(int i = posX-(width/2); i<posX+(width/2); i++) {
 				for(int j = posY-(height/2); j<posY+(height/2); j++) {
 					if( i < sizeX && i >=0 && j<sizeY && j>=0)
-						matrix[i][j] += 0.3;
+						matrix[i][j] -= 0.2;
 				}
 			}
 		}*/
-
+		
+		//raise the land a bit to make more distinct islands  
+		for(int i=1; i<sizeX-1; i++) {
+			for(int j=1; j<sizeY-1; j++) {
+				if(matrix[i][j] > 0) {
+					matrix[i][j] += 5.0;
+				}
+			}
+		}
+		
+		
+		//smoth out the matrix
+		for(int k = 0; k < 20; k++ ) {
+			for(int i=1; i<sizeX-1; i++) {
+				for(int j=1; j<sizeY-1; j++) {
+					
+					//TODO testa att räkna med diagonaler också
+					double  mean= (matrix[i+1][j]
+								 +matrix[i-1][j]
+							  	 +matrix[i][j+1]
+								 +matrix[i][j-1])/4;
+					
+					matrix[i][j] += (mean-matrix[i][j]);
+				}
+			}
+		}
+		
+		
+		System.out.println("Generation done");
+		System.out.println("Writing to file..");
 		
 		/*Write file*/
 		PrintWriter writer;
@@ -134,6 +145,7 @@ public class TestEnvironment {
 				writer.println(line.toString());
 			}
 			writer.close();
+			System.out.println("new map created");
 			
 		} catch (FileNotFoundException e) {
 			System.out.println("FileNotFound");
@@ -152,9 +164,9 @@ public class TestEnvironment {
 	public static void main(String[] args) {
 		System.out.println("JAG LEVER!");
 		
-		generateRandomMap(100,100,"test.csv");
+		//generateRandomMap(300,300,"test.csv");
+		TestEnvironment t = new TestEnvironment("MapTest.csv");
 		
-		TestEnvironment t = new TestEnvironment("test.csv");
 		
 	}
 }
