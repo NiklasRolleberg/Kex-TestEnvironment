@@ -9,6 +9,11 @@ public class Map {
 	private double[] startCoord = new double[2];
 	private double resolution;
 	private int nRows, nCols;
+	
+	public Map() {
+		System.out.println("Nu är det något som inte stämmer");
+	}
+	
 	public Map(String fileName) {	//double[] initCoord,  
 		readCSVmap(fileName);
 		//startCoord[0] = initCoord[0];
@@ -40,8 +45,9 @@ public class Map {
     /** Read a CSV file 
      * @param fileName include file type (.csv)*/
     public void readCSVmap(String fileName){
-        String csvFile = "src\\kex2015\\"+fileName;//MapTest.csv";
-        BufferedReader br1 = null;
+        //String csvFile = "src\\kex2015\\"+fileName;//MapTest.csv";
+    	String csvFile = fileName;//MapTest.csv";
+    	BufferedReader br1 = null;
         BufferedReader br2 = null;
 
         String line = "";

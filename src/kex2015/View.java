@@ -62,22 +62,29 @@ public class View extends JFrame implements Runnable {
 				
 				double depth = seafloor.getDepth(longitude, latitude);
 				//System.out.println(depth);
-				if(depth < -20) {
-					color = color.BLACK; 
+				if(depth < -21) {
+					 color = new Color(0x050068);
 				}
-				else if(depth < -10)	{
-					color = color.BLUE;
-					color = color.darker();
+				else if(depth < -17)	{
+					color = new Color(0x1208D7);
 				}
-				else if(depth < -5) {
-					color = color.BLUE;
+				else if(depth < -15)	{
+					color = new Color(0x0D00FF);
 				}
-				else if(depth < -3) {
-					color = color.BLUE;
-					color = color.brighter();
+				else if(depth < -12)	{
+					color = new Color(0x035EC7);
 				}
-				else if (depth < -0) {
-					color = color.CYAN;
+				else if(depth < -9)	{
+					color = new Color(0x0066DA);
+				}
+				else if(depth < -6)	{
+					color = new Color(0x1CA6D9);
+				}
+				else if(depth < -3)	{
+					color = new Color(0x43B3DC);
+				}
+				else if(depth < 0.001)	{
+					color = new Color(0x0AF4FF);
 				}
 				else{
 					color = color.GREEN;
