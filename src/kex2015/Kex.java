@@ -54,21 +54,27 @@ public class Kex implements Runnable {
 			double yPos = sensorData[1];
 			double depth = sensorData[4];
 			//System.out.println(depth);
-			System.out.println(xPos);
+			//System.out.println(xPos);
 			double x = wayPoint[0] - xPos;
 			double y = wayPoint[1] - yPos;
 			double d = Math.sqrt(x*x + y*y);
-			if (oobCheck(xPos, yPos)){
+			
+			if (xPos < 40 || xPos > 960 || yPos < 40 || yPos > 960){
+				System.out.println("Fel index");
 				boat.setWayPoint(500, 500);
+				wayPoint[0] = 500;
+				wayPoint[1] = 500;
 			}
 			else if(depth > 0){
+				System.out.println("LAND!");
 				double newX = Math.random()*1000;
 				double newY = Math.random()*1000;
 				boat.setWayPoint(newX, newY);
 				wayPoint[0]=newX;
 				wayPoint[1]=newY;
 			}
-			else if(d<10){
+			else if(d<30){
+				System.out.println("Nära");
 				double newX = Math.random()*1000;
 				double newY = Math.random()*1000;
 				boat.setWayPoint(newX, newY);

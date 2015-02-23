@@ -25,7 +25,7 @@ public class View extends JFrame implements Runnable {
 	double latStop;
 	double stepLat;
 	
-	int size = 1000;
+	int size = 600;
 	private boolean stop = false;
 	
 	public View(Map seafloor, Boat boat, long dt) {
@@ -168,8 +168,8 @@ public class View extends JFrame implements Runnable {
 			g.drawImage(map, 0, 0, null);
 			Graphics2D g2d = (Graphics2D) g;
 			
-			double x0 = (boat.xPos.get(0) - longStart)/stepLong;
-			double y0 = (boat.yPos.get(0) - latStart)/stepLat;
+			double x0 = (boat.xPos.get(1) - longStart)/stepLong;
+			double y0 = (boat.yPos.get(1) - latStart)/stepLat;
 			
 			double x1 = 0;
 			double y1 = 0;
@@ -218,6 +218,8 @@ public class View extends JFrame implements Runnable {
 			
 			g2d.setColor(Color.RED);
 			g2d.fillPolygon(xPoints, yPoints, nPoints);
+			
+			g2d.drawOval((int)((boat.xPos.get(0) - longStart)/stepLong), (int)((boat.yPos.get(0) - latStart)/stepLat), 10, 10);
 		}
 	}
 }

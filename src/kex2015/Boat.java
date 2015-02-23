@@ -35,6 +35,9 @@ public class Boat implements Runnable {
 		xPos = new ArrayList<Double>();
 		yPos = new ArrayList<Double>();
 		
+		xPos.add(wayPoint[0]);
+		yPos.add(wayPoint[1]);
+		
 		xPos.add(startLong);
 		yPos.add(startLat);
 		
@@ -46,7 +49,11 @@ public class Boat implements Runnable {
 
 	public void setWayPoint(double longitude, double latitude) {
 		wayPoint[0] = longitude;
-		wayPoint[1] = latitude;		
+		wayPoint[1] = latitude;
+		
+		xPos.set(0, wayPoint[0]);
+		yPos.set(0, wayPoint[1]);
+		
 	}
 	
 	/**
@@ -132,7 +139,7 @@ public double[] getSensordata() {
 			System.out.println("speed: " + speed + "\n");
 			*/
 			
-			System.out.println(map.getDepth(position[0], position[1]));
+			//System.out.println(map.getDepth(position[0], position[1]));
 			
 			try {
 				Thread.sleep(dt);
