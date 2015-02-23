@@ -136,7 +136,7 @@ public class View extends JFrame implements Runnable {
 	@Override
 	public void run() {
 		while(!stop) {
-			System.out.println("Redraw");
+			//System.out.println("Redraw");
 			
 			image.repaint();
 			

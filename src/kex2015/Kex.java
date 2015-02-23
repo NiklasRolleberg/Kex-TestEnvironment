@@ -38,7 +38,7 @@ public class Kex implements Runnable {
 		
 		while (!stop) {
 			
-			System.out.println("Kex running");
+			//System.out.println("Kex running");
 			
 			try {
 				Thread.sleep(dt);

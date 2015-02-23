@@ -24,7 +24,7 @@ public class TestEnvironment {
 
 		
 		/**Create boat*/
-		boat = new Boat(map, 200);
+		boat = new Boat(map, 200,0,0);
 		
 		/**Create kex*/
 		//polygon
@@ -164,8 +164,8 @@ public class TestEnvironment {
 	public static void main(String[] args) {
 		System.out.println("JAG LEVER!");
 		
-		//generateRandomMap(300,300,"test.csv");
-		TestEnvironment t = new TestEnvironment("MapTest.csv");
+		//generateRandomMap(1000,1000,"test.csv");
+		TestEnvironment t = new TestEnvironment("test.csv");
 		
 		
 	}
