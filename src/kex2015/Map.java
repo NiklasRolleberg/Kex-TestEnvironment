@@ -11,7 +11,7 @@ public class Map {
 	private int nRows, nCols;
 	
 	public Map() {
-		System.out.println("Nu är det något som inte stämmer");
+		System.out.println("Nu ï¿½r det nï¿½got som inte stï¿½mmer");
 	}
 	
 	public Map(String fileName) {	//double[] initCoord,  
@@ -45,8 +45,7 @@ public class Map {
     /** Read a CSV file 
      * @param fileName include file type (.csv)*/
     public void readCSVmap(String fileName){
-        //String csvFile = "src\\kex2015\\"+fileName;//MapTest.csv";
-    	String csvFile = fileName;//MapTest.csv";
+    	String csvFile = fileName;
     	BufferedReader br1 = null;
         BufferedReader br2 = null;
 
@@ -65,7 +64,7 @@ public class Map {
             }
             nRows = m;
             nCols = n;	//TODO test this!!!
-            mapData = new double[m][n];
+            mapData = new double[nRows][nCols];
             br2 = new BufferedReader(new FileReader(csvFile));
 
             //loop and save data
@@ -73,11 +72,17 @@ public class Map {
             while ((line = br2.readLine()) != null) {
                 String[] depthValues = line.split(csvSplitBy);
                 for (String s : depthValues){
-                    mapData[j][i]=Double.parseDouble(s);
-                    j++;
+                	try{
+                    mapData[j][i] = Double.parseDouble(s);
+                    i++;
+                	}
+                	catch(IndexOutOfBoundsException e){
+                		System.err.println("Index out of bounds bullcrap");
+                		e.printStackTrace();
+                	}
                 }
-                j = 0;
-                i++;
+                i = 0;
+                j++;
             }
 
             System.out.println("Map data read done!");
@@ -85,7 +90,7 @@ public class Map {
             System.out.println("No such file, fool!");
             e.printStackTrace();
         } catch (IOException e) {
-            System.out.println("Some other shit went wrong, fool!");
+            System.err.println("Some other shit went wrong, fool!");
             e.printStackTrace();
         } finally {
             if (br1 != null) {
