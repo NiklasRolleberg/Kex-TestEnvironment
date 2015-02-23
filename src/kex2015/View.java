@@ -175,8 +175,8 @@ public class View extends JFrame implements Runnable {
 			double y1 = 0;
 			
 			for(int i = 1; i < boat.xPos.size(); i++) {
-				x1 = boat.xPos.get(i);
-				y1 = boat.yPos.get(i);
+				x1 = (boat.xPos.get(i) - longStart)/stepLong;
+				y1 = (boat.yPos.get(i) - latStart)/stepLat;
 
 				g2d.drawLine((int) x0, (int) y0, (int) x1, (int) y1);
 					
