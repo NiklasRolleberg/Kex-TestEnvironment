@@ -113,8 +113,8 @@ public class View extends JFrame implements Runnable {
 		
 		/*Writh depth numbers on map*/
 		g2d.setColor(Color.BLACK);
-		for(int x=5; x < size; x+=30) {
-			for(int y=10; y < size; y+=30) {			
+		for(int x=5; x < size; x+=75) {
+			for(int y=10; y < size; y+=75) {			
 				double longitude = longStart + stepLong*x;
 				double latitude = latStart + stepLat*y;			
 				double depth = seafloor.getDepth(longitude, latitude);
@@ -185,11 +185,39 @@ public class View extends JFrame implements Runnable {
 				
 			}
 			
-			//System.out.println("X1:" + x1);
-			//System.out.println("Y1:" + y1);
+			//Draw boat
+			int nPoints = 5;
+			int a = 15;
+			int b = 10;
+			double h = boat.heading;
+			int[] xPoints = {
+					(int) (x1 + a*Math.cos(h)),
+					(int) (x1 + b*Math.cos(h + (Math.PI/4))),
+					(int) (x1 + b*Math.cos(h + (3*Math.PI/4))),
+					(int) (x1 + b*Math.cos(h + (5*Math.PI/4))),
+					(int) (x1 + b*Math.cos(h + (7*Math.PI/4)))};
 			
-			g2d.fillOval((int) x1, (int) y1, 10, 10);
-			//g2d.drawOval((int) (Math.random() * size), (int) (Math.random() * size), 20, 20);
+			int[] yPoints = {
+					(int) (y1 + a*Math.sin(h)),
+					(int) (y1 + b*Math.sin(h + (Math.PI/4))),
+					(int) (y1 + b*Math.sin(h + (3*Math.PI/4))),
+					(int) (y1 + b*Math.sin(h + (5*Math.PI/4))),
+					(int) (y1 + b*Math.sin(h + (7*Math.PI/4)))};
+			
+			for(int i = 0; i < nPoints; i++) {
+				if(xPoints[i] < 0)
+					xPoints[i]  = 0;
+				if(yPoints[i] < 0)
+					yPoints[i]  = 0;
+				if(xPoints[i] >= size)
+					xPoints[i]  = size-1;
+				if(yPoints[i] >= size)
+					yPoints[i]  = size-1;
+				
+			}
+			
+			g2d.setColor(Color.RED);
+			g2d.fillPolygon(xPoints, yPoints, nPoints);
 		}
 	}
 }

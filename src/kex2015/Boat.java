@@ -6,7 +6,7 @@ public class Boat implements Runnable {
 	
 	private double[] position = {0,0};
 	private double[] wayPoint = {0,0};
-	private double heading = 0;
+	public static double heading = 0;
 	private double speed = 0;
 	private long lastUpdate = 0;
 	private double acceleration = 0;
@@ -132,7 +132,7 @@ public class Boat implements Runnable {
 			System.out.println("speed: " + speed + "\n");
 			*/
 			
-			//System.out.println(map.getDepth(position[0], position[1]));
+			System.out.println(map.getDepth(position[0], position[1]));
 			
 			try {
 				Thread.sleep(dt);
