@@ -14,6 +14,9 @@ public class Kex implements Runnable {
 	
 	boolean stop = false;
 	
+	KexView kexView;
+	Thread kexViewThread;
+	
 	
 	/**Main brain! =)
 	 * @param delta is map resolution, not used yet
@@ -26,7 +29,11 @@ public class Kex implements Runnable {
 		this.delta = delta;
 		this.endPos = endPos;
 		this.dt = dt;
+		
+		kexView = new KexView();
+		kexViewThread = new Thread(kexView);
 		System.out.println("Kex created");
+		
 	}
 
 	public void stop() {
@@ -44,6 +51,7 @@ public class Kex implements Runnable {
 	
 	@Override
 	public void run() {
+		kexViewThread.start();
 		
 		double[] wayPoint = {0, 0};
 		
@@ -58,6 +66,9 @@ public class Kex implements Runnable {
 			double x = wayPoint[0] - xPos;
 			double y = wayPoint[1] - yPos;
 			double d = Math.sqrt(x*x + y*y);
+			
+			kexView.addData(xPos, yPos, depth);
+			
 			
 			if (xPos < 10 || xPos > 990 || yPos < 10 || yPos > 990){
 				System.out.println("Fel index");
