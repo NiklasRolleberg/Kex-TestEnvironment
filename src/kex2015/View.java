@@ -25,7 +25,7 @@ public class View extends JFrame implements Runnable {
 	double latStop;
 	double stepLat;
 	
-	int size = 500;
+	int size = 1000;
 	private boolean stop = false;
 	
 	public View(Map seafloor, Boat boat, long dt) {

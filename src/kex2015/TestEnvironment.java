@@ -31,7 +31,7 @@ public class TestEnvironment {
 		ArrayList<Integer> x = new ArrayList<Integer>();
 		ArrayList<Integer> y = new ArrayList<Integer>();
 		int[] endPos = {1,3};
-		kex = new Kex(boat, x, y , 0.24 , endPos , 200 );
+		kex = new Kex(boat, x, y , 0.24 , endPos , 100);
 		
 		/**Create view*/
 		view = new View(map, boat,20);
@@ -46,7 +46,7 @@ public class TestEnvironment {
 		viewThread.start();
 		
 		try {
-			Thread.sleep(10000);
+			Thread.sleep(900000000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -71,7 +71,7 @@ public class TestEnvironment {
 			}
 		}
 		
-		//generate "islands" at radom places -> ser nästan bra ut		
+		//generate "islands" at radom places -> ser nï¿½stan bra ut		
 		int islands = 600;
 		for(int k = 0; k<islands; k++) {
 			int posX = (int) (Math.random()*sizeX);
@@ -116,7 +116,7 @@ public class TestEnvironment {
 			for(int i=1; i<sizeX-1; i++) {
 				for(int j=1; j<sizeY-1; j++) {
 					
-					//TODO testa att räkna med diagonaler också
+					//TODO testa att rï¿½kna med diagonaler ocksï¿½
 					double  mean= (matrix[i+1][j]
 								 +matrix[i-1][j]
 							  	 +matrix[i][j+1]
@@ -164,7 +164,7 @@ public class TestEnvironment {
 	public static void main(String[] args) {
 		System.out.println("JAG LEVER!");
 		
-		generateRandomMap(500,500,"test.csv");
+		//generateRandomMap(1000,1000,"test.csv");
 		TestEnvironment t = new TestEnvironment("test.csv");
 		
 		

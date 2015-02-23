@@ -58,14 +58,14 @@ public class Boat implements Runnable {
 	 * 4: sonar 1 (depth)
 	 * 5: sonar 2 (forward)
 	 */
-	public double[] getSensordata(double longitude, double latitude) {
+public double[] getSensordata() {
 		
 		double[] r = new double[6];
 		r[0] = this.position[0];
 		r[1] = this.position[1];
 		r[2] = this.heading;
 		r[3] = this.speed;
-		r[4] = map.getDepth(longitude, latitude);
+		r[4] = map.getDepth(this.position[0], this.position[1]);
 		r[5] = 0;
 		return r;
 	}
