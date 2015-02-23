@@ -17,6 +17,14 @@ public class View extends JFrame implements Runnable {
 	JPanel image;
 	long dt;
 	
+	double longStart;
+	double longStop;
+	double stepLong;
+	
+	double latStart;
+	double latStop;
+	double stepLat;
+	
 	int size = 500;
 	private boolean stop = false;
 	
@@ -36,19 +44,18 @@ public class View extends JFrame implements Runnable {
 		g.fillRect(0, 0, size, size);
 		double[] limits = seafloor.getLimits();
 		
-		double longStart = limits[0];
-		double longStop = limits[2];
-		double stepLong = (longStop + longStart) / size;
+		longStart = limits[0];
+		longStop = limits[2];
+		stepLong = (longStop + longStart) / size;
 		
-		double latStart = limits[1];
-		double latStop = limits[3];
-		double stepLat = (latStop + latStart) / size;
+		latStart = limits[1];
+		latStop = limits[3];
+		stepLat = (latStop + latStart) / size;
 	
 		for(int x=0; x < size; x++) {
 			for(int y=0; y < size; y++) {
 				Color color = Color.GREEN;
 			
-				
 				double longitude = longStart + stepLong*x;
 				double latitude = latStart + stepLat*y;
 				
@@ -106,8 +113,8 @@ public class View extends JFrame implements Runnable {
 		
 		/*Writh depth numbers on map*/
 		g2d.setColor(Color.BLACK);
-		for(int x=5; x < size; x+=75) {
-			for(int y=10; y < size; y+=75) {			
+		for(int x=5; x < size; x+=30) {
+			for(int y=10; y < size; y+=30) {			
 				double longitude = longStart + stepLong*x;
 				double latitude = latStart + stepLat*y;			
 				double depth = seafloor.getDepth(longitude, latitude);
@@ -161,8 +168,28 @@ public class View extends JFrame implements Runnable {
 			g.drawImage(map, 0, 0, null);
 			Graphics2D g2d = (Graphics2D) g;
 			
-			g2d.drawOval((int) (Math.random() * size), (int) (Math.random() * size), 20, 20);
+			double x0 = (boat.xPos.get(0) - longStart)/stepLong;
+			double y0 = (boat.yPos.get(0) - latStart)/stepLat;
 			
+			double x1 = 0;
+			double y1 = 0;
+			
+			for(int i = 1; i < boat.xPos.size(); i++) {
+				x1 = boat.xPos.get(i);
+				y1 = boat.yPos.get(i);
+
+				g2d.drawLine((int) x0, (int) y0, (int) x1, (int) y1);
+					
+				x0 = x1;
+				y0 = y1;
+				
+			}
+			
+			//System.out.println("X1:" + x1);
+			//System.out.println("Y1:" + y1);
+			
+			g2d.fillOval((int) x1, (int) y1, 10, 10);
+			//g2d.drawOval((int) (Math.random() * size), (int) (Math.random() * size), 20, 20);
 		}
 	}
 }

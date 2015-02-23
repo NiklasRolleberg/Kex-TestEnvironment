@@ -11,7 +11,7 @@ public class Boat implements Runnable {
 	private long lastUpdate = 0;
 	private double acceleration = 0;
 	private double turningspeed = 0;
-	private double maxSpeed = 2;
+	private double maxSpeed = 30;
 	private double maxAcc = 0;
 	
 	private long dt = 100;
@@ -19,16 +19,16 @@ public class Boat implements Runnable {
 	
 	private Map map;
 	
-	private ArrayList<Double> xPos;
-	private ArrayList<Double> yPos;
+	public static ArrayList<Double> xPos;
+	public static ArrayList<Double> yPos;
 	
 	public Boat(Map map, long dt, double startLong, double startLat) {
 		this.map = map;
 		this.position[0] = startLong;
 		this.position[1] = startLat;
 		
-		this.wayPoint[0] = startLong+1;
-		this.wayPoint[1] = startLat+1;
+		this.wayPoint[0] = startLong+500;
+		this.wayPoint[1] = startLat+500;
 		
 		this.dt = dt;
 		
@@ -43,10 +43,10 @@ public class Boat implements Runnable {
 		
 		System.out.println("Boat created");
 	}
-	
+
 	public void setWayPoint(double longitude, double latitude) {
-		
-		
+		wayPoint[0] = longitude;
+		wayPoint[1] = latitude;		
 	}
 	
 	/**
@@ -95,7 +95,6 @@ public class Boat implements Runnable {
 		//move the boat a bit at max speed or slower if the boat will overshoot the target before next update
 		speed = maxSpeed;
 		if(d < dt*maxSpeed/1000) {
-			heading = 0;
 			speed = d/(((double)dt)/1000);
 		}
 		
@@ -107,7 +106,7 @@ public class Boat implements Runnable {
 		x = xPos.get(xPos.size()-1) - position[0];
 		y = yPos.get(yPos.size()-1) - position[1];
 		d = Math.sqrt(x*x + y*y);
-		if(d > 1) {
+		if(d > 0.5) {
 			xPos.add(position[0]);
 			yPos.add(position[1]);
 		}
@@ -132,6 +131,8 @@ public class Boat implements Runnable {
 			System.out.println("y: " + position[1]);
 			System.out.println("speed: " + speed + "\n");
 			*/
+			
+			//System.out.println(map.getDepth(position[0], position[1]));
 			
 			try {
 				Thread.sleep(dt);

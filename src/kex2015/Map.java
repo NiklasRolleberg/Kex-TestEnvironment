@@ -23,7 +23,7 @@ public class Map {
 	
 	/**Returns the depth at the specified x,y index*/
 	public double getDepth(double x, double y){
-		return mapData[(int)x][(int)y];
+		return mapData[(int)y][(int)x];
 	}
 	
 	public double[] getLimits(){
