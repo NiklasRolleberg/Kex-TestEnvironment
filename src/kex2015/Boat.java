@@ -92,7 +92,9 @@ public double[] getSensordata() {
 		double y = wayPoint[1] - position[1];
 		double d = Math.sqrt(x*x + y*y);
 		
-		heading = Math.asin(y/d);
+		heading = Math.acos(x/d);
+		if(y<0)
+			heading = - heading;
 		
 		if(heading == Double.NaN) {
 			lastUpdate = System.currentTimeMillis();

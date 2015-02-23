@@ -46,6 +46,7 @@ public class Kex implements Runnable {
 	public void run() {
 		
 		double[] wayPoint = {0, 0};
+		
 		while (!stop) {
 			
 			//System.out.println("Kex running");
@@ -53,30 +54,32 @@ public class Kex implements Runnable {
 			double xPos = sensorData[0];
 			double yPos = sensorData[1];
 			double depth = sensorData[4];
-			//System.out.println(depth);
-			//System.out.println(xPos);
+			double heading = sensorData[2];
 			double x = wayPoint[0] - xPos;
 			double y = wayPoint[1] - yPos;
 			double d = Math.sqrt(x*x + y*y);
 			
-			if (xPos < 40 || xPos > 960 || yPos < 40 || yPos > 960){
+			if (xPos < 10 || xPos > 990 || yPos < 10 || yPos > 990){
 				System.out.println("Fel index");
-				boat.setWayPoint(500, 500);
-				wayPoint[0] = 500;
-				wayPoint[1] = 500;
-			}
-			else if(depth > 0){
-				System.out.println("LAND!");
-				double newX = Math.random()*1000;
-				double newY = Math.random()*1000;
+				double newX = 500  + (Math.random()-0.5)*500;
+				double newY = 500  + (Math.random()-0.5)*500;
 				boat.setWayPoint(newX, newY);
 				wayPoint[0]=newX;
 				wayPoint[1]=newY;
 			}
-			else if(d<30){
-				System.out.println("Nära");
-				double newX = Math.random()*1000;
-				double newY = Math.random()*1000;
+			else if(depth > -0.1){
+				//System.out.println("LAND!");
+				//reverse back a bit
+				double newX = xPos + 40*Math.cos(heading+Math.PI);
+				double newY = yPos + 40*Math.sin(heading+Math.PI);
+				boat.setWayPoint(newX, newY);
+				wayPoint[0]=newX;
+				wayPoint[1]=newY;
+			}
+			else if(d<3){
+				//System.out.println("Nära");
+				double newX = xPos + (Math.random()-0.5)*2000;
+				double newY = yPos + (Math.random()-0.5)*2000;
 				boat.setWayPoint(newX, newY);
 				wayPoint[0]=newX;
 				wayPoint[1]=newY;

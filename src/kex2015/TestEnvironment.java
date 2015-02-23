@@ -24,7 +24,7 @@ public class TestEnvironment {
 
 		
 		/**Create boat*/
-		boat = new Boat(map, 30,0.0,0.0);
+		boat = new Boat(map, 25,0.0,0.0);
 		
 		/**Create kex*/
 		//polygon
