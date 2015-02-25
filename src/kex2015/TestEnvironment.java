@@ -97,6 +97,7 @@ public class TestEnvironment {
                     }
                 }
             }
+        }
 		
 		//push the world down a bit
 		/*
