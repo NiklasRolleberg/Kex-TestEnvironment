@@ -24,14 +24,14 @@ public class TestEnvironment {
 
 		
 		/**Create boat*/
-		boat = new Boat(map, 25,0.0,0.0);
+		boat = new Boat(map, 25,0.0,0.0); //25
 		
 		/**Create kex*/
 		//polygon
 		ArrayList<Integer> x = new ArrayList<Integer>();
 		ArrayList<Integer> y = new ArrayList<Integer>();
 		int[] endPos = {1,3};
-		kex = new Kex(boat, x, y , 0.24 , endPos , 100);
+		kex = new Kex(boat, x, y , 0.24 , endPos , 100); //100
 		
 		/**Create view*/
 		view = new View(map, boat,20);
@@ -164,7 +164,7 @@ public class TestEnvironment {
 	public static void main(String[] args) {
 		System.out.println("JAG LEVER!");
 		
-		//generateRandomMap(1000,1000,"test.csv");
+		generateRandomMap(1000,1000,"test.csv");
 		TestEnvironment t = new TestEnvironment("test.csv");
 		
 		

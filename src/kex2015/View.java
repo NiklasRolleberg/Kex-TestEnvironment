@@ -25,7 +25,7 @@ public class View extends JFrame implements Runnable {
 	double latStop;
 	double stepLat;
 	
-	int size = 1000;
+	int size = 500;
 	private boolean stop = false;
 	
 	public View(Map seafloor, Boat boat, long dt) {
@@ -103,8 +103,8 @@ public class View extends JFrame implements Runnable {
 					if(blue < 0)
 						blue = 0;
 					color = new Color(0, green, blue);
-				}
-				*/
+				}*/
+				
 				
 				g2d.setColor(color);
 				g2d.drawLine(x, y, x, y);

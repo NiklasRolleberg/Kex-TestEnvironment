@@ -14,8 +14,8 @@ public class Kex implements Runnable {
 	
 	boolean stop = false;
 	
-	KexView kexView;
-	Thread kexViewThread;
+	//KexView kexView;
+	//Thread kexViewThread;
 	
 	
 	/**Main brain! =)
@@ -30,8 +30,8 @@ public class Kex implements Runnable {
 		this.endPos = endPos;
 		this.dt = dt;
 		
-		kexView = new KexView();
-		kexViewThread = new Thread(kexView);
+		//kexView = new KexView();
+		//kexViewThread = new Thread(kexView);
 		System.out.println("Kex created");
 		
 	}
@@ -51,7 +51,7 @@ public class Kex implements Runnable {
 	
 	@Override
 	public void run() {
-		kexViewThread.start();
+		//kexViewThread.start();
 		
 		double[] wayPoint = {0, 0};
 		
@@ -67,7 +67,7 @@ public class Kex implements Runnable {
 			double y = wayPoint[1] - yPos;
 			double d = Math.sqrt(x*x + y*y);
 			
-			kexView.addData(xPos, yPos, depth);
+			//kexView.addData(xPos, yPos, depth);
 			
 			
 			if (xPos < 10 || xPos > 990 || yPos < 10 || yPos > 990){
