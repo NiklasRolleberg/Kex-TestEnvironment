@@ -16,7 +16,7 @@ public class TestEnvironment {
 	Thread kexThread;
 	Thread viewThread;
 	
-	public TestEnvironment(String mapFile) {
+	public TestEnvironment(String mapFile, ArrayList<Double> polygonX, ArrayList<Double> polygonY) {
 		
 		/**Create map*/
 		//map = new Map("MapTest.csv");
@@ -24,17 +24,15 @@ public class TestEnvironment {
 
 		
 		/**Create boat*/
-		boat = new Boat(map, 25,0.0,0.0); //25
+		boat = new Boat(map, 25,30,30.0); //25
 		
 		/**Create kex*/
 		//polygon
-		ArrayList<Integer> x = new ArrayList<Integer>();
-		ArrayList<Integer> y = new ArrayList<Integer>();
 		int[] endPos = {1,3};
-		kex = new Kex(boat, x, y , 0.24 , endPos , 100); //100
+		kex = new Kex(boat, polygonX, polygonY , 0.24 , endPos , 100); //100
 		
 		/**Create view*/
-		view = new View(map, boat,20);
+		view = new View(map, boat,20 , polygonX, polygonY);
 		
 		/**create and start threads*/
 		boatThread = new Thread(boat);
@@ -164,8 +162,21 @@ public class TestEnvironment {
 	public static void main(String[] args) {
 		System.out.println("JAG LEVER!");
 		
-		generateRandomMap(1000,1000,"test.csv");
-		TestEnvironment t = new TestEnvironment("test.csv");
+		//generateRandomMap(1000,1000,"test.csv");
+		
+		ArrayList<Double> X = new ArrayList<Double>();
+		ArrayList<Double> Y = new ArrayList<Double>();
+		
+		X.add(0.0);
+		X.add(0.0);
+		X.add(200.0);
+		X.add(200.0);
+		
+		Y.add(0.0);
+		Y.add(200.0);
+		Y.add(200.0);
+		Y.add(0.0);
+		TestEnvironment t = new TestEnvironment("test.csv", X , Y);
 		
 		
 	}

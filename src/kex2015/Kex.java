@@ -5,8 +5,8 @@ public class Kex implements Runnable {
 	
 	Boat boat;
 	
-	ArrayList<Integer> polygonX;
-	ArrayList<Integer> polygonY;
+	ArrayList<Double> polygonX;
+	ArrayList<Double> polygonY;
 	int[] endPos;
 	
 	double delta;
@@ -14,14 +14,15 @@ public class Kex implements Runnable {
 	
 	boolean stop = false;
 	
-	//KexView kexView;
-	//Thread kexViewThread;
-	
+	private double minX;
+	private double maxX;
+	private double minY;
+	private double maxY;
 	
 	/**Main brain! =)
 	 * @param delta is map resolution, not used yet
 	 * */
-	public Kex(Boat inBoat, ArrayList<Integer> x, ArrayList<Integer> y , double delta , int[] endPos, long dt ) { //double?
+	public Kex(Boat inBoat, ArrayList<Double> x, ArrayList<Double> y , double delta , int[] endPos, long dt ) { //double?
 		
 		this.boat = inBoat;
 		this.polygonX = x;
@@ -30,8 +31,23 @@ public class Kex implements Runnable {
 		this.endPos = endPos;
 		this.dt = dt;
 		
-		//kexView = new KexView();
-		//kexViewThread = new Thread(kexView);
+		//find min and max X,Y
+		minX = polygonX.get(0);
+		maxX = polygonX.get(0);
+		minY = polygonY.get(0);
+		maxY = polygonY.get(0);
+		
+		for(int i=0;i<polygonX.size();i++) {
+			if (polygonX.get(i) < minX)
+				minX = polygonX.get(i);
+			if (polygonX.get(i) > maxX)
+				maxX = polygonX.get(i);
+			if (polygonY.get(i) < minY)
+				minY = polygonY.get(i);
+			if (polygonY.get(i) > maxY)
+				maxY = polygonY.get(i);
+		}
+
 		System.out.println("Kex created");
 		
 	}
@@ -43,7 +59,7 @@ public class Kex implements Runnable {
 	
 	/**Checks if out of bounds */
 	private boolean oobCheck(double xpos, double ypos){
-		if (xpos < 40 || xpos > 960 || ypos < 40 || ypos > 960){
+		if (xpos < minX+2 || xpos > maxX-2 || ypos < minY+2 || ypos > maxX-2){
 			return true;
 		}
 		return false;
@@ -70,10 +86,10 @@ public class Kex implements Runnable {
 			//kexView.addData(xPos, yPos, depth);
 			
 			
-			if (xPos < 10 || xPos > 990 || yPos < 10 || yPos > 990){
+			if (oobCheck(xPos, yPos)){
 				System.out.println("Fel index");
-				double newX = 500  + (Math.random()-0.5)*500;
-				double newY = 500  + (Math.random()-0.5)*500;
+				double newX = xPos  - 30*Math.cos(heading);
+				double newY = yPos  - 30*Math.sin(heading); 
 				boat.setWayPoint(newX, newY);
 				wayPoint[0]=newX;
 				wayPoint[1]=newY;
@@ -81,16 +97,20 @@ public class Kex implements Runnable {
 			else if(depth > -0.1){
 				//System.out.println("LAND!");
 				//reverse back a bit
-				double newX = xPos + 40*Math.cos(heading+Math.PI);
-				double newY = yPos + 40*Math.sin(heading+Math.PI);
+				
+				double newHeading = heading - (1.0-Math.random())*Math.PI;
+				double newX = xPos + 10*Math.cos(newHeading);
+				double newY = yPos + 10*Math.sin(newHeading);
 				boat.setWayPoint(newX, newY);
 				wayPoint[0]=newX;
 				wayPoint[1]=newY;
 			}
 			else if(d<3){
 				//System.out.println("Nära");
-				double newX = xPos + (Math.random()-0.5)*2000;
-				double newY = yPos + (Math.random()-0.5)*2000;
+				
+				double newHeading = Math.random()*2*Math.PI;
+				double newX = xPos + 200*Math.cos(newHeading);
+				double newY = yPos + 200*Math.sin(newHeading);
 				boat.setWayPoint(newX, newY);
 				wayPoint[0]=newX;
 				wayPoint[1]=newY;

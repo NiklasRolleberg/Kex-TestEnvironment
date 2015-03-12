@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -28,7 +29,7 @@ public class View extends JFrame implements Runnable {
 	int size = 500;
 	private boolean stop = false;
 	
-	public View(Map seafloor, Boat boat, long dt) {
+	public View(Map seafloor, Boat boat, long dt, ArrayList<Double> polygonX, ArrayList<Double> polygonY) {
 		this.seaFloor = seafloor;
 		this.boat = boat;
 		this.dt = dt;
@@ -42,15 +43,58 @@ public class View extends JFrame implements Runnable {
 		g2d.clearRect(0, 0, size, size);
 		g.setColor(Color.BLUE);
 		g.fillRect(0, 0, size, size);
-		double[] limits = seafloor.getLimits();
 		
+		/*
+		double[] limits = seafloor.getLimits();
 		longStart = limits[0];
 		longStop = limits[2];
 		stepLong = (longStop + longStart) / size;
 		
 		latStart = limits[1];
 		latStop = limits[3];
+		stepLat = (latStop + latStart) / size;*/
+		
+		//find min and max X,Y
+		double minX = polygonX.get(0);
+		double maxX = polygonX.get(0);
+		double minY = polygonY.get(0);
+		double maxY = polygonY.get(0);
+		
+		for(int i=0;i<polygonX.size();i++) {
+			if (polygonX.get(i) < minX)
+				minX = polygonX.get(i);
+			if (polygonX.get(i) > maxX)
+				maxX = polygonX.get(i);
+			if (polygonY.get(i) < minY)
+				minY = polygonY.get(i);
+			if (polygonY.get(i) > maxY)
+				maxY = polygonY.get(i);
+		}
+		
+		System.out.println("View: min, max X: " + minX + ", " + maxX);
+		System.out.println("View: min, max Y: " + minY + ", " + maxY);
+		
+		double[] limits = seafloor.getLimits();
+		longStart = limits[0];
+		longStop = limits[2];
+		
+		
+		latStart = limits[1];
+		latStop = limits[3];
+		
+		//Oob check
+		if (minX-5 > longStart)
+			longStart = minX-5;
+		if (maxX+5 < longStop)
+			longStop = maxX+5;
+		if (minY-5 > latStart)
+			latStart = minY-5;
+		if (maxY+5 < latStop)
+			latStop = maxY+5;
+		
+		stepLong = (longStop + longStart) / size;
 		stepLat = (latStop + latStart) / size;
+		
 	
 		for(int x=0; x < size; x++) {
 			for(int y=0; y < size; y++) {
@@ -123,6 +167,24 @@ public class View extends JFrame implements Runnable {
 				char[] d = s.toCharArray();
 				g2d.drawChars(d, 0, s.length(), x-5, y);
 			}
+		}
+		
+		/*Draw the polygon on the map */
+		for(int i = 0; i < polygonX.size()+1; i++) {
+			
+			double long0 = polygonX.get(i%polygonX.size()).doubleValue();
+			double long1 = polygonX.get((i+1)%polygonX.size()).doubleValue();
+			
+			double lat0 = polygonY.get(i%polygonX.size()).doubleValue();
+			double lat1 = polygonY.get((i+1)%polygonX.size()).doubleValue();
+			
+			int x0 = (int) ((long0-longStart)/stepLong);
+			int x1 = (int) ((long1-longStart)/stepLong);
+			
+			int y0 = (int) ((lat0-latStart)/stepLat);
+			int y1 = (int) ((lat1-latStart)/stepLat);
+			
+			g2d.drawLine(x0,y0,x1,y1);
 		}
 		
 		//g.translate(-100, -100);

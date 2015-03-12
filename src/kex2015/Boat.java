@@ -22,7 +22,7 @@ public class Boat implements Runnable {
 	public static ArrayList<Double> xPos;
 	public static ArrayList<Double> yPos;
 	
-	public Boat(Map map, long dt, double startLong, double startLat) {
+	public Boat(Map map, int dt, double startLong, double startLat) {
 		this.map = map;
 		this.position[0] = startLong;
 		this.position[1] = startLat;
@@ -30,7 +30,7 @@ public class Boat implements Runnable {
 		this.wayPoint[0] = startLong+500;
 		this.wayPoint[1] = startLat+500;
 		
-		this.dt = dt;
+		this.dt = (long) dt;
 		
 		xPos = new ArrayList<Double>();
 		yPos = new ArrayList<Double>();
@@ -85,7 +85,6 @@ public double[] getSensordata() {
 		}
 		
 		double elapsedTime = (((double)System.currentTimeMillis() - lastUpdate))  / 1000;
-		//TODO Update boat position;
 		
 		//calculate heading towards the target
 		double x = wayPoint[0] - position[0];
