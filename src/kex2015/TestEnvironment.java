@@ -166,7 +166,7 @@ public class TestEnvironment {
 		
 		ArrayList<Double> X = new ArrayList<Double>();
 		ArrayList<Double> Y = new ArrayList<Double>();
-		
+		/*
 		X.add(100.0);
 		X.add(200.0);
 		X.add(200.0);
@@ -180,6 +180,17 @@ public class TestEnvironment {
 		Y.add(200.0);
 		Y.add(150.0);
 		Y.add(75.0);
+		*/
+		
+		X.add(10.0);
+		X.add(10.0);
+		X.add(500.0);
+		X.add(500.0);
+		
+		Y.add(10.0);
+		Y.add(500.0);
+		Y.add(500.0);
+		Y.add(10.0);
 		
 		double startLong = 100;
 		double startLat = 100;

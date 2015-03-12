@@ -79,8 +79,6 @@ public class View extends JFrame implements Runnable {
 				maxY = polygonY.get(i);
 		}
 		
-		System.out.println("View: min, max X: " + minX + ", " + maxX);
-		System.out.println("View: min, max Y: " + minY + ", " + maxY);
 		
 		double[] limits = seafloor.getLimits();
 		longStart = limits[0];
@@ -100,8 +98,11 @@ public class View extends JFrame implements Runnable {
 		if (maxY+5 < latStop)
 			latStop = maxY+5;
 		
-		stepLong = (longStop + longStart) / size;
-		stepLat = (latStop + latStart) / size;
+		stepLong = (longStop - longStart) / size;
+		stepLat = (latStop - latStart) / size;
+		
+		System.out.println("View: min, max long: " + longStart + ", " + longStop);
+		System.out.println("View: min, max lat: " + latStart + ", " + latStop);
 		
 	
 		for(int x=0; x < size; x++) {
@@ -236,7 +237,7 @@ public class View extends JFrame implements Runnable {
 		public void paint(Graphics g) {
 			
 			Graphics2D mapgr = (Graphics2D) map.getGraphics();
-			mapgr.setColor(Color.BLACK);
+			mapgr.setColor(Color.RED);
 			
 			double[] boatpos = boat.getPos();
 			double X0 = (boatlong - longStart)/stepLong;
