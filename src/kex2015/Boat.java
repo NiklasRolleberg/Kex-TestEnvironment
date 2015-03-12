@@ -18,9 +18,9 @@ public class Boat implements Runnable {
 	private boolean stop = false;
 	
 	private Map map;
-	
+	/*
 	public static ArrayList<Double> xPos;
-	public static ArrayList<Double> yPos;
+	public static ArrayList<Double> yPos;*/
 	
 	public Boat(Map map, int dt, double startLong, double startLat) {
 		this.map = map;
@@ -32,6 +32,7 @@ public class Boat implements Runnable {
 		
 		this.dt = (long) dt;
 		
+		/*
 		xPos = new ArrayList<Double>();
 		yPos = new ArrayList<Double>();
 		
@@ -40,7 +41,7 @@ public class Boat implements Runnable {
 		
 		xPos.add(startLong);
 		yPos.add(startLat);
-		
+		*/
 		
 		//TODO fixa saker
 		
@@ -50,10 +51,26 @@ public class Boat implements Runnable {
 	public void setWayPoint(double longitude, double latitude) {
 		wayPoint[0] = longitude;
 		wayPoint[1] = latitude;
-		
+		/*
 		xPos.set(0, wayPoint[0]);
-		yPos.set(0, wayPoint[1]);
+		yPos.set(0, wayPoint[1]);*/
 		
+	}
+	
+	/**
+	 * @return
+	 * current waypoint
+	 */
+	public double[] getWaypoint() {
+		return this.wayPoint;
+	}
+	
+	/**
+	 * @return
+	 * boat posistion
+	 */
+	public double[] getPos() {
+		return this.position;
 	}
 	
 	/**
@@ -111,13 +128,15 @@ public double[] getSensordata() {
 		
 		lastUpdate = System.currentTimeMillis();
 		
+		/*
 		x = xPos.get(xPos.size()-1) - position[0];
-		y = yPos.get(yPos.size()-1) - position[1];
+		y = yPos.get(yPos.size()-1) - position[1];*/
 		d = Math.sqrt(x*x + y*y);
+		/*
 		if(d > 0.5) {
 			xPos.add(position[0]);
 			yPos.add(position[1]);
-		}
+		}*/
 		
 	}
 	

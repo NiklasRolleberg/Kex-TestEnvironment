@@ -26,6 +26,9 @@ public class View extends JFrame implements Runnable {
 	double latStop;
 	double stepLat;
 	
+	double boatlong;
+	double boatlat;
+	
 	int size = 500;
 	private boolean stop = false;
 	
@@ -34,6 +37,11 @@ public class View extends JFrame implements Runnable {
 		this.boat = boat;
 		this.dt = dt;
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+		
+		//store boat pos
+		double[] boatPos = boat.getPos();
+		boatlong = boatPos[0];
+		boatlat = boatPos[1];
 		
 		/**Draw a map*/
 		map = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
@@ -227,25 +235,28 @@ public class View extends JFrame implements Runnable {
 		
 		public void paint(Graphics g) {
 			
+			Graphics2D mapgr = (Graphics2D) map.getGraphics();
+			mapgr.setColor(Color.BLACK);
+			
+			double[] boatpos = boat.getPos();
+			double X0 = (boatlong - longStart)/stepLong;
+			double Y0 = (boatlat - latStart)/stepLat;
+			
+			double X1 = (boatpos[0] - longStart)/stepLong;
+			double Y1 = (boatpos[1] - latStart)/stepLat;
+			
+			if(Math.sqrt((X1-X0)*(X1-X0)
+					+ (Y1-Y0)*(Y1-Y0)) >2) {
+				mapgr.drawLine((int)X0, (int) Y0, (int) X1, (int) Y1);
+				boatlong = boatpos[0];
+				boatlat = boatpos[1];
+			}
+			
+			
+			
 			g.drawImage(map, 0, 0, null);
 			Graphics2D g2d = (Graphics2D) g;
 			
-			double x0 = (boat.xPos.get(1) - longStart)/stepLong;
-			double y0 = (boat.yPos.get(1) - latStart)/stepLat;
-			
-			double x1 = 0;
-			double y1 = 0;
-			
-			for(int i = 1; i < boat.xPos.size(); i++) {
-				x1 = (boat.xPos.get(i) - longStart)/stepLong;
-				y1 = (boat.yPos.get(i) - latStart)/stepLat;
-
-				g2d.drawLine((int) x0, (int) y0, (int) x1, (int) y1);
-					
-				x0 = x1;
-				y0 = y1;
-				
-			}
 			
 			//Draw boat
 			int nPoints = 5;
@@ -253,18 +264,18 @@ public class View extends JFrame implements Runnable {
 			int b = 10;
 			double h = boat.heading;
 			int[] xPoints = {
-					(int) (x1 + a*Math.cos(h)),
-					(int) (x1 + b*Math.cos(h + (Math.PI/4))),
-					(int) (x1 + b*Math.cos(h + (3*Math.PI/4))),
-					(int) (x1 + b*Math.cos(h + (5*Math.PI/4))),
-					(int) (x1 + b*Math.cos(h + (7*Math.PI/4)))};
+					(int) (X1 + a*Math.cos(h)),
+					(int) (X1 + b*Math.cos(h + (Math.PI/4))),
+					(int) (X1 + b*Math.cos(h + (3*Math.PI/4))),
+					(int) (X1 + b*Math.cos(h + (5*Math.PI/4))),
+					(int) (X1 + b*Math.cos(h + (7*Math.PI/4)))};
 			
 			int[] yPoints = {
-					(int) (y1 + a*Math.sin(h)),
-					(int) (y1 + b*Math.sin(h + (Math.PI/4))),
-					(int) (y1 + b*Math.sin(h + (3*Math.PI/4))),
-					(int) (y1 + b*Math.sin(h + (5*Math.PI/4))),
-					(int) (y1 + b*Math.sin(h + (7*Math.PI/4)))};
+					(int) (Y1 + a*Math.sin(h)),
+					(int) (Y1 + b*Math.sin(h + (Math.PI/4))),
+					(int) (Y1 + b*Math.sin(h + (3*Math.PI/4))),
+					(int) (Y1 + b*Math.sin(h + (5*Math.PI/4))),
+					(int) (Y1 + b*Math.sin(h + (7*Math.PI/4)))};
 			
 			for(int i = 0; i < nPoints; i++) {
 				if(xPoints[i] < 0)
@@ -281,7 +292,9 @@ public class View extends JFrame implements Runnable {
 			g2d.setColor(Color.RED);
 			g2d.fillPolygon(xPoints, yPoints, nPoints);
 			
-			g2d.drawOval((int)((boat.xPos.get(0) - longStart)/stepLong), (int)((boat.yPos.get(0) - latStart)/stepLat), 10, 10);
+			double[] waypoint = boat.getWaypoint();
+			
+			g2d.drawOval((int)((waypoint[0] - longStart)/stepLong), (int)((waypoint[1] - latStart)/stepLat), 10, 10);
 		}
 	}
 }

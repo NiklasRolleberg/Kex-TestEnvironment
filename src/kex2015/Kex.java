@@ -1,5 +1,6 @@
 package kex2015;
 
+import java.awt.Polygon;
 import java.util.ArrayList;
 public class Kex implements Runnable {
 	
@@ -19,6 +20,8 @@ public class Kex implements Runnable {
 	private double minY;
 	private double maxY;
 	
+	Polygon polygon;
+	
 	/**Main brain! =)
 	 * @param delta is map resolution, not used yet
 	 * */
@@ -31,23 +34,17 @@ public class Kex implements Runnable {
 		this.endPos = endPos;
 		this.dt = dt;
 		
-		//find min and max X,Y
-		minX = polygonX.get(0);
-		maxX = polygonX.get(0);
-		minY = polygonY.get(0);
-		maxY = polygonY.get(0);
+		polygon = new Polygon();
 		
-		for(int i=0;i<polygonX.size();i++) {
-			if (polygonX.get(i) < minX)
-				minX = polygonX.get(i);
-			if (polygonX.get(i) > maxX)
-				maxX = polygonX.get(i);
-			if (polygonY.get(i) < minY)
-				minY = polygonY.get(i);
-			if (polygonY.get(i) > maxY)
-				maxY = polygonY.get(i);
+		for(int i = 0;i < polygonX.size();i++) {
+			polygon.addPoint(polygonX.get(i).intValue(), polygonY.get(i).intValue());
 		}
-
+		
+		System.out.println("KEX: polygon points = " + polygon.npoints);
+		
+		System.out.println("Polyhon test: (10,10)" + polygon.contains(10,10));
+		System.out.println("Polyhon test: (-10,-10)" + polygon.contains(-10,-10));
+		
 		System.out.println("Kex created");
 		
 	}
@@ -59,10 +56,7 @@ public class Kex implements Runnable {
 	
 	/**Checks if out of bounds */
 	private boolean oobCheck(double xpos, double ypos){
-		if (xpos < minX+2 || xpos > maxX-2 || ypos < minY+2 || ypos > maxX-2){
-			return true;
-		}
-		return false;
+		return polygon.contains(xpos, ypos);
 	}
 	
 	@Override
@@ -86,7 +80,7 @@ public class Kex implements Runnable {
 			//kexView.addData(xPos, yPos, depth);
 			
 			
-			if (oobCheck(xPos, yPos)){
+			if (!oobCheck(xPos, yPos)){
 				System.out.println("Fel index");
 				double newX = xPos  - 30*Math.cos(heading);
 				double newY = yPos  - 30*Math.sin(heading); 
@@ -98,9 +92,8 @@ public class Kex implements Runnable {
 				//System.out.println("LAND!");
 				//reverse back a bit
 				
-				double newHeading = heading - (1.0-Math.random())*Math.PI;
-				double newX = xPos + 10*Math.cos(newHeading);
-				double newY = yPos + 10*Math.sin(newHeading);
+				double newX = xPos  - 30*Math.cos(heading);
+				double newY = yPos  - 30*Math.sin(heading); 
 				boat.setWayPoint(newX, newY);
 				wayPoint[0]=newX;
 				wayPoint[1]=newY;

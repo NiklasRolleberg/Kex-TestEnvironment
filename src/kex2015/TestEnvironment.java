@@ -16,7 +16,7 @@ public class TestEnvironment {
 	Thread kexThread;
 	Thread viewThread;
 	
-	public TestEnvironment(String mapFile, ArrayList<Double> polygonX, ArrayList<Double> polygonY) {
+	public TestEnvironment(String mapFile, ArrayList<Double> polygonX, ArrayList<Double> polygonY, double startLong, double startLat) {
 		
 		/**Create map*/
 		//map = new Map("MapTest.csv");
@@ -24,7 +24,7 @@ public class TestEnvironment {
 
 		
 		/**Create boat*/
-		boat = new Boat(map, 25,30,30.0); //25
+		boat = new Boat(map, 25, startLong, startLat); //25
 		
 		/**Create kex*/
 		//polygon
@@ -167,16 +167,24 @@ public class TestEnvironment {
 		ArrayList<Double> X = new ArrayList<Double>();
 		ArrayList<Double> Y = new ArrayList<Double>();
 		
-		X.add(0.0);
-		X.add(0.0);
+		X.add(100.0);
 		X.add(200.0);
 		X.add(200.0);
+		X.add(100.0);
+		X.add(10.0);
+		X.add(10.0);
 		
-		Y.add(0.0);
+		Y.add(10.0);
+		Y.add(75.0);
+		Y.add(150.0);
 		Y.add(200.0);
-		Y.add(200.0);
-		Y.add(0.0);
-		TestEnvironment t = new TestEnvironment("test.csv", X , Y);
+		Y.add(150.0);
+		Y.add(75.0);
+		
+		double startLong = 100;
+		double startLat = 100;
+		
+		TestEnvironment t = new TestEnvironment("test.csv", X , Y, startLong, startLat);
 		
 		
 	}
