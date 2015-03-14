@@ -72,16 +72,30 @@ public class TestEnvironment {
 		//generate "islands" at radom places -> ser n�stan bra ut		
 		int islands = 600;
 		for(int k = 0; k<islands; k++) {
-			int posX = (int) (Math.random()*sizeX);
-			int posY = (int) (Math.random()*sizeY);
-			int r = (int)(Math.random()*(sizeX+sizeY)/10);
-			for(int i = 0; i<sizeX; i++) {
-				for(int j=0; j<sizeY; j++) {
-					if( (posX-i)*(posX-i) + (posY-j)*(posY-j) < r*r)
-						matrix[i][j] += Math.random();//0.5;
-				}
-			}
-		}
+            int posX = (int) (Math.random()*sizeX);
+            int posY = (int) (Math.random()*sizeY);
+            int r = (int)(Math.random()*(sizeX+sizeY)/10);
+
+            for (int i = posX - r; i < posX + r; i++) {
+                if (i < 0)
+                    continue;
+                if (i >= sizeX)
+                    continue;
+                for (int j = posY - r; j < posY + r; j++) {
+                    if (j < 0)
+                        continue;
+                    if (j >= sizeY)
+                        continue;
+
+                    if( (posX-i)*(posX-i) + (posY-j)*(posY-j) < r*r) {
+                        matrix[i][j] += Math.random();//0.5;
+                        if (matrix[i][j] > 0) {
+                            matrix[i][j] += 5.0;
+                        }
+                    }
+                }
+            }
+        }
 		
 		//push the world down a bit
 		/*
