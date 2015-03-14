@@ -1,54 +1,29 @@
-package kex2015;
+package algorithms;
 
 import java.awt.Polygon;
 import java.util.ArrayList;
-public class Kex implements Runnable {
-	
-	Boat boat;
-	
-	ArrayList<Double> polygonX;
-	ArrayList<Double> polygonY;
-	int[] endPos;
-	
-	double delta;
-	long dt;
-	
+
+import kex2015.Boat;
+
+public class RandomAlgorithm extends Kex {
+
 	boolean stop = false;
-	
-	private double minX;
-	private double maxX;
-	private double minY;
-	private double maxY;
-	
 	Polygon polygon;
 	
-	/**Main brain! =)
-	 * @param delta is map resolution, not used yet
-	 * */
-	public Kex(Boat inBoat, ArrayList<Double> x, ArrayList<Double> y , double delta , int[] endPos, long dt ) { //double?
+	
+	public RandomAlgorithm(Boat inBoat, ArrayList<Double> x,
+			ArrayList<Double> y, double delta, int[] endPos, long dt) {
+		super(inBoat, x, y, delta, endPos, dt);
 		
-		this.boat = inBoat;
-		this.polygonX = x;
-		this.polygonY = y;
-		this.delta = delta;
-		this.endPos = endPos;
-		this.dt = dt;
 		
 		polygon = new Polygon();
-		
 		for(int i = 0;i < polygonX.size();i++) {
 			polygon.addPoint(polygonX.get(i).intValue(), polygonY.get(i).intValue());
 		}
-		
-		System.out.println("KEX: polygon points = " + polygon.npoints);
-		
-		System.out.println("Polyhon test: (10,10)" + polygon.contains(10,10));
-		System.out.println("Polyhon test: (-10,-10)" + polygon.contains(-10,-10));
-		
-		System.out.println("Kex created");
-		
 	}
 
+	
+	/**should stop the thread*/
 	public void stop() {
 		System.out.println("KEX stop");
 		stop = true;
@@ -61,7 +36,6 @@ public class Kex implements Runnable {
 	
 	@Override
 	public void run() {
-		//kexViewThread.start();
 		
 		double[] wayPoint = {0, 0};
 		
@@ -76,10 +50,7 @@ public class Kex implements Runnable {
 			double x = wayPoint[0] - xPos;
 			double y = wayPoint[1] - yPos;
 			double d = Math.sqrt(x*x + y*y);
-			
-			//kexView.addData(xPos, yPos, depth);
-			
-			
+
 			if (!oobCheck(xPos, yPos)){
 				System.out.println("Fel index");
 				double newX = xPos  - 30*Math.cos(heading);
