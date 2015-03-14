@@ -1,12 +1,9 @@
 package kex2015;
 
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 import algorithms.Kex;
-import algorithms.RandomAlgorithm;
+import algorithms.*;
 
 public class TestEnvironment {
 	
@@ -32,7 +29,8 @@ public class TestEnvironment {
 		/**Create kex*/
 		//polygon
 		int[] endPos = {1,3};
-		kex = new RandomAlgorithm(boat, polygonX, polygonY , 0.24 , endPos , 100); //100
+		//kex = new RandomAlgorithm(boat, polygonX, polygonY , 0.24 , endPos , 100); //100
+		kex = new CirclePattern(boat, polygonX, polygonY , 0.24 , endPos , 100); //100
 		//kex = new Kex(boat, polygonX, polygonY , 0.24 , endPos , 100); //100
 		
 		/**Create view*/
@@ -89,16 +87,16 @@ public class TestEnvironment {
 		
 		X.add(10.0);
 		X.add(10.0);
-		X.add(500.0);
-		X.add(500.0);
+		X.add(750.0);
+		X.add(750.0);
 		
 		Y.add(10.0);
-		Y.add(500.0);
-		Y.add(500.0);
+		Y.add(750.0);
+		Y.add(750.0);
 		Y.add(10.0);
 		
-		double startLong = 100;
-		double startLat = 100;
+		double startLong = 300;
+		double startLat = 300;
 		
 		TestEnvironment t = new TestEnvironment("test.csv", X , Y, startLong, startLat);
 		

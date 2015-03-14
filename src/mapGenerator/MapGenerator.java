@@ -222,7 +222,7 @@ public class MapGenerator implements ActionListener{
 	class MapView extends JPanel{
 		JFrame mv_frame;
 		BufferedImage image;
-		int imageSize = 500;
+		int imageSize = 1000;
 		
 		MapView() {
 			

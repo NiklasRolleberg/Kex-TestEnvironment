@@ -6,7 +6,7 @@ public class Boat implements Runnable {
 	
 	private double[] position = {0,0};
 	private double[] wayPoint = {0,0};
-	public static double heading = 0;
+	public double heading = 0;
 	private double speed = 0;
 	private long lastUpdate = 0;
 	private double acceleration = 0;
@@ -120,7 +120,7 @@ public double[] getSensordata() {
 		//move the boat a bit at max speed or slower if the boat will overshoot the target before next update
 		speed = maxSpeed;
 		if(d < dt*maxSpeed/1000) {
-			speed = d/(((double)dt)/1000);
+			speed = maxSpeed/10;
 		}
 		
 		position[0] += speed * elapsedTime * Math.cos(heading);
