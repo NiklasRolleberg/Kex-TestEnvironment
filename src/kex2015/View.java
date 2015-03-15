@@ -84,7 +84,8 @@ public class View extends JFrame implements Runnable {
 		double dy = maxY-minY;
 		
 		if (dx != dy) {
-			if(dy > dx) {	
+			if(dy > dx) {
+				maxX = minX + dy;
 			}
 			else {
 				maxY = minY + dx;
