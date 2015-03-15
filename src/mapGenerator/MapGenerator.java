@@ -7,10 +7,18 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 
 
 import javax.swing.JButton;
@@ -30,7 +38,6 @@ public class MapGenerator implements ActionListener{
 		
 		System.out.println("MapGen");
 		this.fileName = fileName;
-		//this.main = main;
 		
 		//Grate window and content
 		JFrame frame = new JFrame();
@@ -219,12 +226,34 @@ public class MapGenerator implements ActionListener{
 	
 
 	
-	class MapView extends JPanel{
+	class MapView extends JPanel implements ActionListener, MouseListener{
+		
 		JFrame mv_frame;
+		JPanel buttonContainer;
+		JPanel container;
 		BufferedImage image;
-		int imageSize = 1000;
+		JButton readPolygon;
+		JButton createPolygon;
+		
+		double longStart;
+		double longStop;		
+		double latStart;
+		double latStop;
+		
+		double stepLong;
+		double stepLat;
+		
+		/*Size of map on screen*/
+		int imageSize = 700;
+		
+		ArrayList<Integer> polygonX;
+		ArrayList<Integer> polygonY;
+		
 		
 		MapView() {
+			
+			polygonX = new ArrayList<Integer>();
+			polygonY = new ArrayList<Integer>();
 			
 			//create image
 			Map map = new Map(fileName);
@@ -239,12 +268,12 @@ public class MapGenerator implements ActionListener{
 			
 			
 			double[] limits = map.getLimits();
-			double longStart = limits[0];
-			double longStop = limits[2];			
-			double latStart = limits[1];
-			double latStop = limits[3];
-			double stepLong = (longStop - longStart) / imageSize;
-			double stepLat = (latStop - latStart) / imageSize;			
+			longStart = limits[0];
+			longStop = limits[2];			
+			latStart = limits[1];
+			latStop = limits[3];
+			stepLong = (longStop - longStart) / imageSize;
+			stepLat = (latStop - latStart) / imageSize;			
 		
 			for(int x=0; x < imageSize; x++) {
 				for(int y=0; y < imageSize; y++) {
@@ -315,13 +344,30 @@ public class MapGenerator implements ActionListener{
 			}
 			
 			
-			//create JFrame and panel
+			//create JFrame and panel and buttons
 			mv_frame = new JFrame();
 			mv_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			
+			buttonContainer = new JPanel();
+			container = new JPanel();
+			container.setLayout(new BorderLayout());
+			readPolygon = new JButton("Read polygon from file");
+			createPolygon = new JButton("Save polygon to file");
 			
-			mv_frame.add(this);
+			readPolygon.addActionListener(this);
+			createPolygon.addActionListener(this);
+			
+			buttonContainer.add(readPolygon);
+			buttonContainer.add(createPolygon);
+			
+			
+			container.add(this, BorderLayout.CENTER);
+			container.add(buttonContainer, BorderLayout.SOUTH);
+			
 			this.setPreferredSize(new Dimension(imageSize,imageSize));
+			this.addMouseListener(this);
+			
+			mv_frame.add(container);
 			mv_frame.pack();
 			mv_frame.setVisible(true);
 		}
@@ -329,6 +375,167 @@ public class MapGenerator implements ActionListener{
 		
 		@Override public void paint(Graphics g) {
 			g.drawImage(image, 0, 0, null);
+			
+			if (polygonX.size() == 0)
+				return;
+			
+			for(int i=0;i< polygonX.size()-1;i++) {
+				int x0 = polygonX.get(i);
+				int y0 = polygonY.get(i);
+				
+				int x1 = polygonX.get(i+1);
+				int y1 = polygonY.get(i+1);
+				g.setColor(Color.RED);
+				g.drawLine(x0, y0, x1, y1);
+			}
+			g.setColor(Color.GRAY);
+			g.drawLine(polygonX.get(polygonX.size()-1), polygonY.get(polygonX.size()-1)
+									,polygonX.get(0), polygonY.get(0));
+		}
+		
+		private void read() 
+		{
+			polygonX.clear();
+			polygonY.clear();
+			
+			ArrayList<Double> tempX = null;
+			ArrayList<Double> tempY = null;
+			
+			try
+			{
+				//read X
+				FileInputStream fileInX = new FileInputStream("polygonx.ser");
+				ObjectInputStream inX = new ObjectInputStream(fileInX);
+				tempX = (ArrayList<Double>) inX.readObject();
+				inX.close();
+				fileInX.close();
+				
+				for(int i=0;i<tempX.size();i++)
+				{
+					int xval = (int) ((tempX.get(i)-longStart)/stepLong);	
+					polygonX.add(xval);	
+				}	
+
+				
+				//read Y
+				FileInputStream fileInY = new FileInputStream("polygony.ser");
+				ObjectInputStream inY = new ObjectInputStream(fileInY);
+				inY = new ObjectInputStream(fileInY);
+				tempY = (ArrayList<Double>) inY.readObject();
+				inY.close();
+				fileInY.close();
+				
+				for(int i=0;i<tempY.size();i++) 
+				{
+					int yval = (int) ((tempY.get(i)-latStart)/stepLat);
+					polygonY.add(yval);
+				}
+				
+			}catch(IOException i)
+			{
+				i.printStackTrace();
+				return;
+			}catch(ClassNotFoundException c)
+			{
+				System.out.println("class not found");
+				c.printStackTrace();
+				return;
+			}
+			//print
+			System.out.println("Det kan ha funkat");
+		}
+
+		
+		private void write() {
+			ArrayList<Double> X =  new ArrayList<Double>();
+			ArrayList<Double> Y =  new ArrayList<Double>();
+			
+			for(int i=0;i<polygonX.size();i++) {
+				double longitude = longStart + stepLong* polygonX.get(i);
+				double latitude = latStart + stepLat*polygonY.get(i);
+				
+				X.add(longitude);
+				Y.add(latitude);
+			}
+			try
+			{
+				//write x
+				FileOutputStream fileOutX = new FileOutputStream("polygonx.ser");
+				ObjectOutputStream outX = new ObjectOutputStream(fileOutX);
+				outX.writeObject(X);
+				outX.close();
+				fileOutX.close();
+				System.out.println("Serialized data is saved in polygonx.ser");
+	         
+				//write y
+				FileOutputStream fileOutY = new FileOutputStream("polygony.ser");
+				ObjectOutputStream outY = new ObjectOutputStream(fileOutY);
+				outY = new ObjectOutputStream(fileOutY);
+				outY.writeObject(Y);
+				outY.close();
+				fileOutY.close();
+				System.out.println("Serialized data is saved in polygony.ser");
+			}catch(IOException i)
+			{
+				i.printStackTrace();
+			}
+		}
+		
+		@Override
+		public void actionPerformed(ActionEvent a) {
+			// TODO Auto-generated method stub
+			if(a.getActionCommand() == "Read polygon from file"){
+				System.out.println("read file");
+				read();
+				super.repaint();
+			}
+			
+			if(a.getActionCommand() == "Save polygon to file"){
+				System.out.println("write file");
+				write();
+			}
+		}
+
+
+		@Override
+		public void mouseClicked(MouseEvent m) {
+			// TODO Auto-generated method stub
+			
+			System.out.println("Mouse click at: (" + m.getX() + "," + m.getY() + ")");
+			
+			polygonX.add(m.getX());
+			polygonY.add(m.getY());
+			
+			super.repaint();
+			
+		}
+
+
+		@Override
+		public void mouseEntered(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+
+		@Override
+		public void mouseExited(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+
+		@Override
+		public void mousePressed(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+
+		@Override
+		public void mouseReleased(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
 		}
 		
 	}

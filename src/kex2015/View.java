@@ -79,6 +79,18 @@ public class View extends JFrame implements Runnable {
 				maxY = polygonY.get(i);
 		}
 		
+		//change values to get a square area if possible
+		double dx = maxX-minX;
+		double dy = maxY-minY;
+		
+		if (dx != dy) {
+			if(dy > dx) {	
+			}
+			else {
+				maxY = minY + dx;
+			}
+		}
+
 		
 		double[] limits = seafloor.getLimits();
 		longStart = limits[0];
@@ -97,7 +109,7 @@ public class View extends JFrame implements Runnable {
 			latStart = minY-5;
 		if (maxY+5 < latStop)
 			latStop = maxY+5;
-		
+
 		stepLong = (longStop - longStart) / size;
 		stepLat = (latStop - latStart) / size;
 		

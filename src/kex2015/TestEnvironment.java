@@ -1,8 +1,9 @@
 package kex2015;
 
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 
-import algorithms.Kex;
 import algorithms.*;
 
 public class TestEnvironment {
@@ -58,6 +59,8 @@ public class TestEnvironment {
 		view.stop();
 	}
 	
+	
+	
 
 	/**
 	 * @param args
@@ -65,38 +68,69 @@ public class TestEnvironment {
 	public static void main(String[] args) {
 		System.out.println("JAG LEVER!");
 		
-		//generateRandomMap(1000,1000,"test.csv");
+		
 		
 		ArrayList<Double> X = new ArrayList<Double>();
 		ArrayList<Double> Y = new ArrayList<Double>();
-		/*
-		X.add(100.0);
-		X.add(200.0);
-		X.add(200.0);
-		X.add(100.0);
-		X.add(10.0);
-		X.add(10.0);
 		
-		Y.add(10.0);
-		Y.add(75.0);
-		Y.add(150.0);
-		Y.add(200.0);
-		Y.add(150.0);
-		Y.add(75.0);
-		*/
+		//try to read polygon from fileprivate void read() 
+		boolean fail = false;
+			
+		try
+		{
+			//read X
+			FileInputStream fileInX = new FileInputStream("polygonx.ser");
+			ObjectInputStream inX = new ObjectInputStream(fileInX);
+			X = (ArrayList<Double>) inX.readObject();
+			inX.close();
+			fileInX.close();
+			
+			//read Y
+			FileInputStream fileInY = new FileInputStream("polygony.ser");
+			ObjectInputStream inY = new ObjectInputStream(fileInY);
+			inY = new ObjectInputStream(fileInY);
+			Y = (ArrayList<Double>) inY.readObject();
+			inY.close();
+			fileInY.close();	
+			
+		}catch(Exception e)
+		{
+			//e.printStackTrace();
+			
+			System.err.println("Fileread failed, taking default polygon values");
+			
+			fail = true;
+		}
+		/*default values*/
+		if(fail) {
+			X.clear();
+			Y.clear();
+			
+			X.add(10.0);
+			X.add(10.0);
+			X.add(100.0);
+			X.add(100.0);
+			
+			Y.add(10.0);
+			Y.add(100.0);
+			Y.add(100.0);
+			Y.add(10.0);	
+		}
 		
-		X.add(10.0);
-		X.add(10.0);
-		X.add(750.0);
-		X.add(750.0);
+		//find a start pos
+		double meanX = 0;
+		double meanY = 0;
+		for(int i = 0; i<X.size();i++) {
+			meanX += X.get(i);
+			meanY += Y.get(i);
+		}
+		meanX *= 1.0/X.size();
+		meanY *= 1.0/X.size();
 		
-		Y.add(10.0);
-		Y.add(750.0);
-		Y.add(750.0);
-		Y.add(10.0);
 		
-		double startLong = 300;
-		double startLat = 300;
+		
+		double startLong = meanX;
+		double startLat = meanY;
 		
 		TestEnvironment t = new TestEnvironment("test.csv", X , Y, startLong, startLat);
 		
