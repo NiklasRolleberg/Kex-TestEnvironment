@@ -1,5 +1,6 @@
 package kex2015;
 
+import java.awt.Color;
 import java.util.ArrayList;
 
 public class Boat implements Runnable {
@@ -82,7 +83,7 @@ public class Boat implements Runnable {
 	 * 4: sonar 1 (depth)
 	 * 5: sonar 2 (forward)
 	 */
-public double[] getSensordata() {
+	public double[] getSensordata() {
 		
 		double[] r = new double[6];
 		r[0] = this.position[0];
@@ -90,8 +91,39 @@ public double[] getSensordata() {
 		r[2] = this.heading;
 		r[3] = this.speed;
 		r[4] = map.getDepth(this.position[0], this.position[1]);
-		r[5] = 0;
+		r[5] = getFrontSonarData();
 		return r;
+	}
+	
+	//TODO gör om med fler punkter om det är möjligt utan prestandaförlust
+	private double getFrontSonarData() {
+		
+		double depth = map.getDepth(this.position[0], this.position[1]);
+		
+		double deg = 20*(Math.PI / 180);
+		double dist = -depth* Math.tan(deg);
+		double posLong = position[0] + dist*Math.cos(heading);
+		double posLat = position[1] + dist*Math.sin(heading);
+		double depth1 = map.getDepth(posLong, posLat);
+		double ray1 = Math.sqrt(dist*dist * depth1*depth1);
+		
+		deg = 50*(Math.PI / 180);
+		dist = -depth* Math.tan(deg);
+		posLong = position[0] + dist*Math.cos(heading);
+		posLat = position[1] + dist*Math.sin(heading);
+		double depth2 = map.getDepth(posLong, posLat);
+		double ray2 = Math.sqrt(dist*dist * depth2*depth2);
+		
+		deg = 80*(Math.PI / 180);
+		dist = -depth* Math.tan(deg);
+		posLong = position[0] + dist*Math.cos(heading);
+		posLat = position[1] + dist*Math.sin(heading);
+		double depth3 = map.getDepth(posLong, posLat);
+		double ray3 = Math.sqrt(dist*dist * depth3*depth3);
+		
+		//System.out.println("Sensor: down= " + depth + "\t ray1= " + ray1 + "\t ray2= " + ray2 + "\t ray3= " + ray3);
+		
+		return Math.min(Math.min(ray1, ray2), ray3);
 	}
 	
 	private void updatePos() {

@@ -23,7 +23,30 @@ public class Map {
 	
 	/**Returns the depth at the specified x,y index*/
 	public double getDepth(double x, double y){
-		return mapData[(int)y][(int)x];
+		return mapData[(int)x][(int)y];
+		/*
+		int x0 = (int) x;
+		int x1 = x0 +1;
+		
+		int y0 = (int) y;
+		int y1 = y0 +1;
+		
+		double r0 = Math.sqrt( (x-x0)*(x-x0) + (y-y0)*(y-y0));
+		double r1 = Math.sqrt( (x-x1)*(x-x1) + (y-y0)*(y-y0));
+		double r2 = Math.sqrt( (x-x1)*(x-x1) + (y-y1)*(y-y1));
+		double r3 = Math.sqrt( (x-x0)*(x-x0) + (y-y1)*(y-y1));
+		
+		double rot = Math.sqrt(2.0);
+		
+		try {
+			double dr0 = mapData[x0][y0] * ((rot-r0) / rot);
+			double dr1 = mapData[x1][y0] * ((rot-r1) / rot);
+			double dr2 = mapData[x1][y1] * ((rot-r2) / rot);
+			double dr3 = mapData[x0][y1] * ((rot-r3) / rot);
+		return (dr0 + dr1 + dr2 + dr3);
+		} catch (Exception e) {}
+		return -20;
+		*/
 	}
 	
 	public double[] getLimits(){

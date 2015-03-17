@@ -308,7 +308,32 @@ public class View extends JFrame implements Runnable {
 			
 			double[] waypoint = boat.getWaypoint();
 			
-			g2d.drawOval((int)((waypoint[0] - longStart)/stepLong), (int)((waypoint[1] - latStart)/stepLat), 10, 10);
+			g2d.drawOval((int)((waypoint[0] - longStart)/stepLong)-5, (int)((waypoint[1] - latStart)/stepLat)-5, 10, 10);
+			
+			
+			//draw points for front sonar
+			/*
+			double depth = seaFloor.getDepth(boatpos[0], boatpos[1]) ;
+			double deg = 20*(Math.PI / 180);
+			double dist = -depth* Math.tan(deg);
+			g2d.setColor(Color.BLACK);
+			double posLong = boatpos[0] + dist*Math.cos(boat.heading);
+			double posLat = boatpos[1] + dist*Math.sin(boat.heading);
+			g2d.fillOval((int)((posLong - longStart)/stepLong)-2, (int)((posLat - latStart)/stepLat)-2, 4, 4);
+			
+
+			deg = 50*(Math.PI / 180);
+			dist = -depth* Math.tan(deg);
+			posLong = boatpos[0] + dist*Math.cos(boat.heading);
+			posLat = boatpos[1] + dist*Math.sin(boat.heading);
+			g2d.fillOval((int)((posLong - longStart)/stepLong)-2, (int)((posLat - latStart)/stepLat)-2, 4, 4);
+
+			deg = 80*(Math.PI / 180);
+			dist = -depth* Math.tan(deg);
+			posLong = boatpos[0] + dist*Math.cos(boat.heading);
+			posLat = boatpos[1] + dist*Math.sin(boat.heading);
+			g2d.fillOval((int)((posLong - longStart)/stepLong)-2, (int)((posLat - latStart)/stepLat)-2, 4, 4);
+			*/
 		}
 	}
 }
