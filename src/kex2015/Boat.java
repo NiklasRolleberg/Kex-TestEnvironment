@@ -13,6 +13,7 @@ public class Boat implements Runnable {
 	private double acceleration = 0;
 	private double turningspeed = 0;
 	private double maxSpeed = 30;
+	private double targetSpeed = 30;
 	private double maxAcc = 0;
 	
 	private long dt = 100;
@@ -52,10 +53,14 @@ public class Boat implements Runnable {
 	public void setWayPoint(double longitude, double latitude) {
 		wayPoint[0] = longitude;
 		wayPoint[1] = latitude;
-		/*
-		xPos.set(0, wayPoint[0]);
-		yPos.set(0, wayPoint[1]);*/
-		
+	}
+	
+	/**
+	 * @param speed
+	 * speed for boat
+	 */
+	public void setTargetSpeed(double speed) {
+		this.targetSpeed = speed;
 	}
 	
 	/**
@@ -150,8 +155,8 @@ public class Boat implements Runnable {
 		}
 		
 		//move the boat a bit at max speed or slower if the boat will overshoot the target before next update
-		speed = maxSpeed;
-		if(d < dt*maxSpeed/1000) {
+		speed = Math.min(maxSpeed, targetSpeed);
+		if(d < dt*speed/1000) {
 			speed = maxSpeed/10;
 		}
 		
