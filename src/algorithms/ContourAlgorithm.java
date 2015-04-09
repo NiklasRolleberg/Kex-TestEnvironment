@@ -31,12 +31,15 @@ public class ContourAlgorithm extends Kex {
 		double[] initialSensorData = boat.getSensordata();
 	
 		double targetDepth = initialSensorData[4];
-		double tol = 0.1;
+		double tol = 0.5;
 		
 		double lastDepth = initialSensorData[4];
 		
 		boat.setWayPoint(initialSensorData[0] + 100, initialSensorData[1] + 100);
-		boat.setTargetSpeed(3);
+		boat.setTargetSpeed(Math.abs(lastDepth));
+		
+		double lookAngle = Math.PI/8;
+		double turnAngle = Math.PI/16;
 		
 		while(!stop) {
 			
@@ -45,6 +48,7 @@ public class ContourAlgorithm extends Kex {
 			double yPos = sensorData[1];
 			double depth = sensorData[4];
 			double heading = sensorData[2];
+			boat.setTargetSpeed(-depth);
 			
 			//at target depth keep driving in that direction
 			if(Math.abs(depth-targetDepth) < tol) {
@@ -59,20 +63,20 @@ public class ContourAlgorithm extends Kex {
 				double data[] = boat.getSensordata();
 				
 				//check depth to the right
-				boat.setWayPoint(data[0] + Math.cos(heading + Math.PI/8) * 50, data[1] + Math.sin(heading + Math.PI/8) * 50);
-				sleep(dt/3);
+				boat.setWayPoint(data[0] + Math.cos(heading + lookAngle) * 50, data[1] + Math.sin(heading + lookAngle) * 50);
+				sleep(dt/4);
 				frontsonarDataRight = boat.getSensordata()[5];
 				
 				//check data to the left
 				data = boat.getSensordata();
-				boat.setWayPoint(data[0] + Math.cos(heading - Math.PI/8) * 50, data[1] + Math.sin(heading - Math.PI/8) * 50);
-				sleep(dt/3);
+				boat.setWayPoint(data[0] + Math.cos(heading - lookAngle) * 50, data[1] + Math.sin(heading - lookAngle) * 50);
+				sleep(dt/2);
 				frontsonarDataLeft = boat.getSensordata()[5];
 				
 				//check data forward
 				data = boat.getSensordata();
 				boat.setWayPoint(data[0] + Math.cos(heading) * 50, data[1] + Math.sin(heading) * 50);
-				sleep(dt/3);
+				sleep(dt/4);
 				frontsonarDataForward = boat.getSensordata()[5];
 				
 				System.out.println(""+frontsonarDataForward + "\t" + frontsonarDataRight + "\t" + frontsonarDataLeft);
@@ -88,13 +92,13 @@ public class ContourAlgorithm extends Kex {
 					
 					//depth deepest to the right
 					else if((frontsonarDataRight >= frontsonarDataLeft) && (frontsonarDataRight >= frontsonarDataForward)) {
-						boat.setWayPoint(data[0] + Math.cos(data[2] + Math.PI/16) * 50, data[1] + Math.sin(data[2] + Math.PI/16) * 50);
+						boat.setWayPoint(data[0] + Math.cos(heading + turnAngle) * 50, data[1] + Math.sin(heading + turnAngle) * 50);
 						System.out.println("Right");
 					}
 					
 					//data deepest to the left
 					else if((frontsonarDataLeft >= frontsonarDataRight) && (frontsonarDataLeft >= frontsonarDataForward)) {
-						boat.setWayPoint(data[0] + Math.cos(data[2] - Math.PI/16) * 50, data[1] + Math.sin(data[2] - Math.PI/16) * 50);
+						boat.setWayPoint(data[0] + Math.cos(heading - turnAngle) * 50, data[1] + Math.sin(heading - turnAngle) * 50);
 						System.out.println("Left");
 					}
 					else{ 
@@ -115,13 +119,13 @@ public class ContourAlgorithm extends Kex {
 					
 					//depth most shallow to the right
 					else if((frontsonarDataRight <= frontsonarDataLeft) && (frontsonarDataRight <= frontsonarDataForward)) {
-						boat.setWayPoint(data[0] + Math.cos(data[2] - Math.PI/32) * 50, data[1] + Math.sin(data[2] - Math.PI/32) * 50);
+						boat.setWayPoint(data[0] + Math.cos(heading - turnAngle) * 50, data[1] + Math.sin(heading - turnAngle) * 50);
 						System.out.println("Right");
 					}
 					
 					//data most shallow to the left
 					else if((frontsonarDataLeft <= frontsonarDataRight) && (frontsonarDataLeft <= frontsonarDataForward)) {
-						boat.setWayPoint(data[0] + Math.cos(data[2] + Math.PI/32) * 50, data[1] + Math.sin(data[2] + Math.PI/32) * 50);
+						boat.setWayPoint(data[0] + Math.cos(heading + turnAngle) * 50, data[1] + Math.sin(heading + turnAngle) * 50);
 						System.out.println("Left");
 					}
 					else{ 
