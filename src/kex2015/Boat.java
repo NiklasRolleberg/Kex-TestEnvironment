@@ -112,14 +112,14 @@ public class Boat implements Runnable {
 		double depth1 = map.getDepth(posLong, posLat);
 		double ray1 = Math.sqrt(dist*dist * depth1*depth1);
 		
-		deg = 50*(Math.PI / 180);
+		deg = 40*(Math.PI / 180);
 		dist = -depth* Math.tan(deg);
 		posLong = position[0] + dist*Math.cos(heading);
 		posLat = position[1] + dist*Math.sin(heading);
 		double depth2 = map.getDepth(posLong, posLat);
 		double ray2 = Math.sqrt(dist*dist * depth2*depth2);
 		
-		deg = 80*(Math.PI / 180);
+		deg = 60*(Math.PI / 180);
 		dist = -depth* Math.tan(deg);
 		posLong = position[0] + dist*Math.cos(heading);
 		posLat = position[1] + dist*Math.sin(heading);
