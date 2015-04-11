@@ -5,21 +5,21 @@ import java.util.ArrayList;
 
 public class Boat implements Runnable {
 	
-	private double[] position = {0,0};
+	protected double[] position = {0,0};
 	private double[] wayPoint = {0,0};
 	public double heading = 0;
-	private double speed = 0;
-	private long lastUpdate = 0;
-	private double acceleration = 0;
-	private double turningspeed = 0;
-	private double maxSpeed = 30;
-	private double targetSpeed = 30;
-	private double maxAcc = 0;
+	protected double speed = 0;
+	protected long lastUpdate = 0;
+	protected double acceleration = 0;
+	protected double turningspeed = 0;
+	protected double maxSpeed = 30;
+	protected double targetSpeed = 30;
+	protected double maxAcc = 0;
 	
-	private long dt = 100;
-	private boolean stop = false;
+	protected long dt = 100;
+	protected boolean stop = false;
 	
-	private Map map;
+	protected Map map;
 	/*
 	public static ArrayList<Double> xPos;
 	public static ArrayList<Double> yPos;*/

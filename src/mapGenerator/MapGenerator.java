@@ -82,6 +82,7 @@ public class MapGenerator implements ActionListener{
 				return;
 			
 			generateRandomMap(s,s,fileName);
+			//generateContourTestMap(s,s,fileName);
 			
 		}
 		else if(arg0.getActionCommand()  == "Show map") {
@@ -221,6 +222,114 @@ public class MapGenerator implements ActionListener{
 		
 	}
 
+	/**Generate a random enviroment and save it as a csv file*/
+	private void generateContourTestMap(int sizeX, int sizeY, String fileName) {
+		
+		//Matrix to store values
+		Double[][] matrix = new Double[sizeX][sizeY];
+		
+		//Generate depth
+		for(int i = 0; i<sizeX; i++) {
+			for(int j=0; j<sizeY; j++) {
+				matrix[i][j] = 15.;
+			}
+		}
+		
+		//Generate Hole
+		int r = Math.min(sizeX, sizeY);
+		int posX = sizeX/2;
+		int posY = sizeY/2;
+		
+		while (r > 4 ) {
+			
+			for (int i = posX - r; i < posX + r; i++) {
+				if (i < 0)
+					continue;
+				if (i >= sizeX)
+					continue;
+				for (int j = posY - r; j < posY + r; j++) {
+					if (j < 0)
+						continue;
+					if (j >= sizeY)
+						continue;
+					if( (posX-i)*(posX-i) + (posY-j)*(posY-j) < r*r)
+						if(r > Math.min(sizeY, sizeY) / 3)
+							matrix[i][j] -= 0.5;// Math.random();//0.5;
+						else
+							matrix[i][j] += 1;// 
+				}
+			}
+			
+			r-=10;
+		}
+		
+		
+		
+		/*
+		//raise the land a bit to make more distinct islands  
+		for(int i=1; i<sizeX-1; i++) {
+			for(int j=1; j<sizeY-1; j++) {
+				if(matrix[i][j] > 0) {
+					matrix[i][j] += 5.0;
+				}
+			}
+		}
+		*/
+		
+		//smoth out the matrix
+		for(int k = 0; k < 20; k++ ) {
+			
+			int pr = (int)((k/20f)*100);
+			System.out.println("fixing map: " + pr + "%");
+			
+			for(int i=1; i<sizeX-1; i++) {
+				for(int j=1; j<sizeY-1; j++) {
+					
+					//TODO testa att r�kna med diagonaler ocks�
+					double  mean= (matrix[i+1][j]
+								 +matrix[i-1][j]
+							  	 +matrix[i][j+1]
+								 +matrix[i][j-1])/4;
+					
+					matrix[i][j] += (mean-matrix[i][j]);
+				}
+			}
+		}
+		
+		
+		System.out.println("Generation done");
+		System.out.println("Writing to file..");
+		
+		/*Write file*/
+		PrintWriter writer;
+		
+		try {
+			writer = new PrintWriter(fileName, "UTF-8");
+			for(int i = 0; i<sizeX; i++) {
+				if((i % ((int) (sizeX/10))) == 0)
+				{
+					int pr = (int)((i/(sizeX/10))*10);
+					System.out.println("writing map: " + pr + "%");
+				}
+				
+				StringBuilder line = new StringBuilder();
+				for(int j=0; j<(sizeY-1); j++) {
+					line.append(matrix[i][j] + " ,");
+				}
+				line.append(" " + matrix[i][sizeY-1]);
+				writer.println(line.toString());
+			}
+			writer.close();
+			System.out.println("new map created");
+			
+		} catch (FileNotFoundException e) {
+			System.out.println("FileNotFound");
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			System.out.println("UnsupportedEncodingException");
+			e.printStackTrace();
+		}
+	}
 
 
 	
