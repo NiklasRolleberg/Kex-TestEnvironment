@@ -38,7 +38,7 @@ public class TwoFrontSonarContourAlgorithm extends Kex {
 		boat.setWayPoint(initialSensorData[0] + 100, initialSensorData[1] + 100);
 		boat.setTargetSpeed(Math.abs(lastDepth*2));
 		
-		double turnAngle = -Math.PI/16;
+		double turnAngle = Math.PI/16;
 		
 		while(!stop) {
 			
@@ -97,14 +97,14 @@ public class TwoFrontSonarContourAlgorithm extends Kex {
 					System.out.println("Go to shallower water");
 					
 					//depth most shallow to the right
-					if(frontsonarDataRight <= frontsonarDataLeft) {
-						boat.setWayPoint(data[0] + Math.cos(heading - turnAngle) * 50, data[1] + Math.sin(heading - turnAngle) * 50);
+					if(frontsonarDataRight < frontsonarDataLeft) {
+						boat.setWayPoint(data[0] + Math.cos(heading + turnAngle) * 50, data[1] + Math.sin(heading + turnAngle) * 50);
 						System.out.println("Right");
 					}
 					
 					//data most shallow to the left
-					if(frontsonarDataLeft <= frontsonarDataRight) {
-						boat.setWayPoint(data[0] + Math.cos(heading + turnAngle) * 50, data[1] + Math.sin(heading + turnAngle) * 50);
+					else if(frontsonarDataLeft < frontsonarDataRight) {
+						boat.setWayPoint(data[0] + Math.cos(heading - turnAngle) * 50, data[1] + Math.sin(heading - turnAngle) * 50);
 						System.out.println("Left");
 					}
 					//both values equal, choose random
