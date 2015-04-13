@@ -31,7 +31,7 @@ public class TwoFrontSonarContourAlgorithm extends Kex {
 		double[] initialSensorData = boat.getSensordata();
 	
 		double targetDepth = initialSensorData[4];
-		double tol = 0.5;
+		double tol = 0.1;
 		
 		double lastDepth = initialSensorData[4];
 		
@@ -56,6 +56,7 @@ public class TwoFrontSonarContourAlgorithm extends Kex {
 			} 
 			//not at target depth, check which side is deeper, and turn towards/ from it
 			else {
+				
 				double frontsonarDataRight;// = initialSensorData[5];
 				double frontsonarDataLeft;// = initialSensorData[5];
 				double data[] = boat.getSensordata();

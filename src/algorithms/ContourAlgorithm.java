@@ -31,15 +31,15 @@ public class ContourAlgorithm extends Kex {
 		double[] initialSensorData = boat.getSensordata();
 	
 		double targetDepth = initialSensorData[4];
-		double tol = 0.5;
+		double tol = 0.1;
 		
 		double lastDepth = initialSensorData[4];
 		
 		boat.setWayPoint(initialSensorData[0] + 100, initialSensorData[1] + 100);
 		boat.setTargetSpeed(Math.abs(lastDepth));
 		
-		double lookAngle = Math.PI/8;
-		double turnAngle = Math.PI/16;
+		double lookAngle = -Math.PI/16;
+		double turnAngle = -Math.PI/16;
 		
 		while(!stop) {
 			
@@ -85,19 +85,19 @@ public class ContourAlgorithm extends Kex {
 				if(data[4] > targetDepth) {
 					System.out.println("Go to deeper water");
 					//depth deepest forward
-					if((frontsonarDataForward >= frontsonarDataLeft) && (frontsonarDataForward >= frontsonarDataRight)) {
+					if((frontsonarDataForward > frontsonarDataLeft) && (frontsonarDataForward > frontsonarDataRight)) {
 						boat.setWayPoint(data[0] + Math.cos(heading) * 50, data[1] + Math.sin(heading) * 50);
 						System.out.println("Forward");
 					}
 					
-					//depth deepest to the right
-					else if((frontsonarDataRight >= frontsonarDataLeft) && (frontsonarDataRight >= frontsonarDataForward)) {
+					//deepest to the right
+					else if((frontsonarDataRight > frontsonarDataLeft) && (frontsonarDataRight > frontsonarDataForward)) {
 						boat.setWayPoint(data[0] + Math.cos(heading + turnAngle) * 50, data[1] + Math.sin(heading + turnAngle) * 50);
 						System.out.println("Right");
 					}
 					
-					//data deepest to the left
-					else if((frontsonarDataLeft >= frontsonarDataRight) && (frontsonarDataLeft >= frontsonarDataForward)) {
+					//deepest to the left
+					else if((frontsonarDataLeft > frontsonarDataRight) && (frontsonarDataLeft > frontsonarDataForward)) {
 						boat.setWayPoint(data[0] + Math.cos(heading - turnAngle) * 50, data[1] + Math.sin(heading - turnAngle) * 50);
 						System.out.println("Left");
 					}
@@ -111,21 +111,21 @@ public class ContourAlgorithm extends Kex {
 					
 					System.out.println("Go to shallower water");
 					
-					//depth most shallow forward
-					if((frontsonarDataForward <= frontsonarDataLeft) && (frontsonarDataForward <= frontsonarDataRight)) {
+					//most shallow forward
+					if((frontsonarDataForward < frontsonarDataLeft) && (frontsonarDataForward < frontsonarDataRight)) {
 						boat.setWayPoint(data[0] + Math.cos(heading) * 50, data[1] + Math.sin(heading) * 50);
 						System.out.println("Forward");
 					}
 					
-					//depth most shallow to the right
-					else if((frontsonarDataRight <= frontsonarDataLeft) && (frontsonarDataRight <= frontsonarDataForward)) {
-						boat.setWayPoint(data[0] + Math.cos(heading - turnAngle) * 50, data[1] + Math.sin(heading - turnAngle) * 50);
+					//most shallow to the right
+					else if((frontsonarDataRight < frontsonarDataLeft) && (frontsonarDataRight < frontsonarDataForward)) {
+						boat.setWayPoint(data[0] + Math.cos(heading + turnAngle) * 50, data[1] + Math.sin(heading + turnAngle) * 50);
 						System.out.println("Right");
 					}
 					
-					//data most shallow to the left
-					else if((frontsonarDataLeft <= frontsonarDataRight) && (frontsonarDataLeft <= frontsonarDataForward)) {
-						boat.setWayPoint(data[0] + Math.cos(heading + turnAngle) * 50, data[1] + Math.sin(heading + turnAngle) * 50);
+					//most shallow to the left
+					else if((frontsonarDataLeft < frontsonarDataRight) && (frontsonarDataLeft < frontsonarDataForward)) {
+						boat.setWayPoint(data[0] + Math.cos(heading - turnAngle) * 50, data[1] + Math.sin(heading - turnAngle) * 50);
 						System.out.println("Left");
 					}
 					else{ 

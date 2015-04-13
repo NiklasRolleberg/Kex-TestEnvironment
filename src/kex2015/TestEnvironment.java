@@ -26,17 +26,23 @@ public class TestEnvironment {
 		
 		/**Create boat*/
 		boat = new Boat(map, 25, startLong, startLat); //25
+		//boat = new TwoFrontSonarBoat(map, 25, startLong, startLat); //25
 		
 		/**Create kex*/
 		//polygon
 		int[] endPos = {1,3};
 		//kex = new RandomAlgorithm(boat, polygonX, polygonY , 0.24 , endPos , 100); //100
 		//kex = new CirclePattern(boat, polygonX, polygonY , 0.24 , endPos , 100); //100
-		kex = new ContourAlgorithm(boat, polygonX, polygonY , 0.24 , endPos , 100);
+		//kex = new ContourAlgorithm(boat, polygonX, polygonY , 0.24 , endPos , 100);
 		//kex = new Kex(boat, polygonX, polygonY , 0.24 , endPos , 100); //100
 		//kex = new TurningAlgorithm(boat, polygonX,polygonY, 0.24,endPos,100);
 		//kex = new InverseCircleAlgorithm(boat, polygonX,polygonY, 0.24,endPos,100);
+		kex = new LawnMoverPattern(boat, polygonX,polygonY, 0.24,endPos,100);
 		
+		//for twofrontsonarboat
+		//kex = new TwoFrontSonarContourAlgorithm(boat, polygonX, polygonY , 0.24 , endPos , 100);
+				
+				
 		/**Create view*/
 		view = new View(map, boat,20 , polygonX, polygonY);
 		
