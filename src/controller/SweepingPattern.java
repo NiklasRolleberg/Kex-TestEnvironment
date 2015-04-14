@@ -25,18 +25,18 @@ public class SweepingPattern extends SearchPattern {
 			
 			if(rightSide && travelToNextLine) {
 				targetY +=delta;
-				//targetX = region.findX(targetY,true);
+				targetX = region.findX(targetY,true);
 				rightSide = true;
 				travelToNextLine = false;
 			}
 			else if(rightSide && !travelToNextLine) {
-				//targetX = region.findX(targetY,false);
+				targetX = region.findX(targetY,false);
 				rightSide = false;
 				travelToNextLine = true;
 			}
 			else if(!rightSide && travelToNextLine) {
 				targetY+=delta;
-				//targetX = region.findX(targetY,false);
+				targetX = region.findX(targetY,false);
 				rightSide = false;
 				travelToNextLine = false;
 			}
@@ -60,7 +60,7 @@ public class SweepingPattern extends SearchPattern {
 	}
 	
 	/**Gives the boat coordinates to travel to, this method should handle contour following*/
-	private boolean travelToPoint(double x, double y) {
+	private boolean travelToPoint(double x, double y) { //xDir == true -> crossing the region from left to right
 		
 		double[] data;
 		
@@ -68,6 +68,7 @@ public class SweepingPattern extends SearchPattern {
 			data = kex.getData();
 			double xDist = data[0]-x;
 			double yDist = data[1]-y;
+			//kex.setSpeed(100);
 			
 			//target reached
 			if(Math.sqrt(xDist*xDist + yDist*yDist) < 3 ) {// || data[4] > -0.5) {
@@ -76,10 +77,37 @@ public class SweepingPattern extends SearchPattern {
 			
 			//close to land
 			if(data[4] > -0.5) {
-				System.out.println("Close to land");
+				double turnAngle = Math.PI/8;
+				double heading = kex.getData()[2];
+				//kex.setSpeed(3);
+				//turn left
+				if(data[5] > data[6]) {
+					System.out.println("Left");
+					kex.setWaypoint(data[0] + Math.cos(heading + turnAngle) * 50, data[1] + Math.sin(heading + turnAngle) * 50);
+				}
+				//turn right
+				else if(data[5] < data[6]){
+					System.out.println("Right");
+					kex.setWaypoint(data[0] + Math.cos(heading - turnAngle) * 50, data[1] + Math.sin(heading - turnAngle) * 50);
+				}
+				//choose random direction
+				else {
+					System.out.println("random");
+					double r  = 0.5*(turnAngle*(Math.random()-0.5) );
+					kex.setWaypoint(data[0] + Math.cos(heading + r) * 50, data[1] + Math.sin(heading + r) * 50);
+				}
+				//if(Math.abs(yDist) > delta*1.1)
+					//return false;
 			}
-			
-			kex.setWaypoint(x, y);
+			else {
+				//double k = 0.2;
+				
+				//double kX = data[0] - xDist*k;
+				//double kY = y;//data[1] - yDist*k;
+				//kex.setWaypoint(kX, kY);
+				
+				kex.setWaypoint(x, y);
+			}
 			sleep(dt);
 		}
 		//fail
