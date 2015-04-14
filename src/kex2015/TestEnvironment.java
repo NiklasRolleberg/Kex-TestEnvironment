@@ -37,11 +37,11 @@ public class TestEnvironment {
 		//kex = new Kex(boat, polygonX, polygonY , 0.24 , endPos , 100); //100
 		//kex = new TurningAlgorithm(boat, polygonX,polygonY, 0.24,endPos,100);
 		//kex = new InverseCircleAlgorithm(boat, polygonX,polygonY, 0.24,endPos,100);
-		kex = new LawnMoverPattern(boat, polygonX,polygonY, 0.24,endPos,100);
+		//kex = new LawnMoverPattern(boat, polygonX,polygonY, 0.24,endPos,100);
 		
 		//for twofrontsonarboat
 		//kex = new TwoFrontSonarContourAlgorithm(boat, polygonX, polygonY , 0.24 , endPos , 100);
-				
+		//kex = new TwoSonarFSM(boat, polygonX,polygonY, 0.24,endPos,100);
 				
 		/**Create view*/
 		view = new View(map, boat,20 , polygonX, polygonY);
