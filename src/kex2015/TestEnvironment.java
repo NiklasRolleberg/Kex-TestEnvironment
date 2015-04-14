@@ -37,7 +37,7 @@ public class TestEnvironment {
 		//kex = new RandomAlgorithm(boat, polygonX, polygonY , 0.24 , endPos , 100); //100
 		//kex = new CirclePattern(boat, polygonX, polygonY , 0.24 , endPos , 100); //100
 		//kex = new ContourAlgorithm(boat, polygonX, polygonY , 0.24 , endPos , 100);
-		//kex = new Kex(boat, polygonX, polygonY , 0.24 , endPos , 100); //100
+		kex = new Kex(boat, polygonX, polygonY , 0.24 , endPos , 100); //100
 		//kex = new TurningAlgorithm(boat, polygonX,polygonY, 0.24,endPos,100);
 		//kex = new InverseCircleAlgorithm(boat, polygonX,polygonY, 0.24,endPos,100);
 		//kex = new LawnMoverPattern(boat, polygonX,polygonY, 0.24,endPos,100);
@@ -51,7 +51,7 @@ public class TestEnvironment {
 		
 		/**create and start threads*/
 		boatThread = new Thread(boat);
-		//kexThread = new Thread(kex);
+		kexThread = new Thread(kex);
 		viewThread = new Thread(view);
 		
 		boatThread.start();

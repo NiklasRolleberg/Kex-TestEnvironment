@@ -4,15 +4,17 @@ public class SweepingPattern extends SearchPattern {
 
 	boolean stop = false;
 	
-	public SweepingPattern(Kex kex, Object subregion, double delta, long dt) {
+	public SweepingPattern(Kex kex, Kex.SearchCell subregion, double delta, long dt) {
 		super(kex, subregion, delta, dt);
 	}
 
 	@Override
 	public void run() {
 		
-		double targetX = 0;
-		double targetY = 0;
+		
+		double targetY = kex.getData()[1];//region.minY();
+		double targetX = region.findX(targetY, false);
+		System.out.println("Targets:" + targetX +"  "+targetY);
 		
 		boolean rightSide = true;
 		boolean travelToNextLine = false;
@@ -39,7 +41,7 @@ public class SweepingPattern extends SearchPattern {
 				travelToNextLine = false;
 			}
 			else if(!rightSide && !travelToNextLine) {
-				//targetX = region.findX(targetY,true);
+				targetX = region.findX(targetY,true);
 				rightSide = true;
 				travelToNextLine = true;
 			}
@@ -47,11 +49,11 @@ public class SweepingPattern extends SearchPattern {
 				System.out.println("FEL!");
 			}
 			
-			/*
-			if (targetY < region.minY || targetY > region.maxY) {
+			
+			if (targetY < region.minY() || targetY > region.maxY()) {
 				delta*=-1;
 				targetY = targetY + 3*(delta/2);
-			}*/
+			}
 			
 			travelToPoint(targetX,targetY);
 		}
