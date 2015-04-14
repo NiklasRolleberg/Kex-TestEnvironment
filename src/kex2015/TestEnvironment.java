@@ -1,6 +1,8 @@
 package kex2015;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 
@@ -128,22 +130,31 @@ public class TestEnvironment {
 		}
 		
 		//find a start pos
-		double meanX = 0;
-		double meanY = 0;
-		for(int i = 0; i<X.size();i++) {
-			meanX += X.get(i);
-			meanY += Y.get(i);
+		double startLong;// = meanX;
+		double startLat;// = meanY;
+
+		try {
+			//read start.txt
+			BufferedReader br = new BufferedReader(new FileReader("start.txt"));
+	        startLong = Double.parseDouble(br.readLine());
+	        startLat = Double.parseDouble(br.readLine());
+	        br.close();
 		}
-		meanX *= 1.0/X.size();
-		meanY *= 1.0/X.size();
+		catch(Exception e) {
+			System.out.println("Failed to read start position " + e);
+			double meanX = 0;
+			double meanY = 0;
+			for(int i = 0; i<X.size();i++) {
+				meanX += X.get(i);
+				meanY += Y.get(i);
+			}
+			meanX *= 1.0/X.size();
+			meanY *= 1.0/X.size();
+			
+			startLong = meanX;
+			startLat = meanY;
+		}
 		
-		
-		
-		double startLong = meanX;
-		double startLat = meanY;
-		
-		TestEnvironment t = new TestEnvironment("test.csv", X , Y, startLong, startLat);
-		
-		
+		TestEnvironment t = new TestEnvironment("test.csv", X , Y, startLong, startLat);	
 	}
 }

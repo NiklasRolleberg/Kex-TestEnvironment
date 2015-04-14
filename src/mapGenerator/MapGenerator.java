@@ -10,9 +10,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -26,6 +28,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 
 import kex2015.Map;
 
@@ -81,8 +84,8 @@ public class MapGenerator implements ActionListener{
 			if (s<=10)
 				return;
 			
-			generateRandomMap(s,s,fileName);
-			//generateContourTestMap(s,s,fileName);
+			//generateRandomMap(s,s,fileName);
+			generateContourTestMap(s,s,fileName);
 			
 		}
 		else if(arg0.getActionCommand()  == "Show map") {
@@ -343,6 +346,7 @@ public class MapGenerator implements ActionListener{
 		BufferedImage image;
 		JButton readPolygon;
 		JButton createPolygon;
+		JToggleButton setStartPos;
 		
 		double longStart;
 		double longStop;		
@@ -354,6 +358,9 @@ public class MapGenerator implements ActionListener{
 		
 		/*Size of map on screen*/
 		int imageSize = 700;
+		
+		int startX = -1;
+		int startY = -1;
 		
 		ArrayList<Integer> polygonX;
 		ArrayList<Integer> polygonY;
@@ -460,14 +467,16 @@ public class MapGenerator implements ActionListener{
 			buttonContainer = new JPanel();
 			container = new JPanel();
 			container.setLayout(new BorderLayout());
-			readPolygon = new JButton("Read polygon from file");
-			createPolygon = new JButton("Save polygon to file");
+			readPolygon = new JButton("Read from file");
+			createPolygon = new JButton("Save to file");
+			setStartPos = new JToggleButton("Set start position");
 			
 			readPolygon.addActionListener(this);
 			createPolygon.addActionListener(this);
 			
 			buttonContainer.add(readPolygon);
 			buttonContainer.add(createPolygon);
+			buttonContainer.add(setStartPos);
 			
 			
 			container.add(this, BorderLayout.CENTER);
@@ -500,6 +509,12 @@ public class MapGenerator implements ActionListener{
 			g.setColor(Color.GRAY);
 			g.drawLine(polygonX.get(polygonX.size()-1), polygonY.get(polygonX.size()-1)
 									,polygonX.get(0), polygonY.get(0));
+			
+			if(startX != -1 && startY!= -1) {
+				g.setColor(Color.GREEN);
+				g.fillOval(startX-5, startY-5, 10, 10);
+			}
+			
 		}
 		
 		private void read() 
@@ -539,6 +554,15 @@ public class MapGenerator implements ActionListener{
 					int yval = (int) ((tempY.get(i)-latStart)/stepLat);
 					polygonY.add(yval);
 				}
+				
+				//read start pos
+				BufferedReader br = new BufferedReader(new FileReader("start.txt"));
+		        
+		        startY = (int) ((Double.parseDouble(br.readLine())-longStart)/stepLong);
+		        
+		        startY = (int) ((Double.parseDouble(br.readLine())-latStart)/stepLat);
+		        
+		        br.close();
 				
 			}catch(IOException i)
 			{
@@ -584,6 +608,21 @@ public class MapGenerator implements ActionListener{
 				outY.close();
 				fileOutY.close();
 				System.out.println("Serialized data is saved in polygony.ser");
+				
+				if(startX != -1 && startY != -1)
+				{
+					
+					double longitude = longStart + stepLong* startX;
+					double latitude = latStart + stepLat*startY;
+					
+					PrintWriter writer = new PrintWriter("start.txt", "UTF-8");
+					writer.println(""+longitude);
+					writer.println(""+latitude);
+					writer.close();
+					
+					System.out.println("Start pos saved in start.txt");
+				}
+				
 			}catch(IOException i)
 			{
 				i.printStackTrace();
@@ -593,13 +632,13 @@ public class MapGenerator implements ActionListener{
 		@Override
 		public void actionPerformed(ActionEvent a) {
 			// TODO Auto-generated method stub
-			if(a.getActionCommand() == "Read polygon from file"){
+			if(a.getActionCommand() == "Read from file"){
 				System.out.println("read file");
 				read();
 				super.repaint();
 			}
 			
-			if(a.getActionCommand() == "Save polygon to file"){
+			if(a.getActionCommand() == "Save to file"){
 				System.out.println("write file");
 				write();
 			}
@@ -608,12 +647,20 @@ public class MapGenerator implements ActionListener{
 
 		@Override
 		public void mouseClicked(MouseEvent m) {
-			// TODO Auto-generated method stub
-			
+
 			System.out.println("Mouse click at: (" + m.getX() + "," + m.getY() + ")");
 			
-			polygonX.add(m.getX());
-			polygonY.add(m.getY());
+			/*Set start position*/
+			if(setStartPos.isSelected()) {
+				System.out.println("Selected");
+				startX = m.getX();
+				startY = m.getY();
+			}
+			/*add point to polygon*/
+			else {
+				polygonX.add(m.getX());
+				polygonY.add(m.getY());
+			}
 			
 			super.repaint();
 			
