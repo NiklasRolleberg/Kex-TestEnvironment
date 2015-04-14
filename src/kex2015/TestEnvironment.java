@@ -4,7 +4,8 @@ import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 
-import algorithms.*;
+import controller.*;
+
 
 public class TestEnvironment {
 	
@@ -48,7 +49,7 @@ public class TestEnvironment {
 		
 		/**create and start threads*/
 		boatThread = new Thread(boat);
-		kexThread = new Thread(kex);
+		//kexThread = new Thread(kex);
 		viewThread = new Thread(view);
 		
 		boatThread.start();
@@ -63,7 +64,7 @@ public class TestEnvironment {
 		}
 		
 		
-		kex.stop();
+		//kex.stop();
 		boat.stop();
 		view.stop();
 	}

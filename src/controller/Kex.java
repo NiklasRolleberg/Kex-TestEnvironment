@@ -1,4 +1,4 @@
-package algorithms;
+package controller;
 
 import java.util.ArrayList;
 
@@ -6,7 +6,7 @@ import kex2015.Boat;
 
 
 /**extend this class to create a new algorithm*/
-public abstract class Kex implements Runnable {
+public class Kex implements Runnable{
 	
 	Boat boat;
 	
@@ -29,12 +29,30 @@ public abstract class Kex implements Runnable {
 		this.delta = delta;
 		this.endPos = endPos;
 		this.dt = dt;
+		
+		//split polygon + store convex polygons
+	}
+	
+	/**Boat sensordata*/
+	public double[] getData() {
+		return boat.getSensordata();
+	}
+	
+	/**Set targetspeed for boat*/
+	public void setSpeed(double speed) {
+		boat.setTargetSpeed(speed);
+	}
+	
+	/**set waypoint for boat*/
+	public void setWaypoint(double x, double y) {
+		boat.setWayPoint(x, y);
 	}
 
-	/**Should stop the thread*/
-	public abstract void stop();
-	 
 	@Override
-	public abstract void run();
-
+	public void run() {
+		
+		//Run the searchpattern on the polygons
+		
+	}
+	
 }
