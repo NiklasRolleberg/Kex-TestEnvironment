@@ -1,13 +1,17 @@
 package controller;
 
-public class SearchPattern implements Runnable {
+public abstract class SearchPattern implements Runnable {
 	
-	//public SearchPattern(Polygon, delta, dt)
-
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-		
+	Kex kex;
+	Object region;
+	double delta;
+	long dt;
+	
+	public SearchPattern(Kex kex, Object region, double delta, long  dt) {
+		this.kex = kex;
+		this.region = region;
+		this.delta = delta;
+		this.dt = dt;
 	}
-
+	abstract void stop();
 }
