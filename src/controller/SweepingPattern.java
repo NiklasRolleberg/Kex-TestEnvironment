@@ -11,56 +11,158 @@ public class SweepingPattern extends SearchPattern {
 	@Override
 	public void run() {
 		
-		
-		double targetY = kex.getData()[1];//region.minY();
+		double targetY = region.minY()+4;
 		double targetX = region.findX(targetY, false);
 		System.out.println("Targets:" + targetX +"  "+targetY);
 		
-		boolean rightSide = true;
-		boolean travelToNextLine = false;
+		System.out.println("Going to target and ignoring land");
+		kex.setWaypoint(targetX, targetY);
+		double[] data = kex.getData();
+		double dx = targetX-data[0];
+		double dy = targetY-data[1];
+		while(Math.sqrt(dx*dx + dy*dy) > 3 ) {
+			data = kex.getData();
+			dx = targetX-data[0];
+			dy = targetY-data[1];
+			sleep(dt);
+		}
 		
-		travelToPoint(targetX,targetY);
 		
-		while(!stop) {
+		boolean goToRight = true; //traveling from left side to right
+		boolean goToNextLine = false;
+		//boolean followingLand = false;
+		boolean skipRest  = false;
+		
+		double targetLine = targetY+delta;
+		
+		//Arrived at top left corner ->start sweeping
+		while(!stop) {			
+			data = kex.getData();
+			dx = targetX-data[0];
+			dy = targetY-data[1];
 			
-			if(rightSide && travelToNextLine) {
-				targetY +=delta;
-				targetX = region.findX(targetY,true);
-				rightSide = true;
-				travelToNextLine = false;
+			//target reached -> choose new target
+			if(Math.sqrt(dx*dx + dy*dy) < 3 || skipRest) {
+				if(goToNextLine) {
+					System.out.println("GO TO NEXT LINE");
+					targetLine +=delta;
+					targetY = targetLine;
+					targetX = region.findX(targetY, !goToRight);
+					kex.setWaypoint(targetX, targetY);
+					goToNextLine = false;
+					//goToRight = (goToRight==false);
+				}
+				else if(goToRight && !goToNextLine) {
+					System.out.println("GO TO RIGHT");
+					targetY = targetLine;
+					targetX = region.findX(targetY,true);
+					kex.setWaypoint(targetX, targetY);
+					goToRight = false;
+					goToNextLine = true;
+				}
+				else if(!goToRight && !goToNextLine) {
+					System.out.println("GO TO LEFT");
+					targetY = targetLine;
+					targetX = region.findX(targetY,false);
+					kex.setWaypoint(targetX, targetY);
+					goToRight = true;
+					goToNextLine = true;
+				}
+				
+				if(skipRest) {
+					sleep(dt*3);
+					skipRest = false;
+				}
+	
 			}
-			else if(rightSide && !travelToNextLine) {
-				targetX = region.findX(targetY,false);
-				rightSide = false;
-				travelToNextLine = true;
-			}
-			else if(!rightSide && travelToNextLine) {
-				targetY+=delta;
-				targetX = region.findX(targetY,false);
-				rightSide = false;
-				travelToNextLine = false;
-			}
-			else if(!rightSide && !travelToNextLine) {
-				targetX = region.findX(targetY,true);
-				rightSide = true;
-				travelToNextLine = true;
-			}
-			else {
-				System.out.println("FEL!");
-			}
-			
-			
-			if (targetY < region.minY() || targetY > region.maxY()) {
-				delta*=-1;
-				targetY = targetY + 3*(delta/2);
-			}
-			
-			travelToPoint(targetX,targetY);
+			/*
+			//close to land
+			if(data[4] > -0.5) {
+
+				System.out.println("Close to land");
+				
+				//make the boat face the next line
+				kex.setWaypoint(data[0], targetLine + delta); 
+				sleep(dt/2);
+				
+				if(followLand(targetLine, targetLine+delta)) {
+					targetLine +=delta;
+					if(data[4] < -0.5) {
+						skipRest = true;
+					}
+				}
+				else {
+					kex.setWaypoint(targetX, targetLine);
+				}
+			}*/
+			sleep(dt);
 		}
 	}
 	
+	/**
+	 * @param line1
+	 * line above
+	 * 
+	 * @param line2
+	 * line under
+	 * 
+	 * @return
+	 * true = line under reached
+	 * false = line above reached
+	 */
+	private boolean followLand(double line1, double line2) {
+		
+		System.out.println("Follow land");
+		
+		double turnAngle = Math.PI/16;
+
+		double[] data = kex.getData();
+		double targetDepth = data[4];
+		
+		//follow land
+		
+		//while(Math.abs(data[1]) > Math.abs(line1) && Math.abs(data[1]) < Math.abs(line2) ) {
+		//while(!stop) {
+		
+		while(data[1] > line1-10 && data[1] < line2) {
+			
+			data = kex.getData();
+			
+			if(Math.abs(data[4] - targetDepth) > 0.1) {
+				
+				if(data[4] > targetDepth)
+					turnAngle = Math.PI / 8;
+				else
+					turnAngle = -Math.PI / 8;
+				
+				if(data[5] > data[6]) {
+					kex.setWaypoint(data[0] + Math.cos(data[2] + turnAngle) * 50, data[1] + Math.sin(data[2] + turnAngle) * 50);
+				}
+				else if(data[5] < data[6]){
+					kex.setWaypoint(data[0] + Math.cos(data[2] - turnAngle) * 50, data[1] + Math.sin(data[2] - turnAngle) * 50);
+				}
+				else {
+					double r  = 0.5*(turnAngle*(Math.random()-0.5) );
+					kex.setWaypoint(data[0] + Math.cos(data[2]+ r) * 50, data[1] + Math.sin(data[2] + r) * 50);
+				}
+			}
+			else {
+				//kex.setWaypoint(data[0] + Math.cos(data[2]) * 50, data[1] + Math.sin(data[2]) * 50);
+				double r  = 0.5*(turnAngle*(Math.random()-0.5) );
+				kex.setWaypoint(data[0] + Math.cos(data[2] + r) * 50, data[1] + Math.sin(data[2] + r) * 50);
+			}
+			
+			sleep(dt);
+		}
+		//close to first line
+		if(Math.abs(data[1]-line1) < Math.abs(delta/3))
+			return false;
+		//close to line below
+		return true;
+	}
+	
 	/**Gives the boat coordinates to travel to, this method should handle contour following*/
-	private boolean travelToPoint(double x, double y) { //xDir == true -> crossing the region from left to right
+	/*private boolean travelToPoint(double x, double y) { //xDir == true -> crossing the region from left to right
 		
 		double[] data;
 		
@@ -112,7 +214,7 @@ public class SweepingPattern extends SearchPattern {
 		}
 		//fail
 		return false;
-	}
+	}*/
 
 	@Override
 	void stop() {
