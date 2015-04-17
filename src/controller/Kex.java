@@ -23,7 +23,7 @@ public class Kex implements Runnable{
 	/**Main brain! =)
 	 * @param delta is map resolution, not used yet
 	 * */
-	public Kex(Boat inBoat, ArrayList<Double> x, ArrayList<Double> y , double delta , int[] endPos, long dt ) { //double?
+	public Kex(Boat inBoat, ArrayList<Double> x, ArrayList<Double> y , double delta , int[] endPos, long dt ) {
 		
 		this.boat = inBoat;
 		this.polygonX = x;
@@ -58,7 +58,6 @@ public class Kex implements Runnable{
 
 	@Override
 	public void run() {
-		System.out.println("wat dafuq");
 		SearchPattern sp = new SweepingPattern(this, cellList.get(0), this.delta, this.dt);
 		Thread myThread = new Thread(sp);
 		myThread.start();
@@ -82,6 +81,8 @@ public class Kex implements Runnable{
 		public boolean isComplete;
 		ArrayList<Double> xpos;
 		ArrayList<Double> ypos;
+		double xMax, yMax, xMin, yMin;
+		searchElement[][] cellMatrix;
 		
 		/**Constructor 
 		 * @param xpos x-positions for the polygon
@@ -91,18 +92,49 @@ public class Kex implements Runnable{
 			isComplete = false;
 			this.xpos = xpos;
 			this.ypos = ypos;
-			//TODO discretize here!
-			discretize();
+			xMax = maxX();
+			yMax = maxY();
+			xMin = minX();
+			yMin = minY();
+			
+			int dx = (int)(maxX()-minX());
+			int dy = (int)(maxY()-minY());
+			
+			System.out.println("max x:" + maxX() + " min x:" + minX()+ " dx: " + dx);
+			System.out.println("max y:" + maxY() + " min y:" + minY()+ " dy: " + dy);
+			System.out.println("dy: " + dy);
 			
 			
-			
+
+			//idea: find out max and min x and y, divide into a suitable amount and initialize an array
+			//make up some status codes: 99 is oob, 0 is not yet scanned, 1 is scanned water, 2 is land/unreachable, more?!
+			//mark the ones that are out of bounds: 
+			//visualise the results! (not in here obviously)
+			cellMatrix = new searchElement[dx+1][dy+1];
+			//index for the array
+			int ix = 0; 
+			int iy = 0;
+			double xLeft, xRight;
+			boolean readCellIntoMemory;
+			readCellIntoMemory = false;
+			if (readCellIntoMemory){
+				for (int y=(int)Math.round(yMin); y<(int)Math.round(yMax); y++){
+					for (int x=(int)Math.round(xMin); x <(int)Math.round(xMax);x++){
+						xLeft = findX(y, false);
+						xRight = findX(y, true);
+						if (x < (int)Math.round(xLeft) || x> (int)Math.round(xRight)){
+							cellMatrix[ix][iy] = new searchElement(x, y, 99);
+						}
+						else{
+							cellMatrix[ix][iy] = new searchElement(x, y, 0);
+						}
+						ix++;
+					}
+					iy++;
+					ix = 0;
+				}
+			}
 		}
-		
-		private void discretize(){
-			
-			
-		}
-		
 		public double findX(double y, boolean right) {
 			int[] l1 = {-1,-1};
 			int[] l2 = {-1,-1};
@@ -116,13 +148,13 @@ public class Kex implements Runnable{
 					if(l1[0] == -1) {
 						l1[0] = (i+1)%l;
 						l1[1] = i%l;
-						System.out.println("L1 set" + "\t (" + xpos.get(l1[0]) + " , " + ypos.get(l1[0]) + ") -> ("
-															 + xpos.get(l1[1]) + " , " + ypos.get(l1[1]) + ")");
+						//System.out.println("L1 set" + "\t (" + xpos.get(l1[0]) + " , " + ypos.get(l1[0]) + ") -> ("
+						//									 + xpos.get(l1[1]) + " , " + ypos.get(l1[1]) + ")");
 					}else {
 						l2[0] = (i+1)%l;
 						l2[1] = i%l;
-						System.out.println("L2 set" + "\t (" + xpos.get(l2[0]) + " , " + ypos.get(l2[0]) + ") -> ("
-								 + xpos.get(l2[1]) + " , " + xpos.get(l2[1]) + ")");
+						//System.out.println("L2 set" + "\t (" + xpos.get(l2[0]) + " , " + ypos.get(l2[0]) + ") -> ("
+						//		 + xpos.get(l2[1]) + " , " + xpos.get(l2[1]) + ")");
 					}
 				}
 			}
@@ -150,7 +182,7 @@ public class Kex implements Runnable{
 			double p = (y-y0) / (y1-y0);
 			double l1X = (1-p)*x0 + p*x1;
 			
-			System.out.println("p1=" + p);
+			//System.out.println("p1=" + p);
 			
 			x0 = xpos.get(l2[0]);
 			y0 = ypos.get(l2[0]);
@@ -161,7 +193,7 @@ public class Kex implements Runnable{
 			//how far is y on the line
 			p = (y-y0) / (y1-y0);
 			double l2X = (1-p)*x0 + p*x1;
-			System.out.println("p2=" + p);
+			//System.out.println("p2=" + p);
 			
 			if(right) {
 				return Math.max(l1X, l2X);
@@ -186,6 +218,7 @@ public class Kex implements Runnable{
 			}
 			return temp;
 		}
+		
 		public double minX(){
 
 			Double temp = Double.MAX_VALUE;
@@ -195,6 +228,7 @@ public class Kex implements Runnable{
 			}
 			return temp;
 		}
+		
 		public double minY(){
 
 			Double temp = Double.MAX_VALUE;
@@ -205,6 +239,18 @@ public class Kex implements Runnable{
 			return temp;
 		}
 		
+	}
+	
+	/**Smallest element of the map, x and y coords and a status*/
+	private class searchElement{
+		double xCoord;
+		double yCoord;
+		int status;
+		private searchElement(double x, double y, int s){
+			xCoord = x;
+			yCoord = y;
+			status = s;
+		}
 	}
 	
 }
