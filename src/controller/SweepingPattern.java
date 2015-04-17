@@ -12,7 +12,8 @@ public class SweepingPattern extends SearchPattern {
 	public void run() {
 		
 		double targetY = kex.getData()[1];//region.minY()+4;
-		double targetX = region.findX(targetY, false);
+		double targetX = region.findX(targetY, true);
+		
 		System.out.println("Targets:" + targetX +"  "+targetY);
 		
 		System.out.println("Going to target and ignoring land");
@@ -20,26 +21,27 @@ public class SweepingPattern extends SearchPattern {
 		double[] data = kex.getData();
 		double dx = targetX-data[0];
 		double dy = targetY-data[1];
+		/*
 		while(Math.sqrt(dx*dx + dy*dy) > 3 ) {
 			data = kex.getData();
 			dx = targetX-data[0];
 			dy = targetY-data[1];
 			sleep(dt);
 		}
+		*/
 		
-		
-		boolean goToRight = true; //traveling from left side to right
+		boolean goToRight = false; //traveling from left side to right
 		boolean goToNextLine = true;
 		boolean skipRest = false; //true -> the boat has to find a new waypoint
 		
-		double targetLine = targetY+delta*4; //TODO ta bort +delta...
+		double targetLine = targetY;//+delta * 2; //*4; //TODO ta bort +delta...
 		
 		//Arrived at top left corner ->start sweeping
 		while(!stop) {			
 			data = kex.getData();
 			dx = targetX-data[0];
 			dy = targetY-data[1];
-			
+			kex.setSpeed(Math.max(-data[4]*3,3));
 			//target reached -> choose new target
 			if(Math.sqrt(dx*dx + dy*dy) < 3 || skipRest) {
 				
@@ -80,7 +82,8 @@ public class SweepingPattern extends SearchPattern {
 			//close to land
 			if(data[4] > -0.5) {
 
-				System.out.println("Close to land");
+				System.out.println("Close to land " + data[4]);
+				System.out.println("Coordinates: (" + data[0] + "),(" + data[1] + ")");
 				
 				//make the boat face the next line
 				kex.setSpeed(5);
@@ -137,15 +140,17 @@ public class SweepingPattern extends SearchPattern {
 			
 			if(Math.abs(data[4] - targetDepth) > 0.5) {
 				
+				double angle = Math.min(Math.abs(data[4] - targetDepth) * 0.1 , Math.PI / 32); 
+				
 				if(data[4] > targetDepth)
-					turnAngle = Math.PI / 32;
+					turnAngle = angle;//Math.PI / 32;
 				else
-					turnAngle = -Math.PI / 32;
+					turnAngle = -angle; // Math.PI / 32;
 				
 				if(data[5] > data[6]) {
 					kex.setWaypoint(data[0] + Math.cos(data[2] + turnAngle) * 50, data[1] + Math.sin(data[2] + turnAngle) * 50);
 				}
-				else if(data[5] < data[6]){
+				else if(data[5] < data[6]) {
 					kex.setWaypoint(data[0] + Math.cos(data[2] - turnAngle) * 50, data[1] + Math.sin(data[2] - turnAngle) * 50);
 				}
 				else {
@@ -162,7 +167,7 @@ public class SweepingPattern extends SearchPattern {
 			sleep(dt);
 		}
 		//close to first line
-		if(Math.abs(data[1]-line1) < Math.abs(delta/3))
+		if(Math.abs(data[1]-line1) < Math.abs(delta/2))
 			return false;
 		//close to line below
 		return true;

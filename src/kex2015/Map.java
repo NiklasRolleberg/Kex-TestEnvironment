@@ -23,11 +23,11 @@ public class Map {
 	
 	private double getMapData(int x, int y) {
 		
-		if (x>nRows)
+		if (x>=nRows)
 			x = nRows -1;
 		if(x<0)
 			x = 0;
-		if (y>nCols)
+		if (y>=nCols)
 			y = nCols -1;
 		if(y<0)
 			y = 0;
