@@ -11,7 +11,7 @@ public class SweepingPattern extends SearchPattern {
 	@Override
 	public void run() {
 		
-		double targetY = region.minY()+4;
+		double targetY = kex.getData()[1];//region.minY()+4;
 		double targetX = region.findX(targetY, false);
 		System.out.println("Targets:" + targetX +"  "+targetY);
 		
@@ -29,11 +29,10 @@ public class SweepingPattern extends SearchPattern {
 		
 		
 		boolean goToRight = true; //traveling from left side to right
-		boolean goToNextLine = false;
-		//boolean followingLand = false;
-		boolean skipRest  = false;
+		boolean goToNextLine = true;
+		boolean skipRest = false; //true -> the boat has to find a new waypoint
 		
-		double targetLine = targetY+delta;
+		double targetLine = targetY+delta*4; //TODO ta bort +delta...
 		
 		//Arrived at top left corner ->start sweeping
 		while(!stop) {			
@@ -43,6 +42,9 @@ public class SweepingPattern extends SearchPattern {
 			
 			//target reached -> choose new target
 			if(Math.sqrt(dx*dx + dy*dy) < 3 || skipRest) {
+				
+				System.out.println("Waypoint reached");
+				
 				if(goToNextLine) {
 					System.out.println("GO TO NEXT LINE");
 					targetLine +=delta;
@@ -70,31 +72,37 @@ public class SweepingPattern extends SearchPattern {
 				}
 				
 				if(skipRest) {
-					sleep(dt*3);
 					skipRest = false;
+					sleep(3000);
 				}
-	
 			}
-			/*
+			
 			//close to land
 			if(data[4] > -0.5) {
 
 				System.out.println("Close to land");
 				
 				//make the boat face the next line
+				kex.setSpeed(5);
 				kex.setWaypoint(data[0], targetLine + delta); 
-				sleep(dt/2);
+				sleep(dt/3);
 				
-				if(followLand(targetLine, targetLine+delta)) {
+				if(followLand(targetLine, targetLine + delta)) {
 					targetLine +=delta;
-					if(data[4] < -0.5) {
-						skipRest = true;
-					}
+					System.out.println("Lower line reached");
+					skipRest = true;
+					//goToRight = (goToRight == false);
+					goToNextLine = false;
 				}
 				else {
-					kex.setWaypoint(targetX, targetLine);
+					targetY = targetLine;
+					kex.setWaypoint(targetX, targetY);
+					System.out.println("Upper line reached");
+					//sleep(3000);
 				}
-			}*/
+				kex.setSpeed(30);
+			}
+			
 			sleep(dt);
 		}
 	}
@@ -114,11 +122,10 @@ public class SweepingPattern extends SearchPattern {
 		
 		System.out.println("Follow land");
 		
-		double turnAngle = Math.PI/16;
+		double turnAngle= Math.PI/16;
 
 		double[] data = kex.getData();
-		double targetDepth = data[4];
-		
+		double targetDepth = -1;//data[4];
 		//follow land
 		
 		//while(Math.abs(data[1]) > Math.abs(line1) && Math.abs(data[1]) < Math.abs(line2) ) {
@@ -128,12 +135,12 @@ public class SweepingPattern extends SearchPattern {
 			
 			data = kex.getData();
 			
-			if(Math.abs(data[4] - targetDepth) > 0.1) {
+			if(Math.abs(data[4] - targetDepth) > 0.5) {
 				
 				if(data[4] > targetDepth)
-					turnAngle = Math.PI / 8;
+					turnAngle = Math.PI / 32;
 				else
-					turnAngle = -Math.PI / 8;
+					turnAngle = -Math.PI / 32;
 				
 				if(data[5] > data[6]) {
 					kex.setWaypoint(data[0] + Math.cos(data[2] + turnAngle) * 50, data[1] + Math.sin(data[2] + turnAngle) * 50);
