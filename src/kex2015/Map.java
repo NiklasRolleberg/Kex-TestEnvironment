@@ -21,32 +21,37 @@ public class Map {
 		//this.resolution = resolution;		
 	}
 	
+	private double getMapData(int x, int y) {
+		
+		if (x>nRows)
+			x = nRows -1;
+		if(x<0)
+			x = 0;
+		if (y>nCols)
+			y = nCols -1;
+		if(y<0)
+			y = 0;
+		
+		return mapData[x][y];
+	}
+	
 	/**Returns the depth at the specified x,y index*/
 	public double getDepth(double x, double y){
-		return mapData[(int)x][(int)y];
-		/*
-		int x0 = (int) x;
-		int x1 = x0 +1;
+		//return mapData[(int)x][(int)y];
 		
-		int y0 = (int) y;
-		int y1 = y0 +1;
+		int x1 = (int) x;
+		int x2 = x1 +1;
 		
-		double r0 = Math.sqrt( (x-x0)*(x-x0) + (y-y0)*(y-y0));
-		double r1 = Math.sqrt( (x-x1)*(x-x1) + (y-y0)*(y-y0));
-		double r2 = Math.sqrt( (x-x1)*(x-x1) + (y-y1)*(y-y1));
-		double r3 = Math.sqrt( (x-x0)*(x-x0) + (y-y1)*(y-y1));
+		int y1 = (int) y;
+		int y2 = y1 +1;
 		
-		double rot = Math.sqrt(2.0);
+		double depth = (1/((x2-x1)*(y2-y1))) * 
+				(getMapData(x1,y1) * (x2-x) * (y2-y) + 
+				 getMapData(x2,y1) * (x-x1) * (y2-y)+
+				 getMapData(x1,y2) * (x2-x) * (y-y1)+
+				 getMapData(x2,y2) * (x-x1) * (y-y1));
 		
-		try {
-			double dr0 = mapData[x0][y0] * ((rot-r0) / rot);
-			double dr1 = mapData[x1][y0] * ((rot-r1) / rot);
-			double dr2 = mapData[x1][y1] * ((rot-r2) / rot);
-			double dr3 = mapData[x0][y1] * ((rot-r3) / rot);
-		return (dr0 + dr1 + dr2 + dr3);
-		} catch (Exception e) {}
-		return -20;
-		*/
+		return depth;
 	}
 	
 	public double[] getLimits(){
