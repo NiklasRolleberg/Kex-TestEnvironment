@@ -125,45 +125,48 @@ public class SweepingPattern extends SearchPattern {
 		
 		System.out.println("Follow land");
 		
-		double turnAngle= Math.PI/16;
+		
+		//double turnAngle= Math.PI/16;
 
 		double[] data = kex.getData();
 		double targetDepth = -1;//data[4];
-		//follow land
+
+		//PID controller
 		
-		//while(Math.abs(data[1]) > Math.abs(line1) && Math.abs(data[1]) < Math.abs(line2) ) {
-		//while(!stop) {
+		double KP = 0.4; //Proportional gain
+		double KI = 1.0 / 30000; //integral gain
+		double KD = 300; //derivative gain
+		
+		long time = System.currentTimeMillis();
+		double Integral = 0; 
+		double lastError = data[4] - targetDepth;
+		
+		double maxAngle = Math.PI / 8;
+		
+		sleep(dt);
 		
 		while(data[1] > line1-10 && data[1] < line2) {
 			
 			data = kex.getData();
 			
-			if(Math.abs(data[4] - targetDepth) > 0.5) {
-				
-				double angle = Math.min(Math.abs(data[4] - targetDepth) * 0.1 , Math.PI / 32); 
-				
-				if(data[4] > targetDepth)
-					turnAngle = angle;//Math.PI / 32;
-				else
-					turnAngle = -angle; // Math.PI / 32;
-				
-				if(data[5] > data[6]) {
-					kex.setWaypoint(data[0] + Math.cos(data[2] + turnAngle) * 50, data[1] + Math.sin(data[2] + turnAngle) * 50);
-				}
-				else if(data[5] < data[6]) {
-					kex.setWaypoint(data[0] + Math.cos(data[2] - turnAngle) * 50, data[1] + Math.sin(data[2] - turnAngle) * 50);
-				}
-				else {
-					double r  = 0.5*(turnAngle*(Math.random()-0.5) );
-					kex.setWaypoint(data[0] + Math.cos(data[2]+ r) * 50, data[1] + Math.sin(data[2] + r) * 50);
-				}
-			}
-			else {
-				//kex.setWaypoint(data[0] + Math.cos(data[2]) * 50, data[1] + Math.sin(data[2]) * 50);
-				double r  = 0.5*(turnAngle*(Math.random()-0.5) );
-				kex.setWaypoint(data[0] + Math.cos(data[2] + r) * 50, data[1] + Math.sin(data[2] + r) * 50);
+			double timeStep = (System.currentTimeMillis() - time);
+			time = System.currentTimeMillis();
+			double error = data[4] - targetDepth;
+			double derivative = (error - lastError) / timeStep;
+			lastError = error;
+			Integral += error * timeStep;
+			
+			double turnAngle = KP * error + KI*Integral + KD * derivative;
+			turnAngle = Math.min(maxAngle,turnAngle);
+			
+			if(data[5] > data[6]) {
+				turnAngle *= -1;
 			}
 			
+			//System.out.println("TurnAnlge: " + turnAngle);
+			//System.out.println("derivative: " + derivative);
+			kex.setWaypoint(data[0] + Math.cos(data[2] - turnAngle) * 50, data[1] + Math.sin(data[2] - turnAngle) * 50);
+		
 			sleep(dt);
 		}
 		//close to first line
