@@ -16,7 +16,7 @@ public class SweepingPattern extends SearchPattern {
 		
 		System.out.println("Targets:" + targetX +"  "+targetY);
 		
-		System.out.println("Going to target and ignoring land");
+		//System.out.println("Going to target and ignoring land");
 		kex.setWaypoint(targetX, targetY);
 		double[] data = kex.getData();
 		double dx = targetX-data[0];
@@ -124,9 +124,6 @@ public class SweepingPattern extends SearchPattern {
 	private boolean followLand(double line1, double line2) {
 		
 		System.out.println("Follow land");
-		
-		
-		//double turnAngle= Math.PI/16;
 
 		double[] data = kex.getData();
 		double targetDepth = -1;//data[4];
@@ -134,7 +131,7 @@ public class SweepingPattern extends SearchPattern {
 		//PID controller
 		
 		double KP = 0.4; //Proportional gain
-		double KI = 1.0 / 30000; //integral gain
+		double KI = 1.0 / 5000; //integral gain
 		double KD = 300; //derivative gain
 		
 		long time = System.currentTimeMillis();
@@ -156,15 +153,27 @@ public class SweepingPattern extends SearchPattern {
 			lastError = error;
 			Integral += error * timeStep;
 			
-			double turnAngle = KP * error + KI*Integral + KD * derivative;
-			turnAngle = Math.min(maxAngle,turnAngle);
+			//reduce integral value to prevent oscillations
+			if(Integral > 0)
+				Integral = Math.min(Integral, 200);
+			else 
+				Integral = Math.max(Integral, -200);
 			
+			double turnAngle = KP * error + KI*Integral + KD * derivative;
+			
+			if(turnAngle > 0)
+				turnAngle = Math.min(maxAngle,turnAngle);
+			else 
+				turnAngle = Math.max(-maxAngle,turnAngle);
+			
+			//for boat with two front sonars
 			if(data[5] > data[6]) {
 				turnAngle *= -1;
 			}
 			
 			//System.out.println("TurnAnlge: " + turnAngle);
 			//System.out.println("derivative: " + derivative);
+			//System.out.println("Integral " + Integral);
 			kex.setWaypoint(data[0] + Math.cos(data[2] - turnAngle) * 50, data[1] + Math.sin(data[2] - turnAngle) * 50);
 		
 			sleep(dt);
@@ -176,61 +185,6 @@ public class SweepingPattern extends SearchPattern {
 		return true;
 	}
 	
-	/**Gives the boat coordinates to travel to, this method should handle contour following*/
-	/*private boolean travelToPoint(double x, double y) { //xDir == true -> crossing the region from left to right
-		
-		double[] data;
-		
-		while(!stop) {
-			data = kex.getData();
-			double xDist = data[0]-x;
-			double yDist = data[1]-y;
-			//kex.setSpeed(100);
-			
-			//target reached
-			if(Math.sqrt(xDist*xDist + yDist*yDist) < 3 ) {// || data[4] > -0.5) {
-				return true;
-			}
-			
-			//close to land
-			if(data[4] > -0.5) {
-				double turnAngle = Math.PI/8;
-				double heading = kex.getData()[2];
-				//kex.setSpeed(3);
-				//turn left
-				if(data[5] > data[6]) {
-					System.out.println("Left");
-					kex.setWaypoint(data[0] + Math.cos(heading + turnAngle) * 50, data[1] + Math.sin(heading + turnAngle) * 50);
-				}
-				//turn right
-				else if(data[5] < data[6]){
-					System.out.println("Right");
-					kex.setWaypoint(data[0] + Math.cos(heading - turnAngle) * 50, data[1] + Math.sin(heading - turnAngle) * 50);
-				}
-				//choose random direction
-				else {
-					System.out.println("random");
-					double r  = 0.5*(turnAngle*(Math.random()-0.5) );
-					kex.setWaypoint(data[0] + Math.cos(heading + r) * 50, data[1] + Math.sin(heading + r) * 50);
-				}
-				//if(Math.abs(yDist) > delta*1.1)
-					//return false;
-			}
-			else {
-				//double k = 0.2;
-				
-				//double kX = data[0] - xDist*k;
-				//double kY = y;//data[1] - yDist*k;
-				//kex.setWaypoint(kX, kY);
-				
-				kex.setWaypoint(x, y);
-			}
-			sleep(dt);
-		}
-		//fail
-		return false;
-	}*/
-
 	@Override
 	void stop() {
 		stop = true;
