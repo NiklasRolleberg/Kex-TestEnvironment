@@ -111,12 +111,11 @@ public class Kex implements Runnable{
 			xMin = minX();
 			yMin = minY();
 			
-			int dx = (int)(Math.round(maxX())-Math.round(minX()));
-			int dy = (int)(Math.round(maxY())-Math.round(minY()));
+			int dx = (int)(Math.round(xMax)-Math.round(xMin));
+			int dy = (int)(Math.round(yMax)-Math.round(yMin));
 			
-			System.out.println("max x:" + maxX() + " min x:" + minX()+ " dx: " + dx);
-			System.out.println("max y:" + maxY() + " min y:" + minY()+ " dy: " + dy);
-			System.out.println("dy: " + dy);
+			System.out.println("max x: " + maxX() + " min x: " + minX()+ " dx: " + dx);
+			System.out.println("max y: " + maxY() + " min y: " + minY()+ " dy: " + dy);
 			
 			
 
@@ -130,7 +129,7 @@ public class Kex implements Runnable{
 			int iy = 0;
 			double xLeft, xRight;
 			boolean readCellIntoMemory;
-			readCellIntoMemory = true;
+			readCellIntoMemory = false;
 			if (readCellIntoMemory){
 				for (int y=(int)Math.round(yMin); y<(int)Math.round(yMax); y++){
 					for (int x=(int)Math.round(xMin); x <(int)Math.round(xMax);x++){
@@ -147,10 +146,11 @@ public class Kex implements Runnable{
 					iy++;
 					ix = 0;
 				}
-				
+            //draw the cell
+			drawMatrix testDraw = new drawMatrix(this);	
 			}
-			drawMatrix testDraw = new drawMatrix(this);
-			//System.out.println("----------cell read done!");
+			
+			System.out.println("----------cell read done!");
 
 			//check ALL the elements!
 			/*for (searchElement[] ea : cellMatrix){
@@ -287,8 +287,12 @@ public class Kex implements Runnable{
 	private class drawMatrix extends JPanel{
 		SearchCell myCell;
 		JFrame myFrame;
-		
+
+		int x0 = 0;
+		int y0 = 0;
+		double b, h;
 		public drawMatrix(SearchCell inCell){
+			
 			myFrame = new JFrame();
 			myFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 			myFrame.setPreferredSize(new Dimension(500, 500));
@@ -296,6 +300,9 @@ public class Kex implements Runnable{
 			myFrame.pack();
 			myFrame.setVisible(true);
 			myCell = inCell;
+
+			//b = (myCell.xMax-myCell.xMin)/myCell.;
+			
 			this.repaint();
 			
 		}
@@ -303,18 +310,28 @@ public class Kex implements Runnable{
 		@Override
 		public void paint(Graphics g){
 		
-			Graphics2D g2d = (Graphics2D) g;
-			//draw elements 
-			for (searchElement[] ea : myCell.cellMatrix){
-				for (searchElement e : ea){
-					
-					if (e.status ==  99){
-						System.out.println("wat");
-					}
-				}
-			}
-			
-			//draw polygon
+			//Graphics2D g2d = (Graphics2D) g;
+			//draw elements
+            //draw each element
+            int[] coords;
+            for (searchElement[] ea : myCell.cellMatrix){
+                for (searchElement e : ea){
+                    if (e.status ==  0){
+                        g.setColor(Color.black);
+                    }
+                    else if (e.status == 99){
+                        g.setColor(Color.gray);
+                    }
+                    else{
+                        System.out.println("Dafuq?! Wrong status in initial cell read");
+                        g.setColor(Color.red);
+                    }
+                    coords = correctCoords((int)e.xCoord,(int)e.yCoord);
+                    g.fillRect(coords[0],coords[1],10,10);
+                }
+            }
+
+			//draw polygon edges
 			for(int i=0; i<myCell.xpos.size()-1; i++) {
 				int x0 = polygonX.get(i).intValue();
 				int y0 = polygonY.get(i).intValue();
@@ -322,14 +339,16 @@ public class Kex implements Runnable{
 				int x1 = polygonX.get(i+1).intValue();
 				int y1 = polygonY.get(i+1).intValue();
 				g.setColor(Color.RED);
-				g.drawLine(x0, y0, x1, y1);
+				g.drawLine(x0-(int)myCell.xMin, y0-(int)myCell.yMin, x1-(int)myCell.xMin, y1-(int)myCell.yMin);
 			}
-			g.drawLine(polygonX.get(polygonX.size()-1).intValue(), (polygonY.get(polygonX.size()-1).intValue())
-									,polygonX.get(0).intValue(), polygonY.get(0).intValue());
-			
-			
-			
-		}
+			g.drawLine(polygonX.get(polygonX.size()-1).intValue()-(int)myCell.xMin, (polygonY.get(polygonX.size()-1).intValue()-(int)myCell.yMin)
+									,polygonX.get(0).intValue()-(int)myCell.xMin, polygonY.get(0).intValue()-(int)myCell.yMin);
+
+        }
+        private int[] correctCoords(int x, int y){
+            //return new int[] {x,y};
+            return new int[] {x - (int)myCell.xMin, y - (int)myCell.yMin};
+        }
 	}
 	
 }
