@@ -52,7 +52,6 @@ public class SweepingPattern extends SearchPattern {
 					targetLine +=delta;
 					targetY = targetLine;
 					targetX = region.findX(targetY, !goToRight);
-					kex.setWaypoint(targetX, targetY);
 					goToNextLine = false;
 					//goToRight = (goToRight==false);
 				}
@@ -60,7 +59,6 @@ public class SweepingPattern extends SearchPattern {
 					System.out.println("GO TO RIGHT");
 					targetY = targetLine;
 					targetX = region.findX(targetY,true);
-					kex.setWaypoint(targetX, targetY);
 					goToRight = false;
 					goToNextLine = true;
 				}
@@ -68,10 +66,20 @@ public class SweepingPattern extends SearchPattern {
 					System.out.println("GO TO LEFT");
 					targetY = targetLine;
 					targetX = region.findX(targetY,false);
-					kex.setWaypoint(targetX, targetY);
 					goToRight = true;
 					goToNextLine = true;
 				}
+				
+				if(targetY > region.maxY() || targetY < region.minY()) {
+					delta *=-1;
+					targetLine += 2*delta;
+					targetY = targetLine;
+					goToNextLine = false;
+					goToRight = (goToRight == false);
+					targetX = region.findX(targetY, goToRight);
+				}
+				
+				kex.setWaypoint(targetX, targetY);
 				
 				if(skipRest) {
 					skipRest = false;
@@ -142,8 +150,11 @@ public class SweepingPattern extends SearchPattern {
 		
 		sleep(dt);
 		
-		while(data[1] > line1-10 && data[1] < line2) {
-			
+		//while(data[1] > line1-10 && data[1] < line2) {
+		
+		while( ((line1 < line2) && (data[1] > line1-10) && (data[1] < line2)) ||
+				((line1 > line2) && (data[1] > line2-10) && (data[1] < line1)) )  {
+		
 			data = kex.getData();
 			
 			double timeStep = (System.currentTimeMillis() - time);
