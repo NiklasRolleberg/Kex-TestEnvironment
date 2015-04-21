@@ -27,6 +27,7 @@ public class Kex implements Runnable{
 	ArrayList<Double> polygonX;
 	ArrayList<Double> polygonY;
 	ArrayList<SearchCell> cellList;		//list of all the cells
+    int currentCellIndex;
 	int[] endPos;
 	
 	double delta;
@@ -34,7 +35,7 @@ public class Kex implements Runnable{
 	
 	
 	
-	/**Main brain! =)
+	/**Main controller thingy for the boat
 	 * @param delta is map resolution, not used yet
 	 * */
 	public Kex(Boat inBoat, ArrayList<Double> x, ArrayList<Double> y , double delta , int[] endPos, long dt ) {
@@ -45,16 +46,25 @@ public class Kex implements Runnable{
 		this.delta = delta;
 		this.endPos = endPos;
 		this.dt = dt;
-		
-		SearchCell sc = new SearchCell(x, y);
-		cellList = new ArrayList<SearchCell>();
-		cellList.add(sc);
-		
-		
-		//split polygon + store convex polygons
-		
+        currentCellIndex = 0;
+
+        //TODO split polygon + store convex polygons
+        SearchCell sc = new SearchCell(x, y);
+        cellList = new ArrayList<SearchCell>();
+        cellList.add(sc);
+
+
+
 	}
-	
+
+    /**Updates cellmatrix depth data*/
+    public void updateDepthValue(double xCoord, double yCoord, double depthValue){
+        //TODO calculate index in the matrix
+
+        cellList.get(currentCellIndex).cellMatrix[1][1].updateDepthData(depthValue);
+
+    }
+
 	/**Boat sensordata*/
 	public double[] getData() {
 		return boat.getSensordata();
@@ -72,12 +82,14 @@ public class Kex implements Runnable{
 
 	@Override
 	public void run() {
-		SearchPattern sp = new SweepingPattern(this, cellList.get(0), this.delta, this.dt);
-		Thread myThread = new Thread(sp);
-		myThread.start();
-		
-		//Run the search pattern on the polygons
-		
+        //Run the search pattern on the polygons
+        SearchPattern sp = new SweepingPattern(this, cellList.get(0), this.delta, this.dt);
+        Thread myThread = new Thread(sp);
+        myThread.start();
+
+        //TODO read and save depth measurements here?
+
+
 	}
 	
 	
@@ -97,40 +109,45 @@ public class Kex implements Runnable{
 		ArrayList<Double> ypos;
 		double xMax, yMax, xMin, yMin;
 		searchElement[][] cellMatrix;
-		
-		/**Constructor 
+        int resolution;
+
+        /**Constructor
 		 * @param xpos x-positions for the polygon
 		 * @param ypos y-positions for the polygon
 		 * */
 		public SearchCell (ArrayList<Double> xpos, ArrayList<Double> ypos){
-			isComplete = false;
-			this.xpos = xpos;
-			this.ypos = ypos;
-			xMax = maxX();
-			yMax = maxY();
-			xMin = minX();
-			yMin = minY();
-			
-			int dx = (int)(Math.round(xMax)-Math.round(xMin));
-			int dy = (int)(Math.round(yMax)-Math.round(yMin));
+            isComplete = false;
+            this.xpos = xpos;
+            this.ypos = ypos;
+            xMax = maxX();
+            yMax = maxY();
+            xMin = minX();
+            yMin = minY();
+            resolution = 1; //change this for bigger arrays!
+			int dx = (int)(Math.round(xMax)-Math.round(xMin))*resolution;
+			int dy = (int)(Math.round(yMax)-Math.round(yMin))*resolution;
 			
 			System.out.println("max x: " + maxX() + " min x: " + minX()+ " dx: " + dx);
 			System.out.println("max y: " + maxY() + " min y: " + minY()+ " dy: " + dy);
-			
-			
 
-			//idea: find out max and min x and y, divide into a suitable amount and initialize an array
-			//make up some status codes: 99 is oob, 0 is not yet scanned, 1 is scanned water, 2 is land/unreachable, more?!
-			//mark the ones that are out of bounds: 
-			//visualise the results! (not in here obviously)
-			cellMatrix = new searchElement[dx][dy];
-			//index for the array
-			int ix = 0; 
-			int iy = 0;
-			double xLeft, xRight;
-			boolean readCellIntoMemory;
-			readCellIntoMemory = false;
-			if (readCellIntoMemory){
+
+            cellMatrix = new searchElement[dx][dy];
+            //index for the array
+            int ix = 0;
+            int iy = 0;
+            double xLeft, xRight;
+            boolean readCellIntoMemory;
+            readCellIntoMemory = false;
+
+            // make up some status codes:
+            // 99 is oob,
+            // 0 is not yet scanned,
+            // 1 is scanned water,
+            // 2 is land/unreachable,
+            // more?!
+
+            //noinspection ConstantConditions
+            if (readCellIntoMemory){
 				for (int y=(int)Math.round(yMin); y<(int)Math.round(yMax); y++){
 					for (int x=(int)Math.round(xMin); x <(int)Math.round(xMax);x++){
 						xLeft = findX(y, false);
@@ -147,20 +164,22 @@ public class Kex implements Runnable{
 					ix = 0;
 				}
             //draw the cell
-			drawMatrix testDraw = new drawMatrix(this);	
+			drawMatrix draw = new drawMatrix(this);
 			}
 			
 			System.out.println("----------cell read done!");
 
 			//check ALL the elements!
-			/*for (searchElement[] ea : cellMatrix){
+			/*
+			for (searchElement[] ea : cellMatrix){
 				for (searchElement e : ea){
 					if (e.status ==  99){
 						System.out.println("wat");
 					}
 				}
 			}
-			System.out.println("check done!");*/
+			System.out.println("check done!");
+			*/
 			
 			
 		}
@@ -272,16 +291,30 @@ public class Kex implements Runnable{
 		
 	}
 	
-	/**Smallest element of the map, x and y coords and a status*/
+	/**Smallest element of the map, x and y coords, status and depth data*/
 	private class searchElement{
 		double xCoord;
 		double yCoord;
 		int status;
+        double recordedDepth;
+        int timesVisited;
+
 		public searchElement(double x, double y, int s){
 			xCoord = x;
 			yCoord = y;
 			status = s;
+            timesVisited = 0;
 		}
+        private void updateDepthData(double inDepth){
+            if (timesVisited == 0){
+                recordedDepth = inDepth;
+                timesVisited ++;
+            }
+            else {
+                timesVisited++;
+                recordedDepth = (recordedDepth + inDepth)/timesVisited;
+            }
+        }
 	}
 	
 	private class drawMatrix extends JPanel{
@@ -292,7 +325,6 @@ public class Kex implements Runnable{
 		int y0 = 0;
 		double b, h;
 		public drawMatrix(SearchCell inCell){
-			
 			myFrame = new JFrame();
 			myFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 			myFrame.setPreferredSize(new Dimension(500, 500));
@@ -330,7 +362,7 @@ public class Kex implements Runnable{
                     g.fillRect(coords[0],coords[1],10,10);
                 }
             }
-
+            //TODO coordinate correction function or is there a better way?
 			//draw polygon edges
 			for(int i=0; i<myCell.xpos.size()-1; i++) {
 				int x0 = polygonX.get(i).intValue();
