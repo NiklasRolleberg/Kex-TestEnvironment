@@ -32,6 +32,8 @@ public class Kex implements Runnable{
 	
 	double delta;
 	long dt;
+
+    drawMatrix draw;
 	
 	
 	
@@ -60,8 +62,10 @@ public class Kex implements Runnable{
     /**Updates cellmatrix depth data*/
     public void updateDepthValue(double xCoord, double yCoord, double depthValue){
         //TODO calculate index in the matrix
+        int ix = (int)Math.round((xCoord - cellList.get(currentCellIndex).xMin) / cellList.get(currentCellIndex).dx);
+        int iy = (int)Math.round((yCoord - cellList.get(currentCellIndex).yMin) / cellList.get(currentCellIndex).dy);
 
-        cellList.get(currentCellIndex).cellMatrix[1][1].updateDepthData(depthValue);
+        cellList.get(currentCellIndex).cellMatrix[ix][iy].updateDepthData(depthValue);
 
     }
 
@@ -83,11 +87,25 @@ public class Kex implements Runnable{
 	@Override
 	public void run() {
         //Run the search pattern on the polygons
-        SearchPattern sp = new SweepingPattern(this, cellList.get(0), this.delta, this.dt);
+//        SearchPattern sp = new SweepingPattern(this, cellList.get(0), this.delta, this.dt);
+        SearchPattern sp = new CircularPattern(this, cellList.get(0), this.delta, this.dt);
         Thread myThread = new Thread(sp);
         myThread.start();
 
-        //TODO read and save depth measurements here?
+        //TODO read and save depth measurements here!
+        double[] sensorData;
+        while(true){
+            try {
+                myThread.sleep((long)(Math.max(500-boat.getSensordata()[3]*10, 100)));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            sensorData = boat.getSensordata();
+            updateDepthValue(sensorData[0],sensorData[1],sensorData[4]);
+            draw.repaint();
+
+
+        }
 
 
 	}
@@ -127,10 +145,8 @@ public class Kex implements Runnable{
             yMax = maxY();
             xMin = minX();
             yMin = minY();
-            resolution = 1.0/10.0;
+            resolution = 1.0/delta;
 
-//            nx = (Math.round(xMax)-Math.round(xMin))*(int)resolution;
-//            ny = (int)(Math.round(yMax)-Math.round(yMin))*resolution;
             nx = (int)((Math.round(xMax)-Math.round(xMin))*resolution);
             ny = (int)((Math.round(yMax)-Math.round(yMin))*resolution);
 
@@ -142,19 +158,16 @@ public class Kex implements Runnable{
 
             //initialize the 2D-array. Maybe make sure not to include oob cells at all to save memory?
             cellMatrix = new searchElement[nx][ny];
-            //index for the array
-            //int ix = 0;
-            //int iy = 0;
             double xLeft, xRight;
             boolean readCellIntoMemory;
-            readCellIntoMemory = false;
+            readCellIntoMemory = true;
 
-            // make up some status codes:
+            // made up status codes:
             // 99 is oob,
             // 0 is not yet scanned,
             // 1 is scanned water,
             // 2 is land/unreachable,
-            // more?!
+            // more?! unreachable?
 
             double xCoord = xMin;
             double yCoord = yMin;
@@ -162,8 +175,8 @@ public class Kex implements Runnable{
             if (readCellIntoMemory){
                 for(int iy = 0; iy<ny; iy++){
                     for (int ix = 0; ix<nx; ix++){
-                        xLeft=findX(yCoord,false);
-                        xRight=findX(yCoord,true);
+                        xLeft=findX(yCoord, false);
+                        xRight=findX(yCoord, true);
                         if (xCoord<=xLeft || xCoord>=xRight){
                             cellMatrix[ix][iy] = new searchElement(xCoord, yCoord, 99);   //oob
                         }
@@ -177,23 +190,11 @@ public class Kex implements Runnable{
                     xCoord = xMin;
                 }
             //draw the cell
-			drawMatrix draw = new drawMatrix(this);
-			}
 
-			System.out.println("----------cell read done!");
-			/*
-			//check ALL the elements!
-			for (searchElement[] ea : cellMatrix){
-				for (searchElement e : ea){
-					if (e.status ==  99){
-						System.out.println("wat");
-					}
-				}
-			}
-			System.out.println("check done!");
-			*/
+            draw = new drawMatrix(this);
+            }
 
-			
+			System.out.println("----------Cell read done!----------");
 		}
 		
 		
@@ -326,6 +327,7 @@ public class Kex implements Runnable{
                 timesVisited++;
                 recordedDepth = (recordedDepth + inDepth)/timesVisited;
             }
+            status = 1;
         }
 	}
 	
@@ -365,6 +367,9 @@ public class Kex implements Runnable{
                     }
                     else if (e.status == 99){
                         g.setColor(Color.gray);
+                    }
+                    else if (e.status == 1){
+                        g.setColor(Color.blue);
                     }
                     else{
                         System.out.println("Dafuq?! Wrong status in initial cell read");
