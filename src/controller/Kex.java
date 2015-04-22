@@ -321,13 +321,16 @@ public class Kex implements Runnable{
         private void updateDepthData(double inDepth){
             if (timesVisited == 0){
                 recordedDepth = inDepth;
-                timesVisited ++;
+                timesVisited++;
             }
             else {
                 timesVisited++;
-                recordedDepth = (recordedDepth + inDepth)/timesVisited;
+                recordedDepth = (recordedDepth + inDepth);
             }
             status = 1;
+        }
+        private double getRecordedDepth(){
+            return recordedDepth/timesVisited;
         }
 	}
 	
@@ -335,9 +338,6 @@ public class Kex implements Runnable{
 		SearchCell myCell;
 		JFrame myFrame;
 
-		int x0 = 0;
-		int y0 = 0;
-		double b, h;
 		public drawMatrix(SearchCell inCell){
 			myFrame = new JFrame();
 			myFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
@@ -369,7 +369,36 @@ public class Kex implements Runnable{
                         g.setColor(Color.gray);
                     }
                     else if (e.status == 1){
-                        g.setColor(Color.blue);
+                        double depth = e.getRecordedDepth();
+                        Color color = Color.BLUE;
+                        if(depth < -21) {
+                            color = new Color(0x050068);
+                        }
+                        else if(depth < -17)	{
+                            color = new Color(0x1208D7);
+                        }
+                        else if(depth < -15)	{
+                            color = new Color(0x0D00FF);
+                        }
+                        else if(depth < -12)	{
+                            color = new Color(0x035EC7);
+                        }
+                        else if(depth < -9)	{
+                            color = new Color(0x0066DA);
+                        }
+                        else if(depth < -6)	{
+                            color = new Color(0x1CA6D9);
+                        }
+                        else if(depth < -3)	{
+                            color = new Color(0x43B3DC);
+                        }
+                        else if(depth < 0.001)	{
+                            color = new Color(0x0AF4FF);
+                        }
+                        else{
+                            color = color.GREEN;
+                        }
+                        g.setColor(color);
                     }
                     else{
                         System.out.println("Dafuq?! Wrong status in initial cell read");
