@@ -48,7 +48,35 @@ public class CircularPattern extends SearchPattern {
 				targetX = centerX + radius * Math.cos(angle);
 				targetY = centerY + radius * Math.sin(angle);
 				
+				//target point is outside polygon -> calculate new point
+				if(outOfBounds(targetX,targetY)) {
+					System.out.println("Waypoint out of bounds");
+					
+					kex.setSpeed(1);
+					
+					double tempAngle = angle;
+					double tempX = centerX + radius * Math.cos(tempAngle);
+					double tempY = centerY + radius * Math.sin(tempAngle);
+					
+					while (outOfBounds(tempX,tempY)) {
+						
+						if(Math.abs(tempAngle - angle) > 2*Math.PI) {
+							System.out.println("area is cleared");
+							stop = true;
+							break;
+						}
+						
+						tempAngle += Math.PI / 32;
+						tempX = centerX + radius * Math.cos(tempAngle);
+						tempY = centerY + radius * Math.sin(tempAngle);
+					}
+					angle = tempAngle;
+					targetX = tempX;
+					targetY = tempY;
+				}
+				
 				kex.setWaypoint(targetX,targetY);
+				kex.setSpeed(30);
 			}
 			
 			
@@ -79,14 +107,45 @@ public class CircularPattern extends SearchPattern {
 					radius += delta;
 				}
 				
+				
 				targetX = centerX + radius * Math.cos(angle);
-				targetY = centerY + radius * Math.sin(angle);	
+				targetY = centerY + radius * Math.sin(angle);
+				
+				//target point is outside polygon -> calculate new point
+				if(outOfBounds(targetX,targetY)) {
+					System.out.println("Waypoint out of bounds");
+					
+					kex.setSpeed(1);
+					
+					double tempAngle = angle;
+					double tempX = centerX + radius * Math.cos(tempAngle);
+					double tempY = centerY + radius * Math.sin(tempAngle);
+					
+					while (outOfBounds(tempX,tempY)) {
+						
+						if(Math.abs(tempAngle - angle) > 2*Math.PI) {
+							System.out.println("area is cleared");
+							stop = true;
+							break;
+						}
+						
+						tempAngle += Math.PI / 32;
+						tempX = centerX + radius * Math.cos(tempAngle);
+						tempY = centerY + radius * Math.sin(tempAngle);
+					}
+					angle = tempAngle;
+					targetX = tempX;
+					targetY = tempY;
+				}
+				
 				kex.setWaypoint(targetX, targetY);
 			}
 					
 			sleep(dt);
 		}
-			
+		
+		//region is done
+		kex.setSpeed(0);	
 	}
 	
 	/**
@@ -133,6 +192,16 @@ public class CircularPattern extends SearchPattern {
 			rx = centerX-data[0];
 			ry = centerY-data[1];
 			
+			
+			//stop the boat from going outside the polygon
+			if(outOfBounds(data[0], data[1])) {
+				if(data[0] < ((region.maxX()-region.minX())/2))
+					kex.setWaypoint(region.findX(data[1],false), data[1]);
+				else
+					kex.setWaypoint(region.findX(data[1],true), data[1]);
+				
+			}
+			
 			//System.out.println("Math.sqrt(rx*rx + ry*ry) = " + Math.sqrt(rx*rx + ry*ry));
 			
 			double timeStep = (System.currentTimeMillis() - time);
@@ -169,7 +238,13 @@ public class CircularPattern extends SearchPattern {
 		}
 	}
 
-	
+	private boolean outOfBounds(double x, double y) {
+		if(y > region.yMax || y < region.yMin || x > region.xMax || x < region.xMin)
+			return true;
+		if(x < region.findX(y, false) || x > region.findX(y, true))
+			return true;
+		return false;
+	}
 
 	@Override
 	void stop() {

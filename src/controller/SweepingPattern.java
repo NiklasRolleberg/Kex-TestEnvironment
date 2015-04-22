@@ -42,6 +42,7 @@ public class SweepingPattern extends SearchPattern {
 			dx = targetX-data[0];
 			dy = targetY-data[1];
 			kex.setSpeed(Math.max(-data[4]*3,3));
+			
 			//target reached -> choose new target
 			if(Math.sqrt(dx*dx + dy*dy) < 3 || skipRest) {
 				
@@ -72,7 +73,7 @@ public class SweepingPattern extends SearchPattern {
 				
 				if(targetY > region.maxY() || targetY < region.minY()) {
 					delta *=-1;
-					targetLine += 2*delta;
+					targetLine += delta;
 					targetY = targetLine;
 					goToNextLine = false;
 					goToRight = (goToRight == false);
@@ -150,12 +151,20 @@ public class SweepingPattern extends SearchPattern {
 		
 		sleep(dt);
 		
-		//while(data[1] > line1-10 && data[1] < line2) {
-		
 		while( ((line1 < line2) && (data[1] > line1-10) && (data[1] < line2)) ||
-				((line1 > line2) && (data[1] > line2-10) && (data[1] < line1)) )  {
+				((line1 > line2) && (data[1] > line2) && (data[1] < line1+10)) )  {
 		
 			data = kex.getData();
+			
+			//stop the boat from going outside the polygon
+			if(outOfBounds(data[0], data[1])) {
+				if(data[0] < ((region.maxX()-region.minX())/2))
+					kex.setWaypoint(region.findX(data[1],false), data[1]);
+				else
+					kex.setWaypoint(region.findX(data[1],true), data[1]);
+				return true;
+			}
+			
 			
 			double timeStep = (System.currentTimeMillis() - time);
 			time = System.currentTimeMillis();
@@ -199,6 +208,15 @@ public class SweepingPattern extends SearchPattern {
 	@Override
 	void stop() {
 		stop = true;
+	}
+	
+	private boolean outOfBounds(double x, double y) {
+		
+		if(y > region.yMax || y < region.yMin || x > region.xMax || x < region.xMin)
+			return true;
+		if(x < region.findX(y, false) || x > region.findX(y, true))
+			return true;
+		return false;
 	}
 
 	private void sleep(long ms) {
