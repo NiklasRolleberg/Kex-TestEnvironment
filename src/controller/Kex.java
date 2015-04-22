@@ -108,8 +108,12 @@ public class Kex implements Runnable{
 		ArrayList<Double> xpos;
 		ArrayList<Double> ypos;
 		double xMax, yMax, xMin, yMin;
+        int nx;
+        int ny;
+        double dx;
+        double dy;
 		searchElement[][] cellMatrix;
-        int resolution;
+        double resolution;
 
         /**Constructor
 		 * @param xpos x-positions for the polygon
@@ -123,18 +127,24 @@ public class Kex implements Runnable{
             yMax = maxY();
             xMin = minX();
             yMin = minY();
-            resolution = 1; //change this for bigger arrays!
-			int dx = (int)(Math.round(xMax)-Math.round(xMin))*resolution;
-			int dy = (int)(Math.round(yMax)-Math.round(yMin))*resolution;
-			
-			System.out.println("max x: " + maxX() + " min x: " + minX()+ " dx: " + dx);
-			System.out.println("max y: " + maxY() + " min y: " + minY()+ " dy: " + dy);
+            resolution = 1.0/10.0;
 
+//            nx = (Math.round(xMax)-Math.round(xMin))*(int)resolution;
+//            ny = (int)(Math.round(yMax)-Math.round(yMin))*resolution;
+            nx = (int)((Math.round(xMax)-Math.round(xMin))*resolution);
+            ny = (int)((Math.round(yMax)-Math.round(yMin))*resolution);
 
-            cellMatrix = new searchElement[dx][dy];
+            dx = (xMax - xMin)/nx;
+            dy = (yMax - yMin)/ny;
+
+            System.out.println("max x: " + maxX() + ", min x: " + minX()+ ", nx: " + nx);
+			System.out.println("max y: " + maxY() + ", min y: " + minY()+ ", ny: " + ny);
+
+            //initialize the 2D-array. Maybe make sure not to include oob cells at all to save memory?
+            cellMatrix = new searchElement[nx][ny];
             //index for the array
-            int ix = 0;
-            int iy = 0;
+            //int ix = 0;
+            //int iy = 0;
             double xLeft, xRight;
             boolean readCellIntoMemory;
             readCellIntoMemory = false;
@@ -146,31 +156,33 @@ public class Kex implements Runnable{
             // 2 is land/unreachable,
             // more?!
 
+            double xCoord = xMin;
+            double yCoord = yMin;
             //noinspection ConstantConditions
             if (readCellIntoMemory){
-				for (int y=(int)Math.round(yMin); y<(int)Math.round(yMax); y++){
-					for (int x=(int)Math.round(xMin); x <(int)Math.round(xMax);x++){
-						xLeft = findX(y, false);
-						xRight = findX(y, true);
-						if (x < (int)Math.round(xLeft) || x> (int)Math.round(xRight)){
-							cellMatrix[ix][iy] = new searchElement(x, y, 99);
-						}
-						else{
-							cellMatrix[ix][iy] = new searchElement(x, y, 0);
-						}
-						ix++;
-					}
-					iy++;
-					ix = 0;
-				}
+                for(int iy = 0; iy<ny; iy++){
+                    for (int ix = 0; ix<nx; ix++){
+                        xLeft=findX(yCoord,false);
+                        xRight=findX(yCoord,true);
+                        if (xCoord<=xLeft || xCoord>=xRight){
+                            cellMatrix[ix][iy] = new searchElement(xCoord, yCoord, 99);   //oob
+                        }
+                        else{
+                            cellMatrix[ix][iy] = new searchElement(xCoord, yCoord, 0); //in bounds
+                        }
+                        xCoord += dx;
+
+                    }
+                    yCoord += dy;
+                    xCoord = xMin;
+                }
             //draw the cell
 			drawMatrix draw = new drawMatrix(this);
 			}
-			
-			System.out.println("----------cell read done!");
 
-			//check ALL the elements!
+			System.out.println("----------cell read done!");
 			/*
+			//check ALL the elements!
 			for (searchElement[] ea : cellMatrix){
 				for (searchElement e : ea){
 					if (e.status ==  99){
@@ -180,7 +192,7 @@ public class Kex implements Runnable{
 			}
 			System.out.println("check done!");
 			*/
-			
+
 			
 		}
 		
@@ -359,7 +371,7 @@ public class Kex implements Runnable{
                         g.setColor(Color.red);
                     }
                     coords = correctCoords((int)e.xCoord,(int)e.yCoord);
-                    g.fillRect(coords[0],coords[1],10,10);
+                    g.fillRect(coords[0]-(int)Math.round(myCell.dx/2),coords[1]-(int)Math.round(myCell.dx/2),(int)myCell.dx+1,(int)myCell.dy+1);
                 }
             }
             //TODO coordinate correction function or is there a better way?
