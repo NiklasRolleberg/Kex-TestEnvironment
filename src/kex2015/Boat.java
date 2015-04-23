@@ -22,7 +22,7 @@ public class Boat implements Runnable {
 	protected Map map;
 	
 	private double windDirection = Math.random() * Math.PI * 2;
-	private double windSpeed = 2;
+	private double windSpeed = 0.5;
 	/*
 	public static ArrayList<Double> xPos;
 	public static ArrayList<Double> yPos;*/
@@ -169,8 +169,8 @@ public class Boat implements Runnable {
 			speed = maxSpeed/10;
 		}
 		
-		position[0] += speed * elapsedTime * Math.cos(heading) + windSpeed*elapsedTime*Math.cos(windDirection);
-		position[1] += speed * elapsedTime * Math.sin(heading) + windSpeed*elapsedTime*Math.cos(windDirection);;
+		position[0] += speed * elapsedTime * Math.cos(heading);// + windSpeed*elapsedTime*Math.cos(windDirection);
+		position[1] += speed * elapsedTime * Math.sin(heading);// + windSpeed*elapsedTime*Math.cos(windDirection);;
 		
 		lastUpdate = System.currentTimeMillis();
 		

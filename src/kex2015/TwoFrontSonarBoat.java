@@ -28,13 +28,14 @@ public class TwoFrontSonarBoat extends Boat {
 		r[5] = getFrontSonarData(+Math.PI/8); //right
 		r[6] = getFrontSonarData(-Math.PI/8); //left
 
-		//noise
-		r[4] = r[4] + ((Math.random()-0.5)*0.2*r[4]);
+		//noise 
+		/*
+		r[4] = r[4] + ((Math.random()-0.5)*0.2*r[4]); // 10%
 		r[4] += 0.2*Math.sin(System.currentTimeMillis()/1000);
 
-		r[5] += ((Math.random()-0.5)*0.2*r[5]);
-		r[6] += ((Math.random()-0.5)*0.2*r[6]);;
-		
+		r[5] += ((Math.random()-0.5)*0.2*r[5]); // 10%
+		r[6] += ((Math.random()-0.5)*0.2*r[6]); // 10%
+		*/
 		return r;
 	}
 	

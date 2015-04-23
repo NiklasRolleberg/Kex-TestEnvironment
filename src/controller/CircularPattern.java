@@ -82,7 +82,7 @@ public class CircularPattern extends SearchPattern {
 			
 			
 			
-			if(data[4] > -1) {
+			if(data[4] > -0.5) {
 				
 				double x1 = data[0] - centerX;
 				double y1 = data[1] - centerY;
@@ -171,7 +171,7 @@ public class CircularPattern extends SearchPattern {
 		
 		//PID controller
 		
-		double KP = 0.2; //Proportional gain
+		double KP = 0.4; //Proportional gain
 		double KI = 1.0 / 5000; //integral gain
 		double KD = 300; //derivative gain
 		
