@@ -24,9 +24,17 @@ public class TwoFrontSonarBoat extends Boat {
 		r[1] = this.position[1];
 		r[2] = this.heading;
 		r[3] = this.speed;
-		r[4] = map.getDepth(this.position[0], this.position[1]);
+		r[4] = map.getDepth(this.position[0], this.position[1]);		
 		r[5] = getFrontSonarData(+Math.PI/8); //right
 		r[6] = getFrontSonarData(-Math.PI/8); //left
+
+		//noise
+		r[4] = r[4] + ((Math.random()-0.5)*0.2*r[4]);
+		r[4] += 0.2*Math.sin(System.currentTimeMillis()/1000);
+
+		r[5] += ((Math.random()-0.5)*0.2*r[5]);
+		r[6] += ((Math.random()-0.5)*0.2*r[6]);;
+		
 		return r;
 	}
 	

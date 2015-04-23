@@ -5,7 +5,7 @@ public class SweepingPattern extends SearchPattern {
 	boolean stop = false;
 	
 	public SweepingPattern(Kex kex, Kex.SearchCell subregion, double delta, long dt) {
-		super(kex, subregion, delta, dt);
+		super(kex, subregion, delta*0.8, dt);
 	}
 
 	@Override
@@ -73,7 +73,7 @@ public class SweepingPattern extends SearchPattern {
 				
 				if(targetY > region.maxY() || targetY < region.minY()) {
 					delta *=-1;
-					targetLine += delta;
+					targetLine += 2*delta;
 					targetY = targetLine;
 					goToNextLine = false;
 					goToRight = (goToRight == false);
@@ -84,7 +84,7 @@ public class SweepingPattern extends SearchPattern {
 				
 				if(skipRest) {
 					skipRest = false;
-					sleep(3000);
+					sleep(dt);
 				}
 			}
 			

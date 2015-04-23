@@ -63,6 +63,7 @@ public class CircularPattern extends SearchPattern {
 						if(Math.abs(tempAngle - angle) > 2*Math.PI) {
 							System.out.println("area is cleared");
 							stop = true;
+							kex.setSpeed(30);
 							break;
 						}
 						
@@ -81,7 +82,7 @@ public class CircularPattern extends SearchPattern {
 			
 			
 			
-			if(data[4] > -0.5) {
+			if(data[4] > -1) {
 				
 				double x1 = data[0] - centerX;
 				double y1 = data[1] - centerY;
@@ -164,13 +165,13 @@ public class CircularPattern extends SearchPattern {
 		System.out.println("Follow land");
 
 		double[] data = kex.getData();
-		double targetDepth = -1;//data[4];
+		double targetDepth = -1.5;//data[4];
 		//kex.setSpeed(5);
 		
 		
 		//PID controller
 		
-		double KP = 0.4; //Proportional gain
+		double KP = 0.2; //Proportional gain
 		double KI = 1.0 / 5000; //integral gain
 		double KD = 300; //derivative gain
 		
