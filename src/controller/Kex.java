@@ -2,15 +2,7 @@ package controller;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.image.ImageObserver;
-import java.text.AttributedCharacterIterator;
 import java.util.ArrayList;
 
 import javax.swing.JFrame;
@@ -87,12 +79,11 @@ public class Kex implements Runnable{
 	@Override
 	public void run() {
         //Run the search pattern on the polygons
-//        SearchPattern sp = new SweepingPattern(this, cellList.get(0), this.delta, this.dt);
+        //SearchPattern sp = new SweepingPattern(this, cellList.get(0), this.delta, this.dt);
         SearchPattern sp = new CircularPattern(this, cellList.get(0), this.delta, this.dt);
         Thread myThread = new Thread(sp);
         myThread.start();
 
-        //TODO read and save depth measurements here!
         double[] sensorData;
         while(true){
             try {
@@ -309,7 +300,7 @@ public class Kex implements Runnable{
 		double xCoord;
 		double yCoord;
 		int status;
-        double recordedDepth;
+        private double accumulatedDepth;
         int timesVisited;
 
 		public searchElement(double x, double y, int s){
@@ -320,45 +311,40 @@ public class Kex implements Runnable{
 		}
         private void updateDepthData(double inDepth){
             if (timesVisited == 0){
-                recordedDepth = inDepth;
+                accumulatedDepth = inDepth;
                 timesVisited++;
             }
             else {
                 timesVisited++;
-                recordedDepth = (recordedDepth + inDepth);
+                accumulatedDepth = (accumulatedDepth + inDepth);
             }
             status = 1;
         }
         private double getRecordedDepth(){
-            return recordedDepth/timesVisited;
+            return accumulatedDepth /timesVisited;
         }
 	}
 	
 	private class drawMatrix extends JPanel{
 		SearchCell myCell;
 		JFrame myFrame;
+        int xScale, yScale;
 
 		public drawMatrix(SearchCell inCell){
 			myFrame = new JFrame();
-			myFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-			myFrame.setPreferredSize(new Dimension(500, 500));
-			myFrame.add(this);
-			myFrame.pack();
-			myFrame.setVisible(true);
-			myCell = inCell;
+            myCell = inCell;
+            myFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+            myFrame.setPreferredSize(new Dimension(500, 500));
+            myFrame.add(this);
+            myFrame.pack();
+            myFrame.setVisible(true);
 
-			//b = (myCell.xMax-myCell.xMin)/myCell.;
-			
 			this.repaint();
 			
 		}
 		
 		@Override
 		public void paint(Graphics g){
-		
-			//Graphics2D g2d = (Graphics2D) g;
-			//draw elements
-            //draw each element
             int[] coords;
             for (searchElement[] ea : myCell.cellMatrix){
                 for (searchElement e : ea){
@@ -396,7 +382,7 @@ public class Kex implements Runnable{
                             color = new Color(0x0AF4FF);
                         }
                         else{
-                            color = color.GREEN;
+                            color = Color.GREEN;
                         }
                         g.setColor(color);
                     }
@@ -406,9 +392,20 @@ public class Kex implements Runnable{
                     }
                     coords = correctCoords((int)e.xCoord,(int)e.yCoord);
                     g.fillRect(coords[0]-(int)Math.round(myCell.dx/2),coords[1]-(int)Math.round(myCell.dx/2),(int)myCell.dx+1,(int)myCell.dy+1);
+                    g.setColor(Color.gray);
+                    //vertical lines
+                    int[] vCoords = correctCoords((int)Math.round(e.xCoord), (int)Math.round(myCell.xMax));
+                    g.drawLine(coords[0]-(int)Math.round(myCell.dx/2), coords[1]-(int)Math.round(myCell.dx/2), vCoords[0]-(int)Math.round(myCell.dx/2),vCoords[1]-(int)Math.round(myCell.dy/2));
+                    //horizontal lines
+                    int[] hCoords = correctCoords((int)Math.round(myCell.xMax), (int)Math.round(e.yCoord));
+                    g.drawLine(coords[0]-(int)Math.round(myCell.dx/2), coords[1]-(int)Math.round(myCell.dx/2), hCoords[0]-(int)Math.round(myCell.dx/2),hCoords[1]-(int)Math.round(myCell.dy/2));
+
+
+
+
                 }
             }
-            //TODO coordinate correction function or is there a better way?
+
 			//draw polygon edges
 			for(int i=0; i<myCell.xpos.size()-1; i++) {
 				int x0 = polygonX.get(i).intValue();
