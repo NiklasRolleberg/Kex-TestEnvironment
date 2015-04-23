@@ -56,7 +56,12 @@ public class Kex implements Runnable{
         //TODO calculate index in the matrix
         int ix = (int)Math.round((xCoord - cellList.get(currentCellIndex).xMin) / cellList.get(currentCellIndex).dx);
         int iy = (int)Math.round((yCoord - cellList.get(currentCellIndex).yMin) / cellList.get(currentCellIndex).dy);
-
+        if (ix >= cellList.get(currentCellIndex).nx){
+            ix = cellList.get(currentCellIndex).nx-1;
+        }
+        if (iy >= cellList.get(currentCellIndex).ny){
+            ix = cellList.get(currentCellIndex).ny-1;
+        }
         cellList.get(currentCellIndex).cellMatrix[ix][iy].updateDepthData(depthValue);
 
     }
@@ -79,8 +84,8 @@ public class Kex implements Runnable{
 	@Override
 	public void run() {
         //Run the search pattern on the polygons
-        //SearchPattern sp = new SweepingPattern(this, cellList.get(0), this.delta, this.dt);
-        SearchPattern sp = new CircularPattern(this, cellList.get(0), this.delta, this.dt);
+        SearchPattern sp = new SweepingPattern(this, cellList.get(0), this.delta, this.dt);
+        //SearchPattern sp = new CircularPattern(this, cellList.get(0), this.delta, this.dt);
         Thread myThread = new Thread(sp);
         myThread.start();
 
@@ -144,8 +149,8 @@ public class Kex implements Runnable{
             dx = (xMax - xMin)/nx;
             dy = (yMax - yMin)/ny;
 
-            System.out.println("max x: " + maxX() + ", min x: " + minX()+ ", nx: " + nx);
-			System.out.println("max y: " + maxY() + ", min y: " + minY()+ ", ny: " + ny);
+            System.out.println("max x: " + maxX() + ", min x: " + minX()+ ", nx: " + nx + ", dx: " + dx);
+			System.out.println("max y: " + maxY() + ", min y: " + minY()+ ", ny: " + ny + ", dy: " + dy);
 
             //initialize the 2D-array. Maybe make sure not to include oob cells at all to save memory?
             cellMatrix = new searchElement[nx][ny];
@@ -328,13 +333,21 @@ public class Kex implements Runnable{
 	private class drawMatrix extends JPanel{
 		SearchCell myCell;
 		JFrame myFrame;
+        //TODO scale result window visualisation up!
         int xScale, yScale;
 
 		public drawMatrix(SearchCell inCell){
 			myFrame = new JFrame();
             myCell = inCell;
             myFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-            myFrame.setPreferredSize(new Dimension(500, 500));
+            //int[] dim = correctCoords((int)Math.round(myCell.xMax),(int)Math.round(myCell.yMax));
+            //System.out.println(dim[0]+" "+dim[1]);
+            int w = (int)((myCell.dx*myCell.nx)+delta+myCell.resolution);
+            int h = (int)((myCell.dy*myCell.ny) + delta);
+            //System.out.println("Window size: w = " + w + ", h = " + h);
+
+            //myFrame.setPreferredSize(new Dimension(w, h));
+            myFrame.setPreferredSize(new Dimension(280,380));
             myFrame.add(this);
             myFrame.pack();
             myFrame.setVisible(true);
