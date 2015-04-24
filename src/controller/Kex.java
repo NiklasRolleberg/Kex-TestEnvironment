@@ -43,26 +43,66 @@ public class Kex implements Runnable{
         currentCellIndex = 0;
 
         //TODO split polygon + store convex polygons
-        SearchCell sc = new SearchCell(x, y);
+        SearchCell entireArea = new SearchCell(x, y);
         cellList = new ArrayList<SearchCell>();
-        cellList.add(sc);
+        cellList.add(entireArea);
+        ySplitRead(entireArea);
+        draw = new drawMatrix(cellList);
 
 
 
 	}
+    /**Splits the initial searh area in the middle of the y-axis and creates 2 search cells*/
+    private void ySplitRead(SearchCell initCell){
+        ArrayList<Double> xTop, yTop, xBot, yBot;
+        xTop = new ArrayList<Double>();
+        yTop = new ArrayList<Double>();
+        xBot = new ArrayList<Double>();
+        yBot = new ArrayList<Double>();
+
+
+        double yMid = initCell.yMin+(initCell.yMax-initCell.yMin)/2;
+        System.out.println("yMid = " + yMid);
+        int nNodes = initCell.xpos.size();
+        for (int i = 0; i<nNodes; i++){
+            double yValue = initCell.ypos.get(i);
+            double xValue = initCell.xpos.get(i);
+            if (yValue>yMid){
+                yTop.add(yValue);
+                xTop.add(xValue);
+            }
+            else {
+                yBot.add(yValue);
+                xBot.add(xValue);
+            }
+        }
+
+        System.out.println("initX = " + initCell.xpos.size() + " , initY = " + initCell.ypos.size());
+        System.out.println("xtop: " + xTop.size() + " xbot: " + xBot.size());
+        System.out.println("ytop: " + yTop.size() + " ybot: " + yBot.size());
+
+        SearchCell top = new SearchCell(xTop,yTop);
+        SearchCell bot = new SearchCell(xBot,yBot);
+        //cellList.add(top);
+        //cellList.add(bot);
+        System.out.println("cellList size: " + cellList.size());
+
+
+    }
 
     /**Updates cellmatrix depth data*/
     public void updateDepthValue(double xCoord, double yCoord, double depthValue){
-        //TODO calculate index in the matrix
         int ix = (int)Math.round((xCoord - cellList.get(currentCellIndex).xMin) / cellList.get(currentCellIndex).dx);
         int iy = (int)Math.round((yCoord - cellList.get(currentCellIndex).yMin) / cellList.get(currentCellIndex).dy);
+
+        //index out of bounds fix
         if (ix >= cellList.get(currentCellIndex).nx){
             ix = cellList.get(currentCellIndex).nx-1;
         }
         if (iy >= cellList.get(currentCellIndex).ny){
-            ix = cellList.get(currentCellIndex).ny-1;
+            iy = cellList.get(currentCellIndex).ny-1;
         }
-        cellList.get(currentCellIndex).cellMatrix[ix][iy].updateDepthData(depthValue);
+        cellList.get(currentCellIndex).elementMatrix[ix][iy].updateDepthData(depthValue);
 
     }
 
@@ -126,7 +166,7 @@ public class Kex implements Runnable{
         int ny;
         double dx;
         double dy;
-		searchElement[][] cellMatrix;
+		searchElement[][] elementMatrix;
         double resolution;
 
         /**Constructor
@@ -151,49 +191,36 @@ public class Kex implements Runnable{
 
             System.out.println("max x: " + maxX() + ", min x: " + minX()+ ", nx: " + nx + ", dx: " + dx);
 			System.out.println("max y: " + maxY() + ", min y: " + minY()+ ", ny: " + ny + ", dy: " + dy);
+            //read here!
+            populateElementMatrix();
+            //draw = new drawMatrix(cellList);
+        }
 
+
+        /**Reads the whole polygon into one single searchcell, mostly for test purposes!*/
+        private void populateElementMatrix() {
             //initialize the 2D-array. Maybe make sure not to include oob cells at all to save memory?
-            cellMatrix = new searchElement[nx][ny];
+            elementMatrix = new searchElement[nx][ny];
             double xLeft, xRight;
-            boolean readCellIntoMemory;
-            readCellIntoMemory = true;
-
-            // made up status codes:
-            // 99 is oob,
-            // 0 is not yet scanned,
-            // 1 is scanned water,
-            // 2 is land/unreachable,
-            // more?! unreachable?
-
             double xCoord = xMin;
             double yCoord = yMin;
-            //noinspection ConstantConditions
-            if (readCellIntoMemory){
-                for(int iy = 0; iy<ny; iy++){
-                    for (int ix = 0; ix<nx; ix++){
-                        xLeft=findX(yCoord, false);
-                        xRight=findX(yCoord, true);
-                        if (xCoord<=xLeft || xCoord>=xRight){
-                            cellMatrix[ix][iy] = new searchElement(xCoord, yCoord, 99);   //oob
-                        }
-                        else{
-                            cellMatrix[ix][iy] = new searchElement(xCoord, yCoord, 0); //in bounds
-                        }
-                        xCoord += dx;
-
+            for (int iy = 0; iy < ny; iy++) {
+                for (int ix = 0; ix < nx; ix++) {
+                    xLeft = findX(yCoord, false);
+                    xRight = findX(yCoord, true);
+                    if (xCoord <= xLeft || xCoord >= xRight) {
+                        elementMatrix[ix][iy] = new searchElement(xCoord, yCoord, 99);   //oob
+                    } else {
+                        elementMatrix[ix][iy] = new searchElement(xCoord, yCoord, 0); //in bounds
                     }
-                    yCoord += dy;
-                    xCoord = xMin;
+                    xCoord += dx;
                 }
-            //draw the cell
-
-            draw = new drawMatrix(this);
+                yCoord += dy;
+                xCoord = xMin;
             }
+            System.out.println("----------Cell read done!----------");
+        }
 
-			System.out.println("----------Cell read done!----------");
-		}
-		
-		
 		public double findX(double y, boolean right) {
 			int[] l1 = {-1,-1};
 			int[] l2 = {-1,-1};
@@ -331,112 +358,122 @@ public class Kex implements Runnable{
 	}
 	
 	private class drawMatrix extends JPanel{
-		SearchCell myCell;
+		SearchCell currentCell;
 		JFrame myFrame;
-        //TODO scale result window visualisation up!
-        int xScale, yScale;
 
-		public drawMatrix(SearchCell inCell){
+		public drawMatrix(ArrayList<SearchCell> cellList){
 			myFrame = new JFrame();
-            myCell = inCell;
+            currentCell = cellList.get(0);
             myFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-            //int[] dim = correctCoords((int)Math.round(myCell.xMax),(int)Math.round(myCell.yMax));
-            //System.out.println(dim[0]+" "+dim[1]);
-            int w = (int)((myCell.dx*myCell.nx)+delta+myCell.resolution);
-            int h = (int)((myCell.dy*myCell.ny) + delta);
-            //System.out.println("Window size: w = " + w + ", h = " + h);
-
-            //myFrame.setPreferredSize(new Dimension(w, h));
-            myFrame.setPreferredSize(new Dimension(280,380));
+            int[] dim = correctCoords((int)Math.round(currentCell.xMax*1.2),(int)Math.round(currentCell.yMax*1.2));
+            myFrame.setPreferredSize(new Dimension(dim[0],dim[1]));
             myFrame.add(this);
             myFrame.pack();
             myFrame.setVisible(true);
-
 			this.repaint();
-			
 		}
+
 		
 		@Override
 		public void paint(Graphics g){
-            int[] coords;
-            for (searchElement[] ea : myCell.cellMatrix){
-                for (searchElement e : ea){
-                    if (e.status ==  0){
-                        g.setColor(Color.black);
+            //draw a background
+            g.setColor(new Color(211, 211, 211));
+            int[] c0 = correctCoords((int)Math.round(currentCell.xMin),(int)Math.round(currentCell.yMin));
+            int[] c1 = correctCoords((int)Math.round(currentCell.xMax)*2, (int) Math.round(currentCell.yMax)*2);
+            g.fillRect(c0[0],c0[1],c1[0],c1[1]);
+            //Color[] colorArray = {Color.green, Color.yellow, Color.magenta};
+            //int i = 0;
+            for (SearchCell currCell : cellList) {
+                /*System.out.println("i = "+i);
+                currentCell = cellList.get(i);
+                if (i!=0){
+                    drawEdges(g,colorArray[i]);
+                }
+                i++;*/
+                for (searchElement[] ea : currCell.elementMatrix) {
+                    for (searchElement e : ea) {
+                        if (e.status == 0) {
+                            g.setColor(Color.black);
+                        } else if (e.status == 99) {
+                            g.setColor(Color.gray);
+                        } else if (e.status == 1) {
+                            double depth = e.getRecordedDepth();
+                            g.setColor(getColor(depth));
+                        } else {
+                            System.out.println("Dafuq?! Wrong status in initial cell read");
+                            g.setColor(Color.red);
+                        }
+                        drawElements(g, e);
+                        drawEdges(g, Color.red);
                     }
-                    else if (e.status == 99){
-                        g.setColor(Color.gray);
-                    }
-                    else if (e.status == 1){
-                        double depth = e.getRecordedDepth();
-                        Color color = Color.BLUE;
-                        if(depth < -21) {
-                            color = new Color(0x050068);
-                        }
-                        else if(depth < -17)	{
-                            color = new Color(0x1208D7);
-                        }
-                        else if(depth < -15)	{
-                            color = new Color(0x0D00FF);
-                        }
-                        else if(depth < -12)	{
-                            color = new Color(0x035EC7);
-                        }
-                        else if(depth < -9)	{
-                            color = new Color(0x0066DA);
-                        }
-                        else if(depth < -6)	{
-                            color = new Color(0x1CA6D9);
-                        }
-                        else if(depth < -3)	{
-                            color = new Color(0x43B3DC);
-                        }
-                        else if(depth < 0.001)	{
-                            color = new Color(0x0AF4FF);
-                        }
-                        else{
-                            color = Color.GREEN;
-                        }
-                        g.setColor(color);
-                    }
-                    else{
-                        System.out.println("Dafuq?! Wrong status in initial cell read");
-                        g.setColor(Color.red);
-                    }
-                    coords = correctCoords((int)e.xCoord,(int)e.yCoord);
-                    g.fillRect(coords[0]-(int)Math.round(myCell.dx/2),coords[1]-(int)Math.round(myCell.dx/2),(int)myCell.dx+1,(int)myCell.dy+1);
-                    g.setColor(Color.gray);
-                    //vertical lines
-                    int[] vCoords = correctCoords((int)Math.round(e.xCoord), (int)Math.round(myCell.xMax));
-                    g.drawLine(coords[0]-(int)Math.round(myCell.dx/2), coords[1]-(int)Math.round(myCell.dx/2), vCoords[0]-(int)Math.round(myCell.dx/2),vCoords[1]-(int)Math.round(myCell.dy/2));
-                    //horizontal lines
-                    int[] hCoords = correctCoords((int)Math.round(myCell.xMax), (int)Math.round(e.yCoord));
-                    g.drawLine(coords[0]-(int)Math.round(myCell.dx/2), coords[1]-(int)Math.round(myCell.dx/2), hCoords[0]-(int)Math.round(myCell.dx/2),hCoords[1]-(int)Math.round(myCell.dy/2));
-
-
-
-
                 }
             }
 
-			//draw polygon edges
-			for(int i=0; i<myCell.xpos.size()-1; i++) {
-				int x0 = polygonX.get(i).intValue();
-				int y0 = polygonY.get(i).intValue();
-				
-				int x1 = polygonX.get(i+1).intValue();
-				int y1 = polygonY.get(i+1).intValue();
-				g.setColor(Color.RED);
-				g.drawLine(x0-(int)myCell.xMin, y0-(int)myCell.yMin, x1-(int)myCell.xMin, y1-(int)myCell.yMin);
-			}
-			g.drawLine(polygonX.get(polygonX.size()-1).intValue()-(int)myCell.xMin, (polygonY.get(polygonX.size()-1).intValue()-(int)myCell.yMin)
-									,polygonX.get(0).intValue()-(int)myCell.xMin, polygonY.get(0).intValue()-(int)myCell.yMin);
+
+        }
+        private void drawElements(Graphics g, searchElement e){
+            int[] coords = correctCoords((int)e.xCoord,(int)e.yCoord);
+            g.fillRect(coords[0]-(int)Math.round(currentCell.dx/2),coords[1]-(int)Math.round(currentCell.dx/2),(int) currentCell.dx+1,(int) currentCell.dy+1);
+            g.setColor(Color.gray);
+            //vertical lines
+            int[] vCoords = correctCoords((int)Math.round(e.xCoord), (int)Math.round(currentCell.xMax));
+            g.drawLine(coords[0]-(int)Math.round(currentCell.dx/2), coords[1]-(int)Math.round(currentCell.dx/2), vCoords[0]-(int)Math.round(currentCell.dx/2),vCoords[1]-(int)Math.round(currentCell.dy/2));
+            //horizontal lines
+            int[] hCoords = correctCoords((int)Math.round(currentCell.xMax), (int)Math.round(e.yCoord));
+            g.drawLine(coords[0]-(int)Math.round(currentCell.dx/2), coords[1]-(int)Math.round(currentCell.dx/2), hCoords[0]-(int)Math.round(currentCell.dx/2),hCoords[1]-(int)Math.round(currentCell.dy/2));
+
+        }
+        private void drawEdges(Graphics g, Color c){
+            for(int i=0; i< currentCell.xpos.size()-1; i++) {
+                int x0 = currentCell.xpos.get(i).intValue();
+                int y0 = currentCell.ypos.get(i).intValue();
+
+                int x1 = currentCell.xpos.get(i+1).intValue();
+                int y1 = currentCell.ypos.get(i+1).intValue();
+                //g.setColor(Color.RED);
+                g.setColor(c);
+                g.drawLine(x0-(int) currentCell.xMin, y0-(int) currentCell.yMin, x1-(int) currentCell.xMin, y1-(int) currentCell.yMin);
+            }
+            g.drawLine(currentCell.xpos.get(currentCell.xpos.size()-1).intValue()-(int) currentCell.xMin, (currentCell.ypos.get(currentCell.xpos.size()-1).intValue()-(int) currentCell.yMin)
+                    ,currentCell.xpos.get(0).intValue()-(int) currentCell.xMin, currentCell.ypos.get(0).intValue()-(int) currentCell.yMin);
+
+        }
+        private Color getColor(double depth){
+            Color color;
+            if(depth < -21) {
+                color = new Color(0x050068);
+            }
+            else if(depth < -17)	{
+                color = new Color(0x1208D7);
+            }
+            else if(depth < -15)	{
+                color = new Color(0x0D00FF);
+            }
+            else if(depth < -12)	{
+                color = new Color(0x035EC7);
+            }
+            else if(depth < -9)	{
+                color = new Color(0x0066DA);
+            }
+            else if(depth < -6)	{
+                color = new Color(0x1CA6D9);
+            }
+            else if(depth < -3)	{
+                color = new Color(0x43B3DC);
+            }
+            else if(depth < 0.001)	{
+                color = new Color(0x0AF4FF);
+            }
+            else{
+                color = Color.GREEN;
+            }
+            return color;
 
         }
         private int[] correctCoords(int x, int y){
             //return new int[] {x,y};
-            return new int[] {x - (int)myCell.xMin, y - (int)myCell.yMin};
+            return new int[] {x - (int) currentCell.xMin, y - (int) currentCell.yMin};
         }
-	}
-	
+    }
+
 }
