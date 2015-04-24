@@ -7,6 +7,7 @@ public abstract class SearchPattern implements Runnable {
 	double delta;
 	long dt;
 	AverageData data;
+	XTE xte; 
 	
 	public SearchPattern(Kex kex, Kex.SearchCell region, double delta, long  dt) {
 		this.kex = kex;
@@ -16,8 +17,57 @@ public abstract class SearchPattern implements Runnable {
 		data = new AverageData(dt/2);
 		Thread dataThread = new Thread(data);
 		dataThread.start();
+		
+		xte = new XTE(false);//false = xte turned of
+		Thread xteThread = new Thread(xte);
+		xteThread.start();
 	}
 	abstract void stop();
+	
+	/**Keeps the boat on track
+	 */
+	class XTE implements Runnable{
+		boolean on = false;
+		boolean stop = false;
+		
+		double targetX;
+		double targetY;
+		
+		double lastTargetX;
+		double lastTargetY;
+		
+		XTE(boolean on) {
+			this.on = on;
+		}
+		
+		public void stop() {
+			stop = true;
+		}
+		
+		public void setWaypoint(double x, double y) {
+			lastTargetX = targetX;
+			lastTargetY = targetY;
+			targetX = x;
+			targetY = y;
+			kex.setWaypoint(targetX,targetY);
+			}
+
+		@Override
+		public void run() {
+
+			while(!stop && on) {
+				
+				System.out.println("XTE update");
+				
+				try {
+					Thread.sleep(dt*5);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 	
 	/**
 	 * Collects data from kex and calculates a mean value
@@ -31,33 +81,38 @@ public abstract class SearchPattern implements Runnable {
 		
 		private double posX;
 		private double posY;
-		private double depth;
-		private double rightSonar;
-		private double leftSonar;
 		private double heading;
 		private double speed;
-		
-		private boolean landOnRightSide;
+		private Mean depth;
+		private Mean rightSonar;
+		private Mean leftSonar;
 		
 		AverageData(long updateDelay) {
+			
+			//nr = number of values to calculate mean from
+			int nr = 1;
+			depth = new Mean(nr);
+			rightSonar = new Mean(nr);
+			leftSonar = new Mean(nr);
+			
 			this.delay = updateDelay;
 			double[] data = kex.getData();
 			posX = data[0];
 			posY = data[1];
 			heading = data[2];
 			speed = data[3];
-			depth = data[4];
-			rightSonar = data[5];
-			leftSonar = data[6];
+			depth.add(data[4]);
+			rightSonar.add(data[5]);
+			leftSonar.add(data[6]);
 		}
 		
 		public double getPosX() {return posX;}
 		public double getPosY() {return posY;}
 		public double getHeading(){return heading;}
-		public double getSpeed(){return heading;}
-		public double getDepth(){return depth;}
-		public double getRightSonar(){return rightSonar;};
-		public double getLeftSonar(){return leftSonar;}
+		public double getSpeed(){return speed;}
+		public double getDepth(){return depth.getValue();}
+		public double getRightSonar(){return rightSonar.getValue();};
+		public double getLeftSonar(){return leftSonar.getValue();}
 		
 		public void stop() {
 			stop = true;
@@ -67,14 +122,15 @@ public abstract class SearchPattern implements Runnable {
 		public void run() {
 			
 			while(!stop) {
+				
 				double[] data = kex.getData();
 				posX = data[0];
 				posY = data[1];
 				heading = data[2];
 				speed = data[3];
-				depth = data[4];
-				rightSonar = data[5];
-				leftSonar = data[6];
+				depth.add(data[4]);
+				rightSonar.add(data[5]);
+				leftSonar.add(data[6]);
 				
 				try {
 					Thread.sleep(delay);
@@ -83,6 +139,50 @@ public abstract class SearchPattern implements Runnable {
 					e.printStackTrace();
 				}
 			}	
-		}	
+		}
+		
+		class Mean {
+			
+			double[] values;
+			boolean empty = true;
+			int n;
+			
+			/** Calculates a mean value of the last given values 
+			 * @param number
+			 * number of values to calculate mean from
+			 */
+			Mean(int number) {
+				this.n = number;
+				values = new double[number]; 
+			}
+			
+			/**
+			 * @return
+			 * mean value of the last n values
+			 */
+			public double getValue() {
+				double mean  = 0;
+				for(int i=0;i<n;i++)
+					mean += values[i];
+				mean /=n;
+				return mean;
+			}
+			
+			public void add(double input) {
+				if(empty) {
+					empty = false;
+					for(int i=0;i<n;i++)
+						values[i] = input; //values will be weighted at fist...
+				}
+				else {
+					//Move all values one step back, exept for the last one
+					for(int i=n-2; i>=0;i--) {
+						values[i+1] = values[i];
+					}
+					//input the new value at pos 0;
+					values[0] = input;
+				}
+			}
+		}
 	}
 }

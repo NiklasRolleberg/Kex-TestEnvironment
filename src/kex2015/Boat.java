@@ -22,10 +22,7 @@ public class Boat implements Runnable {
 	protected Map map;
 	
 	private double windDirection = Math.random() * Math.PI * 2;
-	private double windSpeed = 0.5;
-	/*
-	public static ArrayList<Double> xPos;
-	public static ArrayList<Double> yPos;*/
+	private double windSpeed = 1;
 	
 	public Boat(Map map, int dt, double startLong, double startLat) {
 		this.map = map;
@@ -36,20 +33,7 @@ public class Boat implements Runnable {
 		this.wayPoint[1] = startLat+500;
 		
 		this.dt = (long) dt;
-		
-		/*
-		xPos = new ArrayList<Double>();
-		yPos = new ArrayList<Double>();
-		
-		xPos.add(wayPoint[0]);
-		yPos.add(wayPoint[1]);
-		
-		xPos.add(startLong);
-		yPos.add(startLat);
-		*/
-		
-		//TODO fixa saker
-		
+
 		System.out.println("Boat created");
 	}
 
@@ -135,8 +119,6 @@ public class Boat implements Runnable {
 			depth3 = 0;
 		double ray3 = Math.sqrt(dist*dist + depth3*depth3);
 		
-		//System.out.println("Sensor: down= " + depth + "\t ray1= " + ray1 + "\t ray2= " + ray2 + "\t ray3= " + ray3);
-		
 		return Math.min(Math.min(ray1, ray2), ray3);
 	}
 	
@@ -174,16 +156,7 @@ public class Boat implements Runnable {
 		
 		lastUpdate = System.currentTimeMillis();
 		
-		/*
-		x = xPos.get(xPos.size()-1) - position[0];
-		y = yPos.get(yPos.size()-1) - position[1];*/
 		d = Math.sqrt(x*x + y*y);
-		/*
-		if(d > 0.5) {
-			xPos.add(position[0]);
-			yPos.add(position[1]);
-		}*/
-		
 	}
 	
 	public void stop() {

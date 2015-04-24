@@ -14,7 +14,8 @@ public class SweepingPattern extends SearchPattern {
 		double targetY = data.getPosY();
 		double targetX = region.findX(targetY, true);
 	
-		kex.setWaypoint(targetX, targetY);
+		//kex.setWaypoint(targetX, targetY);
+		xte.setWaypoint(targetX, targetY);
 		double dx = targetX-data.getPosX();
 		double dy = targetY-data.getPosY();
 		
@@ -80,8 +81,10 @@ public class SweepingPattern extends SearchPattern {
 				System.out.println("Close to land " + data.getDepth());
 				System.out.println("Coordinates: (" + data.getPosX() + "),(" + data.getPosY() + ")");
 				
-				//make the boat face the next line
-				kex.setSpeed(5);
+				//make the boat face the next line)
+				double depth = data.getDepth();
+				double sign = depth/Math.abs(depth);
+				kex.setSpeed(4*Math.sqrt(Math.abs(depth)) * -sign);
 				kex.setWaypoint(data.getPosX(), targetLine + delta); 
 				sleep(dt/3);
 				
@@ -96,7 +99,6 @@ public class SweepingPattern extends SearchPattern {
 					kex.setWaypoint(targetX, targetY);
 					System.out.println("Upper line reached");
 				}
-				kex.setSpeed(30);
 			}	
 			sleep(dt);
 		}
@@ -138,9 +140,11 @@ public class SweepingPattern extends SearchPattern {
 			//stop the boat from going outside the polygon
 			if(outOfBounds(data.getPosX(), data.getPosY())) {
 				if(data.getPosX() < ((region.maxX()-region.minX())/2))
-					kex.setWaypoint(region.findX(data.getPosY(),false), data.getPosY());
+					//kex.setWaypoint(region.findX(data.getPosY(),false), data.getPosY());
+					xte.setWaypoint(region.findX(data.getPosY(),false), data.getPosY());
 				else
-					kex.setWaypoint(region.findX(data.getPosY(),true), data.getPosY());
+					//kex.setWaypoint(region.findX(data.getPosY(),true), data.getPosY());
+					xte.setWaypoint(region.findX(data.getPosY(),true), data.getPosY());
 				return true;
 			}
 			
@@ -173,8 +177,9 @@ public class SweepingPattern extends SearchPattern {
 			//System.out.println("TurnAnlge: " + turnAngle);
 			//System.out.println("derivative: " + derivative);
 			//System.out.println("Integral " + Integral);
-			kex.setWaypoint(data.getPosX() + Math.cos(data.getHeading() - turnAngle) * 50, data.getPosY() + Math.sin(data.getHeading()- turnAngle) * 50);
-		
+			//kex.setWaypoint(data.getPosX() + Math.cos(data.getHeading() - turnAngle) * 50, data.getPosY() + Math.sin(data.getHeading()- turnAngle) * 50);
+			xte.setWaypoint(data.getPosX() + Math.cos(data.getHeading() - turnAngle) * 50, data.getPosY() + Math.sin(data.getHeading()- turnAngle) * 50);
+			
 			sleep(dt);
 		}
 		//close to first line
@@ -188,6 +193,7 @@ public class SweepingPattern extends SearchPattern {
 	void stop() {
 		stop = true;
 		data.stop(); //stop data object
+		xte.stop();
 	}
 	
 	private boolean outOfBounds(double x, double y) {

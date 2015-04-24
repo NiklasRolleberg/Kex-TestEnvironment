@@ -24,7 +24,7 @@ public class CircularPattern extends SearchPattern {
 		double targetX = centerX + radius * Math.cos(angle);
 		double targetY = centerY + radius * Math.sin(angle);
 		
-		kex.setWaypoint(targetX, targetY);
+		xte.setWaypoint(targetX, targetY);
 		
 		while(!stop) {
 			
@@ -71,7 +71,7 @@ public class CircularPattern extends SearchPattern {
 					targetY = tempY;
 				}
 				
-				kex.setWaypoint(targetX,targetY);
+				xte.setWaypoint(targetX,targetY);
 				kex.setSpeed(30);
 			}
 			
@@ -83,7 +83,7 @@ public class CircularPattern extends SearchPattern {
 				double y1 = data.getPosY() - centerY;
 				
 				//aim for center
-				kex.setWaypoint(centerX,centerY);
+				xte.setWaypoint(centerX,centerY);
 				sleep(dt/3);
 				kex.setSpeed(5);
 				followLand(centerX,centerY,radius);
@@ -131,7 +131,7 @@ public class CircularPattern extends SearchPattern {
 					targetX = tempX;
 					targetY = tempY;
 				}	
-				kex.setWaypoint(targetX, targetY);
+				xte.setWaypoint(targetX, targetY);
 			}
 			sleep(dt);
 		}
@@ -180,9 +180,9 @@ public class CircularPattern extends SearchPattern {
 			//stop the boat from going outside the polygon
 			if(outOfBounds(data.getPosX(), data.getPosY())) {
 				if(data.getPosX() < ((region.maxX()-region.minX())/2))
-					kex.setWaypoint(region.findX(data.getPosY(),false), data.getPosY());
+					xte.setWaypoint(region.findX(data.getPosY(),false), data.getPosY());
 				else
-					kex.setWaypoint(region.findX(data.getPosY(),true), data.getPosY());
+					xte.setWaypoint(region.findX(data.getPosY(),true), data.getPosY());
 			}
 			
 			double timeStep = (System.currentTimeMillis() - time);
@@ -213,7 +213,7 @@ public class CircularPattern extends SearchPattern {
 			//System.out.println("TurnAnlge: " + turnAngle);
 			//System.out.println("derivative: " + derivative);
 			//System.out.println("Integral " + Integral);
-			kex.setWaypoint(data.getPosX() + Math.cos(data.getHeading() - turnAngle) * 50, data.getPosY() + Math.sin(data.getHeading() - turnAngle) * 50);
+			xte.setWaypoint(data.getPosX() + Math.cos(data.getHeading() - turnAngle) * 50, data.getPosY() + Math.sin(data.getHeading() - turnAngle) * 50);
 		
 			sleep(dt);
 		}
@@ -231,6 +231,7 @@ public class CircularPattern extends SearchPattern {
 	void stop() {
 		stop = true;
 		data.stop();
+		xte.stop();
 	}
 	
 	private void sleep(long ms) {
