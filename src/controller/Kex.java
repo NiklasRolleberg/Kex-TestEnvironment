@@ -26,6 +26,8 @@ public class Kex implements Runnable{
 	long dt;
 
     drawMatrix draw;
+    
+    SearchPattern sp;
 	
 	
 	
@@ -91,7 +93,15 @@ public class Kex implements Runnable{
     }
 
     /**Updates cellmatrix depth data*/
-    public void updateDepthValue(double xCoord, double yCoord, double depthValue){
+    public void updateDepthValue(double[] data){
+    	
+    	double xCoord = data[0];
+    	double yCoord = data[1];
+    	double heading = data[2];
+    	double depthValue = data[4]; 
+    	double rightSonar = data[5]; 
+    	double leftSonar = data[6];
+    	
         int ix = (int)Math.round((xCoord - cellList.get(currentCellIndex).xMin) / cellList.get(currentCellIndex).dx);
         int iy = (int)Math.round((yCoord - cellList.get(currentCellIndex).yMin) / cellList.get(currentCellIndex).dy);
 
@@ -103,6 +113,36 @@ public class Kex implements Runnable{
             iy = cellList.get(currentCellIndex).ny-1;
         }
         cellList.get(currentCellIndex).elementMatrix[ix][iy].updateDepthData(depthValue);
+        
+        //might not be a good way of doing this
+        if (depthValue >= -2 && sp.followingLand()) {
+        	//boat is following land
+        	//check if land is on left or right side
+        	
+        	double angle = heading; // angle towards land
+        	if(rightSonar > leftSonar) {
+        		angle -= Math.PI/4;
+        	}
+        	else {
+        		angle += Math.PI/4;
+        	}
+        	//find cell in angle-direction.
+        	int nyx = (int)Math.round((xCoord - cellList.get(currentCellIndex).xMin + Math.cos(angle)*cellList.get(currentCellIndex).dx) 
+        			/ cellList.get(currentCellIndex).dx);
+            int nyy = (int)Math.round((yCoord - cellList.get(currentCellIndex).yMin + Math.sin(angle)*cellList.get(currentCellIndex).dx)
+            		/ cellList.get(currentCellIndex).dy);
+            
+            //index out of bounds fix
+            if (nyx >= cellList.get(currentCellIndex).nx){
+                nyx = cellList.get(currentCellIndex).nx-1;
+            }
+            if (nyy >= cellList.get(currentCellIndex).ny){
+                nyy = cellList.get(currentCellIndex).ny-1;
+            }
+            if(cellList.get(currentCellIndex).elementMatrix[nyx][nyy].status != 1) {
+            	cellList.get(currentCellIndex).elementMatrix[nyx][nyy].status = 2;
+            }
+        }
 
     }
 
@@ -124,8 +164,8 @@ public class Kex implements Runnable{
 	@Override
 	public void run() {
         //Run the search pattern on the polygons
-        SearchPattern sp = new SweepingPattern(this, cellList.get(0), this.delta, this.dt);
-        //SearchPattern sp = new CircularPattern(this, cellList.get(0), this.delta, this.dt);
+        sp = new SweepingPattern(this, cellList.get(0), this.delta, this.dt);
+        //sp = new CircularPattern(this, cellList.get(0), this.delta, this.dt);
         Thread myThread = new Thread(sp);
         myThread.start();
 
@@ -136,8 +176,8 @@ public class Kex implements Runnable{
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            sensorData = boat.getSensordata();
-            updateDepthValue(sensorData[0],sensorData[1],sensorData[4]);
+            //sensorData = boat.getSensordata();
+            updateDepthValue(boat.getSensordata());
             draw.repaint();
 
 
@@ -331,7 +371,7 @@ public class Kex implements Runnable{
 	private class searchElement{
 		double xCoord;
 		double yCoord;
-		int status;
+		int status; // 0 = not scanned, 1 = scanned 2 = not accessible, 99 oob
         private double accumulatedDepth;
         int timesVisited;
 
@@ -399,9 +439,11 @@ public class Kex implements Runnable{
                         } else if (e.status == 1) {
                             double depth = e.getRecordedDepth();
                             g.setColor(getColor(depth));
+                        }else if (e.status == 2) {
+                        	g.setColor(Color.red);
                         } else {
                             System.out.println("Dafuq?! Wrong status in initial cell read");
-                            g.setColor(Color.red);
+                            g.setColor(Color.pink);
                         }
                         drawElements(g, e);
                         drawEdges(g, Color.red);

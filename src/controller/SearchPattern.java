@@ -24,6 +24,8 @@ public abstract class SearchPattern implements Runnable {
 	}
 	abstract void stop();
 	
+	abstract boolean followingLand();
+	
 	/**Keeps the boat on track
 	 */
 	class XTE implements Runnable{
@@ -90,7 +92,7 @@ public abstract class SearchPattern implements Runnable {
 		AverageData(long updateDelay) {
 			
 			//nr = number of values to calculate mean from
-			int nr = 1;
+			int nr = 5;
 			depth = new Mean(nr);
 			rightSonar = new Mean(nr);
 			leftSonar = new Mean(nr);

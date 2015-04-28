@@ -3,6 +3,7 @@ package controller;
 public class SweepingPattern extends SearchPattern {
 
 	boolean stop = false;
+	boolean followingLand = false;
 	
 	public SweepingPattern(Kex kex, Kex.SearchCell subregion, double delta, long dt) {
 		super(kex, subregion, delta*0.8, dt);
@@ -59,12 +60,14 @@ public class SweepingPattern extends SearchPattern {
 				}
 				
 				if(targetY > region.maxY() || targetY < region.minY()) {
-					delta *=-1;
+					this.stop();
+					kex.setSpeed(0);
+					/*delta *=-1;
 					targetLine += 2*delta;
 					targetY = targetLine;
 					goToNextLine = false;
 					goToRight = (goToRight == false);
-					targetX = region.findX(targetY, goToRight);
+					targetX = region.findX(targetY, goToRight);*/
 				}
 				
 				kex.setWaypoint(targetX, targetY);
@@ -84,10 +87,12 @@ public class SweepingPattern extends SearchPattern {
 				//make the boat face the next line)
 				double depth = data.getDepth();
 				double sign = depth/Math.abs(depth);
-				kex.setSpeed(4*Math.sqrt(Math.abs(depth)) * -sign);
-				kex.setWaypoint(data.getPosX(), targetLine + delta); 
-				sleep(dt/3);
 				
+				kex.setWaypoint(data.getPosX(), targetLine + delta); 
+				kex.setSpeed(0);
+				sleep(dt*5);
+				kex.setSpeed(4*Math.sqrt(Math.abs(depth)+1) * -sign);
+				followingLand = true;
 				if(followLand(targetLine, targetLine + delta)) {
 					targetLine +=delta;
 					System.out.println("Lower line reached");
@@ -99,6 +104,7 @@ public class SweepingPattern extends SearchPattern {
 					kex.setWaypoint(targetX, targetY);
 					System.out.println("Upper line reached");
 				}
+				followingLand = false;
 			}	
 			sleep(dt);
 		}
@@ -122,7 +128,7 @@ public class SweepingPattern extends SearchPattern {
 		double targetDepth = -1;
 		
 		//PID controller
-		double KP = 0.4; //Proportional gain
+		double KP = 0.2; //Proportional gain
 		double KI = 1.0 / 5000; //integral gain
 		double KD = 300; //derivative gain
 		
@@ -145,6 +151,7 @@ public class SweepingPattern extends SearchPattern {
 				else
 					//kex.setWaypoint(region.findX(data.getPosY(),true), data.getPosY());
 					xte.setWaypoint(region.findX(data.getPosY(),true), data.getPosY());
+				System.out.println("target out of bounds");
 				return true;
 			}
 			
@@ -209,5 +216,10 @@ public class SweepingPattern extends SearchPattern {
 		try {
 			Thread.sleep(ms);
 		}catch(Exception e) {}
+	}
+
+	@Override
+	boolean followingLand() {
+		return followingLand;
 	}
 }

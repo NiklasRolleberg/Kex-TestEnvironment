@@ -152,7 +152,7 @@ public class Boat implements Runnable {
 		}
 		
 		position[0] += speed * elapsedTime * Math.cos(heading);// + windSpeed*elapsedTime*Math.cos(windDirection);
-		position[1] += speed * elapsedTime * Math.sin(heading);// + windSpeed*elapsedTime*Math.cos(windDirection);;
+		position[1] += speed * elapsedTime * Math.sin(heading);// + windSpeed*elapsedTime*Math.sin(windDirection);;
 		
 		lastUpdate = System.currentTimeMillis();
 		

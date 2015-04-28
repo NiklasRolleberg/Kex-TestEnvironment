@@ -5,7 +5,8 @@ import controller.Kex.SearchCell;
 public class CircularPattern extends SearchPattern {
 	
 	boolean stop = false;
-
+	boolean followingLand = false;
+	
 	public CircularPattern(Kex kex, SearchCell region, double delta, long dt) {
 		super(kex, region, delta, dt);
 	}
@@ -86,7 +87,9 @@ public class CircularPattern extends SearchPattern {
 				xte.setWaypoint(centerX,centerY);
 				sleep(dt/3);
 				kex.setSpeed(5);
+				followingLand = true;
 				followLand(centerX,centerY,radius);
+				followingLand = false;
 				kex.setSpeed(30);
 				
 				double x2 = data.getPosX() - centerX;
@@ -238,6 +241,11 @@ public class CircularPattern extends SearchPattern {
 		try {
 			Thread.sleep(ms);
 		}catch(Exception e) {}
+	}
+
+	@Override
+	boolean followingLand() {
+		return followingLand;
 	}
 
 }
