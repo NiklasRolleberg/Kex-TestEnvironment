@@ -47,19 +47,56 @@ public abstract class SearchPattern implements Runnable {
 		}
 		
 		public void setWaypoint(double x, double y) {
+			on = false;
 			lastTargetX = targetX;
 			lastTargetY = targetY;
 			targetX = x;
 			targetY = y;
 			kex.setWaypoint(targetX,targetY);
-			}
+		}
+		
+		/**
+		 * @param startX
+		 * @param startY
+		 * @param stopX
+		 * @param stopY
+		 */
+		public void setWaypoint(double startX, double startY, double stopX, double stopY) {
+			on = true;
+			lastTargetX = startX;
+			lastTargetY = startY;
+			targetX = stopX;
+			targetY = stopY;
+			kex.setWaypoint(stopX,stopY);
+		}
 
 		@Override
 		public void run() {
 
-			while(!stop && on) {
+			while(!stop) {
 				
-				System.out.println("XTE update");
+				if(on) {
+					System.out.println("XTE update");
+					double norm = Math.sqrt((targetX-lastTargetX)*(targetX-lastTargetX) + (targetY-lastTargetY)*(targetY-lastTargetY));
+					//System.out.println(norm);
+					if(norm == 0)
+						on = false;
+					else {
+						//distance to next waypoint
+						double ahead = 10 + data.getSpeed();//10;
+						
+						if(Math.sqrt((targetX-data.posX)*(targetX-data.posX) + (targetY-data.posY)*(targetY-data.posY)) < ahead)
+							kex.setWaypoint(targetX, targetY);
+						else {
+							double[] n = {(targetX-lastTargetX) / norm , (targetY-lastTargetY) / norm};
+							double[] v ={data.getPosX() - lastTargetX ,data.getPosY() - lastTargetY};
+							//u = proj_n (V)
+							double sp = (v[0]*n[0] + v[1]*n[1]);
+							double[] u = {sp*n[0], sp*n[1]};
+							kex.setWaypoint(lastTargetX + u[0] + ahead * n[0], lastTargetY + u[1] + ahead * n[1]);
+						}
+					}
+				}
 				
 				try {
 					Thread.sleep(dt*5);
@@ -92,7 +129,7 @@ public abstract class SearchPattern implements Runnable {
 		AverageData(long updateDelay) {
 			
 			//nr = number of values to calculate mean from
-			int nr = 5;
+			int nr = 1;
 			depth = new Mean(nr);
 			rightSonar = new Mean(nr);
 			leftSonar = new Mean(nr);

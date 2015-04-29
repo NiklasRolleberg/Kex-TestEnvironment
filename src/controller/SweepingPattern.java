@@ -16,7 +16,7 @@ public class SweepingPattern extends SearchPattern {
 		double targetX = region.findX(targetY, true);
 	
 		//kex.setWaypoint(targetX, targetY);
-		xte.setWaypoint(targetX, targetY);
+		xte.setWaypoint(data.getPosX(), data.getPosY(), targetX, targetY);
 		double dx = targetX-data.getPosX();
 		double dy = targetY-data.getPosY();
 		
@@ -34,6 +34,9 @@ public class SweepingPattern extends SearchPattern {
 			
 			//target reached -> choose new target
 			if(Math.sqrt(dx*dx + dy*dy) < 3 || skipRest) {
+				
+				double lastTargetX = targetX;
+				double lastTargetY = targetY;
 				
 				System.out.println("Waypoint reached");
 				
@@ -70,7 +73,7 @@ public class SweepingPattern extends SearchPattern {
 					targetX = region.findX(targetY, goToRight);*/
 				}
 				
-				kex.setWaypoint(targetX, targetY);
+				xte.setWaypoint(lastTargetX, lastTargetY, targetX, targetY);
 				
 				if(skipRest) {
 					skipRest = false;
@@ -84,11 +87,14 @@ public class SweepingPattern extends SearchPattern {
 				System.out.println("Close to land " + data.getDepth());
 				System.out.println("Coordinates: (" + data.getPosX() + "),(" + data.getPosY() + ")");
 				
+				double lastTargetX = data.getPosX();
+				double lastTargetY = data.getPosY();
+				
 				//make the boat face the next line)
 				double depth = data.getDepth();
 				double sign = depth/Math.abs(depth);
 				
-				kex.setWaypoint(data.getPosX(), targetLine + delta); 
+				xte.setWaypoint(data.getPosX(), targetLine + delta); 
 				kex.setSpeed(0);
 				sleep(dt*5);
 				kex.setSpeed(4*Math.sqrt(Math.abs(depth)+1) * -sign);
@@ -98,10 +104,12 @@ public class SweepingPattern extends SearchPattern {
 					System.out.println("Lower line reached");
 					skipRest = true;
 					goToNextLine = false;
+					targetY = targetLine;
 				}
 				else {
-					targetY = targetLine;
-					kex.setWaypoint(targetX, targetY);
+					targetY = targetLine;				
+					//xte.setWaypoint(targetX, targetY);
+					xte.setWaypoint(lastTargetX, lastTargetY, targetX, targetY);
 					System.out.println("Upper line reached");
 				}
 				followingLand = false;
