@@ -114,34 +114,24 @@ public class Kex implements Runnable{
         }
         cellList.get(currentCellIndex).elementMatrix[ix][iy].updateDepthData(depthValue);
         
+       
         //might not be a good way of doing this
-        if (depthValue >= -2 && sp.followingLand()) {
-        	//boat is following land
-        	//check if land is on left or right side
-        	
-        	double angle = heading; // angle towards land
-        	if(rightSonar > leftSonar) {
-        		angle -= Math.PI/4;
-        	}
-        	else {
-        		angle += Math.PI/4;
-        	}
-        	//find cell in angle-direction.
-        	int nyx = (int)Math.round((xCoord - cellList.get(currentCellIndex).xMin + Math.cos(angle)*cellList.get(currentCellIndex).dx) 
-        			/ cellList.get(currentCellIndex).dx);
-            int nyy = (int)Math.round((yCoord - cellList.get(currentCellIndex).yMin + Math.sin(angle)*cellList.get(currentCellIndex).dx)
-            		/ cellList.get(currentCellIndex).dy);
+        if (sp.followingLand()) {
+            int maxIndexX = cellList.get(currentCellIndex).nx;
+            int maxIndexY = cellList.get(currentCellIndex).ny;
             
-            //index out of bounds fix
-            if (nyx >= cellList.get(currentCellIndex).nx){
-                nyx = cellList.get(currentCellIndex).nx-1;
-            }
-            if (nyy >= cellList.get(currentCellIndex).ny){
-                nyy = cellList.get(currentCellIndex).ny-1;
-            }
-            if(cellList.get(currentCellIndex).elementMatrix[nyx][nyy].status != 1) {
-            	cellList.get(currentCellIndex).elementMatrix[nyx][nyy].status = 2;
-            }
+        	int[] indexX = {ix   , ix+1, ix+1 ,ix+1 ,ix   ,ix-1 ,ix-1 ,ix-1};
+        	int[] indexY = {iy-1 , iy-1, iy   ,iy+1 ,iy+1 ,iy+1 ,iy   ,iy-1};
+        	for(int k = 0; k < 8;k++) {
+        		int i = indexX[k];
+        		int j = indexY[k];
+        		if(i >= 0 && i < maxIndexX && j >= 0 && j < maxIndexY)
+            	{
+            		if(cellList.get(currentCellIndex).elementMatrix[i][j].status != 1){
+            			cellList.get(currentCellIndex).elementMatrix[i][j].status = 2;
+            		}
+            	}
+        	}
         }
 
     }
@@ -182,6 +172,8 @@ public class Kex implements Runnable{
 
 
         }
+        
+        
 
 
 	}
