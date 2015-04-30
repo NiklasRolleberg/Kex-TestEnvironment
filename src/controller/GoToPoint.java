@@ -1,11 +1,11 @@
 package controller;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 public class GoToPoint implements Runnable{
 
 	public GoToPoint() {
-		int limit = 12;
+		int limit = 13;
 		byte[][] array = { {1,1,1,1,1,1,1,1,1,1,1,1,1}, 
 						   {1,1,1,1,1,1,1,1,1,2,2,2,1}, 
 						   {1,1,1,1,1,1,1,2,2,0,0,2,1},
@@ -22,188 +22,138 @@ public class GoToPoint implements Runnable{
 						   {1,1,1,1,1,1,1,1,1,1,1,1,1}};
 		
 		System.out.println("Map");
-		for(int i=0;i<12;i++) {
-			for(int j=0;j<12;j++) {
+		for(int i=0;i<limit;i++) {
+			for(int j=0;j<limit;j++) {
 				System.out.print(array[i][j] + " ");
 			}
 			System.out.println("");
 		}
 		
-		byte[][] sol = new byte[limit][limit];
-		
-		System.out.println("Map");
-		for(int i=0;i<12;i++) {
-			for(int j=0;j<12;j++) {
-				sol[i][j] = array[i][j];
-			}
-		}
-		
 		//Pathfinding
+		int[] start = {1,1};
+		int[] goal = {10,10};
 		
-		//BFS
-		LinkedList<Node> queue = new LinkedList<Node>();
+		ArrayList<Node> path = Astar(array, limit, limit, start[0], start[1], goal[0], goal[1]);
 		
-		int startX, startY, goalX, goalY;
-		startX = 0;
-		startY = 0;
-		
-		goalX = 10;
-		goalY = 10;
-		
-		LinkedList<Integer> px = new LinkedList<Integer>();
-		px.add(startX);
-		LinkedList<Integer> py = new LinkedList<Integer>();
-		py.add(startY);
-		
-		Node currentNode = new Node(startX,startY,px,py,0);
-		
-		queue.add(currentNode);
-		
-		while(!queue.isEmpty()) {
-			
-			System.out.println("Queue size: " + queue.size());
-			
-			currentNode = queue.pop();
-			int x = currentNode.x;
-			int y = currentNode.y;
-			
-			System.out.println("x = " + x  + "\t y = " + y);
-			
-			
-			//goal?
-			if(x == goalX && y == goalY) {
-				System.out.println("Goal reached");
-				queue.clear();
-				break;
-			}
-			
-			
-			//expand node;			
-			int newX;
-			int newY;
-			
-			//x+1,y
-			newX = x+1;
-			newY = y;
-			if((newX < limit) && (newX >= 0) && (newY < limit) && (newY >= 0) && (array[newX][newY] != 0)) {
-				LinkedList<Integer> newPathX = currentNode.pathX;
-				LinkedList<Integer> newPathY = currentNode.pathY;
-				newPathX.add(newX);
-				newPathY.add(newY);
-				double newDistance = currentNode.distance + 1 * array[newX][newY];
-				queue.add(new Node(newX, newY , newPathX, newPathY, newDistance));
-				array[newX][newY] = 0;
-			}
-			
-			//x+1,y-1
-			newX = x+1;
-			newY = y-1;
-			if((newX < limit) && (newX >= 0) && (newY < limit) && (newY >= 0) && (array[newX][newY] != 0)) {
-				LinkedList<Integer> newPathX = currentNode.pathX;
-				LinkedList<Integer> newPathY = currentNode.pathY;
-				newPathX.add(newX);
-				newPathY.add(newY);
-				double newDistance = currentNode.distance + 1.41 * array[newX][newY];
-				queue.add(new Node(newX, newY , newPathX, newPathY, newDistance));
-				array[newX][newY] = 0;
-			}
-			
-			//x,y-1
-			newX = x;
-			newY = y-1;
-			if((newX < limit) && (newX >= 0) && (newY < limit) && (newY >= 0) && (array[newX][newY] != 0)) {
-				LinkedList<Integer> newPathX = currentNode.pathX;
-				LinkedList<Integer> newPathY = currentNode.pathY;
-				newPathX.add(newX);
-				newPathY.add(newY);
-				double newDistance = currentNode.distance + 1 * array[newX][newY];
-				queue.add(new Node(newX, newY , newPathX, newPathY, newDistance));
-				array[newX][newY] = 0;
-			}
-			
-			//x-1,y-1
-			newX = x-1;
-			newY = y-1;
-			if((newX < limit) && (newX >= 0) && (newY < limit) && (newY >= 0) && (array[newX][newY] != 0)) {
-				LinkedList<Integer> newPathX = currentNode.pathX;
-				LinkedList<Integer> newPathY = currentNode.pathY;
-				newPathX.add(newX);
-				newPathY.add(newY);
-				double newDistance = currentNode.distance + 1.41 * array[newX][newY];
-				queue.add(new Node(newX, newY , newPathX, newPathY, newDistance));
-				array[newX][newY] = 0;
-			}
-			
-			//x-1,y
-			newX = x-1;
-			newY = y;
-			if((newX < limit) && (newX >= 0) && (newY < limit) && (newY >= 0) && (array[newX][newY] != 0)) {
-				LinkedList<Integer> newPathX = currentNode.pathX;
-				LinkedList<Integer> newPathY = currentNode.pathY;
-				newPathX.add(newX);
-				newPathY.add(newY);
-				double newDistance = currentNode.distance + 1 * array[newX][newY];
-				queue.add(new Node(newX, newY , newPathX, newPathY, newDistance));
-				array[newX][newY] = 0;
-			}
-			
-			//x-1,y+1
-			newX = x;
-			newY = y+1;
-			if((newX < limit) && (newX >= 0) && (newY < limit) && (newY >= 0) && (array[newX][newY] != 0)) {
-				LinkedList<Integer> newPathX = currentNode.pathX;
-				LinkedList<Integer> newPathY = currentNode.pathY;
-				newPathX.add(newX);
-				newPathY.add(newY);
-				double newDistance = currentNode.distance + 1.41 * array[newX][newY];
-				queue.add(new Node(newX, newY , newPathX, newPathY, newDistance));
-				array[newX][newY] = 0;
-			}
-			
-			//x+1,y
-			newX = x+1;
-			newY = y;
-			if((newX < limit) && (newX >= 0) && (newY < limit) && (newY >= 0) && (array[newX][newY] != 0)) {
-				LinkedList<Integer> newPathX = currentNode.pathX;
-				LinkedList<Integer> newPathY = currentNode.pathY;
-				newPathX.add(newX);
-				newPathY.add(newY);
-				double newDistance = currentNode.distance + 1 * array[newX][newY];
-				queue.add(new Node(newX, newY , newPathX, newPathY, newDistance));
-				array[newX][newY] = 0;
-			}
-			
-			//x+1,y+1
-			newX = x+1;
-			newY = y+1;
-			if((newX < limit) && (newX >= 0) && (newY < limit) && (newY >= 0) && (array[newX][newY] != 0)) {
-				LinkedList<Integer> newPathX = currentNode.pathX;
-				LinkedList<Integer> newPathY = currentNode.pathY;
-				newPathX.add(newX);
-				newPathY.add(newY);
-				double newDistance = currentNode.distance + 1.41 * array[newX][newY];
-				queue.add(new Node(newX, newY , newPathX, newPathY, newDistance));
-				array[newX][newY] = 0;
-			}
+		for(int i=0;i<path.size();i++) {
+			array[path.get(i).x][path.get(i).y] = 8;
 		}
 		
-		if(currentNode == null)
-			return;
-		
-		
-		while(!currentNode.pathX.isEmpty()) {
-			int x = currentNode.pathX.pop();
-			int y = currentNode.pathY.pop();
-			sol[x][y] = 7;
-		}
-		
-		System.out.println("Path");
+		System.out.println("path");
 		for(int i=0;i<limit;i++) {
 			for(int j=0;j<limit;j++) {
-				System.out.print(sol[i][j] + " ");
+				System.out.print(array[i][j] + " ");
 			}
 			System.out.println("");
 		}
+		
+	}
+	
+	public ArrayList<Node> Astar(byte[][] map, int maxX, int maxY ,int startX, int startY, int stopX, int stopY) {
+		ArrayList<Node> closedSet = new ArrayList<Node>();
+		ArrayList<Node> openSet = new ArrayList<Node>();
+		
+		Node[][] came_from = new Node[maxX][maxY]; 
+		double[][] g_score = new double[maxX][maxY];
+		double[][] f_score = new double[maxX][maxY];
+		
+		//add nodes
+		Node[][] temp = new Node[maxX][maxY];
+		for(int i=0;i<maxX;i++) {
+			for(int j=0;j<maxY;j++) {
+				temp[i][j] = new Node(i,j);
+			}
+		}
+		
+		//set neighbours
+		for(int i=0;i<maxX;i++) {
+			for(int j=0;j<maxY;j++) {
+				int[] indexX = {i   , i+1, i+1 ,i+1 ,i   ,i-1 ,i-1 ,i-1};
+	        	int[] indexY = {j-1 , j-1, j   ,j+1 ,j+1 ,j+1 ,j   ,j-1};
+	        	for(int k = 0; k < 8;k++) {
+	        		int ii = indexX[k];
+	        		int jj = indexY[k];
+	        		if(ii >= 0 && ii < maxX && jj >= 0 && jj < maxY)
+	            	{
+	        			temp[i][j].neighbour.add(temp[ii][jj]);
+	            	}
+	        	}
+			}
+		}
+		
+		Node start = temp[startX][startY];
+		Node goal = temp[stopX][stopY];
+		
+		openSet.add(start);
+		
+		//System.out.println("Nodes created and neighbours added");
+		
+		g_score[startX][startY] = 0;
+		f_score[startX][startY] = heuristic_cost_estimate(new Node(startX,startY), new Node(stopX,stopY));
+		
+		while(!openSet.isEmpty()) {
+			//find node with lowest f_score value
+			double min = Double.MAX_VALUE;
+			Node current =  null;
+			for(Node n:openSet) {
+				if(f_score[n.x][n.y] <= min) {
+					min = f_score[n.x][n.y];
+					current = n;
+				}
+			}
+			
+			if(current == goal) {
+				System.out.println("goal found");
+				return reconstructPath(start, current, came_from);
+			}
+			
+			openSet.remove(current);
+			closedSet.add(current);
+			
+			//itterate through neighbours
+			for(Node n:current.neighbour) {
+				if(closedSet.contains(n))
+					continue;
+				
+				double dx = n.x-current.x;
+				double dy = n.y-current.y;
+				double tentative_g_score = g_score[current.x][current.y] + Math.sqrt(dx*dx + dy*dy);
+				
+				if (!openSet.contains(n) || tentative_g_score < g_score[n.x][n.y]) {
+					came_from[n.x][n.y] = current;
+					g_score[n.x][n.y] = tentative_g_score + heuristic_cost_estimate(n, current);
+					if(!openSet.contains(n)) {
+							openSet.add(n);
+						}
+					}
+			}
+			
+		}
+		
+		return null;//reconstructPath(null,null);
+	}
+	
+	private double heuristic_cost_estimate(Node one, Node two) {
+		double dx = one.x - two.x;
+		double dy = one.y - two.y;
+		
+		return Math.sqrt(dx*dx + dy*dy);
+	}
+	
+	ArrayList<Node> reconstructPath(Node start, Node current, Node[][] came_from) { 
+		ArrayList<Node> path = new ArrayList<Node>();
+		
+		Node temp = current;
+		path.add(temp);
+		
+		while(true) {
+			temp = came_from[temp.x][temp.y];
+			path.add(temp);
+			
+			if(temp == start)
+				break;
+		}
+		return path;
 	}
 	
 	private class Node {
@@ -211,23 +161,21 @@ public class GoToPoint implements Runnable{
 		//index
 		int x;
 		int y;
+		ArrayList<Node> neighbour;
 		
-		LinkedList<Integer> pathX;
-		LinkedList<Integer> pathY;
-		double distance;
-		
-		public Node(int indexX, int indexY, LinkedList pX, LinkedList pY, double distance) {
+		public Node(int indexX, int indexY) {
 			this.x = indexX;
 			this.y = indexY;
-			pathX = pX;
-			pathY = pY;
-			this.distance = distance;
+			neighbour = new ArrayList<Node>();
 		}
 	}
 		
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
+		//Thread.sleep(10000);
 		GoToPoint g = new GoToPoint();
+		
+		//Thread.sleep(10000000);
 	}
 	
 	@Override
