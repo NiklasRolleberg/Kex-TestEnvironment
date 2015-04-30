@@ -47,6 +47,12 @@ public class GoToPoint implements Runnable{
 			System.out.println("");
 		}
 		
+		
+		//heuristic test
+		
+		System.out.println("test");
+		
+		//System.out.println(heuristic_cost_estimate(new Node(0,0), new Node(10,0)));
 	}
 	
 	public ArrayList<Node> Astar(byte[][] map, int maxX, int maxY ,int startX, int startY, int stopX, int stopY) {
@@ -70,7 +76,10 @@ public class GoToPoint implements Runnable{
 			for(int j=0;j<maxY;j++) {
 				int[] indexX = {i   , i+1, i+1 ,i+1 ,i   ,i-1 ,i-1 ,i-1};
 	        	int[] indexY = {j-1 , j-1, j   ,j+1 ,j+1 ,j+1 ,j   ,j-1};
-	        	for(int k = 0; k < 8;k++) {
+	        	
+				//int[] indexX = {i   , i+1 ,i   ,i-1 };
+	        	//int[] indexY = {j-1 , j   ,j+1 ,j   };
+				for(int k = 0; k < 4;k++) {
 	        		int ii = indexX[k];
 	        		int jj = indexY[k];
 	        		if(ii >= 0 && ii < maxX && jj >= 0 && jj < maxY)
@@ -98,6 +107,7 @@ public class GoToPoint implements Runnable{
 			for(Node n:openSet) {
 				if(f_score[n.x][n.y] <= min) {
 					min = f_score[n.x][n.y];
+					//System.out.println(min);
 					current = n;
 				}
 			}
@@ -117,11 +127,11 @@ public class GoToPoint implements Runnable{
 				
 				double dx = n.x-current.x;
 				double dy = n.y-current.y;
-				double tentative_g_score = g_score[current.x][current.y] + Math.sqrt(dx*dx + dy*dy);
+				double tentative_g_score = g_score[current.x][current.y] + Math.sqrt(dx*dx + dy*dy);//*map[n.x][n.y];
 				
 				if (!openSet.contains(n) || tentative_g_score < g_score[n.x][n.y]) {
 					came_from[n.x][n.y] = current;
-					g_score[n.x][n.y] = tentative_g_score + heuristic_cost_estimate(n, current);
+					f_score[n.x][n.y] = tentative_g_score + heuristic_cost_estimate(n, goal);
 					if(!openSet.contains(n)) {
 							openSet.add(n);
 						}
@@ -129,8 +139,8 @@ public class GoToPoint implements Runnable{
 			}
 			
 		}
-		
-		return null;//reconstructPath(null,null);
+		System.out.println("No path found");
+		return null;
 	}
 	
 	private double heuristic_cost_estimate(Node one, Node two) {
