@@ -67,6 +67,8 @@ public class GoToPoint implements Runnable{
 		Node[][] temp = new Node[maxX][maxY];
 		for(int i=0;i<maxX;i++) {
 			for(int j=0;j<maxY;j++) {
+				if(map[i][j] == 0)
+					continue;
 				temp[i][j] = new Node(i,j);
 			}
 		}
@@ -74,15 +76,18 @@ public class GoToPoint implements Runnable{
 		//set neighbours
 		for(int i=0;i<maxX;i++) {
 			for(int j=0;j<maxY;j++) {
+				if(map[i][j] == 0)
+					continue;
+				
 				int[] indexX = {i   , i+1, i+1 ,i+1 ,i   ,i-1 ,i-1 ,i-1};
 	        	int[] indexY = {j-1 , j-1, j   ,j+1 ,j+1 ,j+1 ,j   ,j-1};
 	        	
 				//int[] indexX = {i   , i+1 ,i   ,i-1 };
 	        	//int[] indexY = {j-1 , j   ,j+1 ,j   };
-				for(int k = 0; k < 4;k++) {
+				for(int k = 0; k < 8;k++) {
 	        		int ii = indexX[k];
 	        		int jj = indexY[k];
-	        		if(ii >= 0 && ii < maxX && jj >= 0 && jj < maxY)
+	        		if(ii >= 0 && ii < maxX && jj >= 0 && jj < maxY && map[ii][jj] != 0)
 	            	{
 	        			temp[i][j].neighbour.add(temp[ii][jj]);
 	            	}
