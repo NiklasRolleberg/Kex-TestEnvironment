@@ -230,4 +230,9 @@ public class SweepingPattern extends SearchPattern {
 	boolean followingLand() {
 		return followingLand;
 	}
+
+	@Override
+	boolean isDone() {
+		return stop;
+	}
 }

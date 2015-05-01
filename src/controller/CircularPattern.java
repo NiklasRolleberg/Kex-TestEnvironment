@@ -73,7 +73,7 @@ public class CircularPattern extends SearchPattern {
 				}
 				
 				xte.setWaypoint(targetX,targetY);
-				kex.setSpeed(30);
+				kex.setSpeed(Math.max(-data.getDepth()*3,3));
 			}
 			
 			
@@ -246,6 +246,11 @@ public class CircularPattern extends SearchPattern {
 	@Override
 	boolean followingLand() {
 		return followingLand;
+	}
+	
+	@Override
+	boolean isDone() {
+		return stop;
 	}
 
 }

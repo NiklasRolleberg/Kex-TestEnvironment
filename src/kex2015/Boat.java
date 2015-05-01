@@ -21,8 +21,8 @@ public class Boat implements Runnable {
 	
 	protected Map map;
 	
-	private double windDirection = Math.random() * Math.PI * 2;
-	private double windSpeed = 1;
+	private double windDirection = -Math.PI / 4;//Math.random() * Math.PI * 2;
+	private double windSpeed = 10;
 	
 	public Boat(Map map, int dt, double startLong, double startLat) {
 		this.map = map;
@@ -151,8 +151,14 @@ public class Boat implements Runnable {
 			speed = maxSpeed/10;
 		}
 		
-		position[0] += speed * elapsedTime * Math.cos(heading);// + windSpeed*elapsedTime*Math.cos(windDirection);
-		position[1] += speed * elapsedTime * Math.sin(heading);// + windSpeed*elapsedTime*Math.sin(windDirection);;
+		double newWindSpeed = windSpeed;
+		if(windSpeed > speed/2)
+			newWindSpeed = speed/2;
+		
+		position[0] += speed * elapsedTime * Math.cos(heading);// + newWindSpeed*elapsedTime*Math.cos(windDirection);
+		position[1] += speed * elapsedTime * Math.sin(heading);// + newWindSpeed*elapsedTime*Math.sin(windDirection);
+		
+		//windDirection += Math.PI * (1.0/10) * elapsedTime * Math.random();
 		
 		lastUpdate = System.currentTimeMillis();
 		

@@ -3,6 +3,9 @@ package controller;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 import javax.swing.JFrame;
@@ -28,8 +31,16 @@ public class Kex implements Runnable{
     drawMatrix draw;
     
     SearchPattern sp;
+    
+    //for data log
+	int cellsInPolygon = 0;
+	int visitedCells = 0;
+	double distance = 0;
+	long startTime = 0;
 	
-	
+	ArrayList<Double> cellData;
+	ArrayList<Double> distData;
+	ArrayList<Double> timeData;
 	
 	/**Main controller thingy for the boat
 	 * @param delta is map resolution, not used yet
@@ -51,6 +62,9 @@ public class Kex implements Runnable{
         ySplitRead(entireArea);
         draw = new drawMatrix(cellList);
 
+        cellData = new ArrayList<Double>();
+    	distData = new ArrayList<Double>();
+    	timeData = new ArrayList<Double>();
 
 
 	}
@@ -158,18 +172,51 @@ public class Kex implements Runnable{
         //sp = new CircularPattern(this, cellList.get(0), this.delta, this.dt);
         Thread myThread = new Thread(sp);
         myThread.start();
+        
+        startTime = System.currentTimeMillis();
+        
 
-        double[] sensorData;
+        double[] sensorData = boat.getSensordata();
+        double lastX = sensorData[0];
+        double lastY = sensorData[1];
+        
         while(true){
             try {
                 myThread.sleep((long)(Math.max(500-boat.getSensordata()[3]*10, 100)));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            //sensorData = boat.getSensordata();
-            updateDepthValue(boat.getSensordata());
+            
+            
+            sensorData = boat.getSensordata();
+            //calc distance
+            double dx = lastX-sensorData[0];
+            double dy = lastY-sensorData[1];
+            lastX = sensorData[0];
+            lastY = sensorData[1];
+            distance += Math.sqrt(dx*dx + dy*dy);
+            double time = ((double)(System.currentTimeMillis() - startTime))/1000.0;
+            
+            //false -> no data stored
+            if(true) {
+	            distData.add(distance);
+	            timeData.add(time);
+	            cellData.add((100*((double)visitedCells / (double)cellsInPolygon)));
+	            System.out.println("DATA dist: " + distance + "\t Visited %: " + (int)(100*((double)visitedCells / (double)cellsInPolygon)) + "\t time: " + time);
+            
+	            if(sp.isDone()) {
+	            	System.out.println("printing to file");
+	            	printToFile();
+	            	sp.stop();
+	            	break;
+	            }
+            }
+            
+            
+            updateDepthValue(sensorData);
             draw.repaint();
 
+     
 
         }
         
@@ -178,6 +225,45 @@ public class Kex implements Runnable{
 
 	}
 	
+	
+	private void printToFile() {
+		String fileName = "coverageData.csv";
+		StringBuilder l1 = new StringBuilder();
+		StringBuilder l2 = new StringBuilder();
+		StringBuilder l3 = new StringBuilder();
+		
+		for(int i=0;i<distData.size()-1;i++) {
+			l1.append(cellData.get(i));
+			l1.append(" ,");
+			
+			l2.append(timeData.get(i));
+			l2.append(" ,");
+			
+			l3.append(distData.get(i));
+			l3.append(" ,");
+		}
+		
+		l1.append(cellData.get(distData.size()-1));
+		l2.append(timeData.get(distData.size()-1));
+		l3.append(distData.get(distData.size()-1));
+		
+		//write l1,l2,l3 to file
+		PrintWriter writer;
+		try {
+			writer = new PrintWriter(fileName, "UTF-8");
+			writer.println(l1.toString());
+			writer.println(l2.toString());
+			writer.println(l3.toString());
+			writer.close();
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
 	/**Returns true if all cells are complete, false otherwise*/
 	public boolean getScanStatus(){
@@ -244,6 +330,7 @@ public class Kex implements Runnable{
                         elementMatrix[ix][iy] = new searchElement(xCoord, yCoord, 99);   //oob
                     } else {
                         elementMatrix[ix][iy] = new searchElement(xCoord, yCoord, 0); //in bounds
+                        cellsInPolygon++;
                     }
                     xCoord += dx;
                 }
@@ -377,6 +464,7 @@ public class Kex implements Runnable{
             if (timesVisited == 0){
                 accumulatedDepth = inDepth;
                 timesVisited++;
+                visitedCells++;
             }
             else {
                 timesVisited++;

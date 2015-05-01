@@ -26,6 +26,8 @@ public abstract class SearchPattern implements Runnable {
 	
 	abstract boolean followingLand();
 	
+	abstract boolean isDone();
+	
 	/**Keeps the boat on track
 	 */
 	class XTE implements Runnable{
@@ -76,7 +78,7 @@ public abstract class SearchPattern implements Runnable {
 			while(!stop) {
 				
 				if(on) {
-					System.out.println("XTE update");
+					//System.out.println("XTE update");
 					double norm = Math.sqrt((targetX-lastTargetX)*(targetX-lastTargetX) + (targetY-lastTargetY)*(targetY-lastTargetY));
 					//System.out.println(norm);
 					if(norm == 0)
