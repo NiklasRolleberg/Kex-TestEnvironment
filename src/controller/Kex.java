@@ -59,7 +59,7 @@ public class Kex implements Runnable{
         SearchCell entireArea = new SearchCell(x, y);
         cellList = new ArrayList<SearchCell>();
         cellList.add(entireArea);
-        ySplitRead(entireArea);
+        //addTestPolygons(entireArea);
         draw = new drawMatrix(cellList);
 
         cellData = new ArrayList<Double>();
@@ -68,14 +68,15 @@ public class Kex implements Runnable{
 
 
 	}
-    /**Splits the initial searh area in the middle of the y-axis and creates 2 search cells*/
-    private void ySplitRead(SearchCell initCell){
-        ArrayList<Double> xTop, yTop, xBot, yBot;
+    /**adds some extra polygons to the list, for test purposes*/
+    private void addTestPolygons(SearchCell initCell){
+
+        //failed attempt at splitting the area into 2 along the y-axis
+        /*ArrayList<Double> xTop, yTop, xBot, yBot;
         xTop = new ArrayList<Double>();
         yTop = new ArrayList<Double>();
         xBot = new ArrayList<Double>();
         yBot = new ArrayList<Double>();
-
 
         double yMid = initCell.yMin+(initCell.yMax-initCell.yMin)/2;
         System.out.println("yMid = " + yMid);
@@ -101,6 +102,51 @@ public class Kex implements Runnable{
         SearchCell bot = new SearchCell(xBot,yBot);
         //cellList.add(top);
         //cellList.add(bot);
+        */
+
+        //hardcoded cell for testing
+        /*
+        ArrayList<Double> xHard, yHard;
+        xHard = new ArrayList<Double>();
+        yHard = new ArrayList<Double>();
+        xHard.add(430.3);
+        xHard.add(330.0);
+        xHard.add(230.3);
+        xHard.add(300.1);
+
+        yHard.add(230.3);
+        yHard.add(330.0);
+        yHard.add(330.3);
+        yHard.add(200.3);
+
+        SearchCell testCell = new SearchCell(xHard,yHard);
+        cellList.add(testCell);
+        */
+
+        ArrayList<Double> testX = new ArrayList<Double>();
+        ArrayList<Double> testY = new ArrayList<Double>();
+        double midX = initCell.xMin+(initCell.xMax-initCell.xMin)/2;
+//        double midX = (initCell.xMax-initCell.xMin)/2;
+        System.out.println("xmid = " + midX);
+        double midY = initCell.yMin+(initCell.yMax-initCell.yMin)/2;
+//        double midY = (initCell.yMax-initCell.yMin)/2;
+
+        System.out.println("ymid = " + midY);
+        double d = 50;
+        testX.add(midX-d);
+        testY.add(midY-d);
+
+        testX.add(midX+d);
+        testY.add(midY-d);
+
+        testX.add(midX+d);
+        testY.add(midY+d);
+
+        testX.add(midX-d);
+        testY.add(midY+d);
+
+        cellList.add(new SearchCell(testX,testY));
+
         System.out.println("cellList size: " + cellList.size());
 
 
@@ -170,8 +216,8 @@ public class Kex implements Runnable{
         //Run the search pattern on the polygons
         sp = new SweepingPattern(this, cellList.get(0), this.delta, this.dt);
         //sp = new CircularPattern(this, cellList.get(0), this.delta, this.dt);
-        Thread myThread = new Thread(sp);
-        myThread.start();
+        Thread patternThread = new Thread(sp);
+        patternThread.start();
         
         startTime = System.currentTimeMillis();
         
@@ -182,7 +228,7 @@ public class Kex implements Runnable{
         
         while(true){
             try {
-                myThread.sleep((long)(Math.max(500-boat.getSensordata()[3]*10, 100)));
+                Thread.sleep((long)(Math.max(500-boat.getSensordata()[3]*10, 100)));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -202,24 +248,19 @@ public class Kex implements Runnable{
 	            distData.add(distance);
 	            timeData.add(time);
 	            cellData.add((100*((double)visitedCells / (double)cellsInPolygon)));
-	            System.out.println("DATA dist: " + distance + "\t Visited %: " + (int)(100*((double)visitedCells / (double)cellsInPolygon)) + "\t time: " + time);
+	            //System.out.println("DATA dist: " + distance + "\t Visited %: " + (int)(100*((double)visitedCells / (double)cellsInPolygon)) + "\t time: " + time);
             
-	            if(sp.isDone()) {
+	            if(sp.isDone() || time > 2400) {
 	            	System.out.println("printing to file");
 	            	printToFile();
 	            	sp.stop();
 	            	break;
 	            }
             }
-            
-            
             updateDepthValue(sensorData);
             draw.repaint();
-
-     
-
         }
-        
+        //draw.repaint();
         
 
 
@@ -447,7 +488,7 @@ public class Kex implements Runnable{
 	}
 	
 	/**Smallest element of the map, x and y coords, status and depth data*/
-	private class searchElement{
+	public class searchElement{
 		double xCoord;
 		double yCoord;
 		int status; // 0 = not scanned, 1 = scanned 2 = not accessible, 99 oob
@@ -478,14 +519,12 @@ public class Kex implements Runnable{
 	}
 	
 	private class drawMatrix extends JPanel{
-		SearchCell currentCell;
 		JFrame myFrame;
 
 		public drawMatrix(ArrayList<SearchCell> cellList){
 			myFrame = new JFrame();
-            currentCell = cellList.get(0);
             myFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-            int[] dim = correctCoords((int)Math.round(currentCell.xMax*1.2),(int)Math.round(currentCell.yMax*1.2));
+            int[] dim = correctCoords((int)Math.round(cellList.get(0).xMax*1.2),(int)Math.round(cellList.get(0).yMax*1.2));
             myFrame.setPreferredSize(new Dimension(dim[0],dim[1]));
             myFrame.add(this);
             myFrame.pack();
@@ -497,19 +536,10 @@ public class Kex implements Runnable{
 		@Override
 		public void paint(Graphics g){
             //draw a background
-            g.setColor(new Color(211, 211, 211));
-            int[] c0 = correctCoords((int)Math.round(currentCell.xMin),(int)Math.round(currentCell.yMin));
-            int[] c1 = correctCoords((int)Math.round(currentCell.xMax)*2, (int) Math.round(currentCell.yMax)*2);
-            g.fillRect(c0[0],c0[1],c1[0],c1[1]);
-            //Color[] colorArray = {Color.green, Color.yellow, Color.magenta};
-            //int i = 0;
+            drawBackground(g);
+            Color[] colorArray = {Color.green, Color.yellow, Color.magenta};
+            int cIndex = 0;
             for (SearchCell currCell : cellList) {
-                /*System.out.println("i = "+i);
-                currentCell = cellList.get(i);
-                if (i!=0){
-                    drawEdges(g,colorArray[i]);
-                }
-                i++;*/
                 for (searchElement[] ea : currCell.elementMatrix) {
                     for (searchElement e : ea) {
                         if (e.status == 0) {
@@ -525,39 +555,56 @@ public class Kex implements Runnable{
                             System.out.println("Dafuq?! Wrong status in initial cell read");
                             g.setColor(Color.pink);
                         }
+
                         drawElements(g, e);
-                        drawEdges(g, Color.red);
+                        //drawEdges(g, Color.red);
+
                     }
+
                 }
+
+                drawEdges(g, Color.red, cIndex);
+                cIndex++;
+
             }
 
 
         }
+        private void drawBackground(Graphics g){
+            g.setColor(new Color(211, 211, 211));
+            int[] c0 = correctCoords((int)Math.round(cellList.get(0).xMin),(int)Math.round(cellList.get(0).yMin));
+            int[] c1 = correctCoords((int)Math.round(cellList.get(0).xMax)*2, (int) Math.round(cellList.get(0).yMax)*2);
+            g.fillRect(c0[0],c0[1],c1[0],c1[1]);
+        }
+
         private void drawElements(Graphics g, searchElement e){
+            int tempCellIndex = 0;  //change this to currentCellIndex later on
             int[] coords = correctCoords((int)e.xCoord,(int)e.yCoord);
-            g.fillRect(coords[0]-(int)Math.round(currentCell.dx/2),coords[1]-(int)Math.round(currentCell.dx/2),(int) currentCell.dx+1,(int) currentCell.dy+1);
+            g.fillRect(coords[0]-(int)Math.round(cellList.get(tempCellIndex).dx/2),coords[1]-(int)Math.round(cellList.get(tempCellIndex).dx/2),(int) cellList.get(tempCellIndex).dx+1,(int) cellList.get(tempCellIndex).dy+1);
             g.setColor(Color.gray);
             //vertical lines
-            int[] vCoords = correctCoords((int)Math.round(e.xCoord), (int)Math.round(currentCell.xMax));
-            g.drawLine(coords[0]-(int)Math.round(currentCell.dx/2), coords[1]-(int)Math.round(currentCell.dx/2), vCoords[0]-(int)Math.round(currentCell.dx/2),vCoords[1]-(int)Math.round(currentCell.dy/2));
+            int[] vCoords = correctCoords((int)Math.round(e.xCoord), (int)Math.round(cellList.get(tempCellIndex).xMax));
+            g.drawLine(coords[0]-(int)Math.round(cellList.get(tempCellIndex).dx/2), coords[1]-(int)Math.round(cellList.get(tempCellIndex).dx/2), vCoords[0]-(int)Math.round(cellList.get(tempCellIndex).dx/2),vCoords[1]-(int)Math.round(cellList.get(tempCellIndex).dy/2));
             //horizontal lines
-            int[] hCoords = correctCoords((int)Math.round(currentCell.xMax), (int)Math.round(e.yCoord));
-            g.drawLine(coords[0]-(int)Math.round(currentCell.dx/2), coords[1]-(int)Math.round(currentCell.dx/2), hCoords[0]-(int)Math.round(currentCell.dx/2),hCoords[1]-(int)Math.round(currentCell.dy/2));
+            int[] hCoords = correctCoords((int)Math.round(cellList.get(tempCellIndex).xMax), (int)Math.round(e.yCoord));
+            g.drawLine(coords[0]-(int)Math.round(cellList.get(tempCellIndex).dx/2), coords[1]-(int)Math.round(cellList.get(tempCellIndex).dx/2), hCoords[0]-(int)Math.round(cellList.get(0).dx/2),hCoords[1]-(int)Math.round(cellList.get(tempCellIndex).dy/2));
 
-        }
-        private void drawEdges(Graphics g, Color c){
-            for(int i=0; i< currentCell.xpos.size()-1; i++) {
-                int x0 = currentCell.xpos.get(i).intValue();
-                int y0 = currentCell.ypos.get(i).intValue();
+            }
 
-                int x1 = currentCell.xpos.get(i+1).intValue();
-                int y1 = currentCell.ypos.get(i+1).intValue();
+        //TODO remove the coordinate correction internally and call correctCoords() instead!
+        private void drawEdges(Graphics g, Color c, int cellIndex){
+            for(int i=0; i < cellList.get(cellIndex).xpos.size()-1; i++) {
+                int x0 = cellList.get(cellIndex).xpos.get(i).intValue();
+                int y0 = cellList.get(cellIndex).ypos.get(i).intValue();
+
+                int x1 = cellList.get(cellIndex).xpos.get(i+1).intValue();
+                int y1 = cellList.get(cellIndex).ypos.get(i+1).intValue();
                 //g.setColor(Color.RED);
                 g.setColor(c);
-                g.drawLine(x0-(int) currentCell.xMin, y0-(int) currentCell.yMin, x1-(int) currentCell.xMin, y1-(int) currentCell.yMin);
+                g.drawLine(x0-(int) cellList.get(cellIndex).xMin, y0-(int) cellList.get(cellIndex).yMin, x1-(int) cellList.get(cellIndex).xMin, y1-(int) cellList.get(cellIndex).yMin);
             }
-            g.drawLine(currentCell.xpos.get(currentCell.xpos.size()-1).intValue()-(int) currentCell.xMin, (currentCell.ypos.get(currentCell.xpos.size()-1).intValue()-(int) currentCell.yMin)
-                    ,currentCell.xpos.get(0).intValue()-(int) currentCell.xMin, currentCell.ypos.get(0).intValue()-(int) currentCell.yMin);
+            g.drawLine(cellList.get(cellIndex).xpos.get(cellList.get(cellIndex).xpos.size()-1).intValue()-(int) cellList.get(cellIndex).xMin, (cellList.get(cellIndex).ypos.get(cellList.get(cellIndex).xpos.size()-1).intValue()-(int) cellList.get(cellIndex).yMin)
+                    ,cellList.get(cellIndex).xpos.get(0).intValue()-(int) cellList.get(cellIndex).xMin, cellList.get(cellIndex).ypos.get(0).intValue()-(int) cellList.get(cellIndex).yMin);
 
         }
         private Color getColor(double depth){
@@ -594,7 +641,7 @@ public class Kex implements Runnable{
         }
         private int[] correctCoords(int x, int y){
             //return new int[] {x,y};
-            return new int[] {x - (int) currentCell.xMin, y - (int) currentCell.yMin};
+            return new int[] {x - (int) cellList.get(0).xMin, y - (int) cellList.get(0).yMin};
         }
     }
 
