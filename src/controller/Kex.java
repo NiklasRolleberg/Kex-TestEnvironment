@@ -210,30 +210,34 @@ public class Kex implements Runnable{
 	public void setWaypoint(double x, double y) {
 		boat.setWayPoint(x, y);
 	}
-
+	
 	@Override
 	public void run() {
+		
+        //find current element
+        //Kex.searchElement goal = cellList.get(0).elementMatrix[ix][iy];
+		
+		//GoToPoint g = new GoToPoint(this, cellList.get(0), this.delta, this.dt);
+		//g.GO(5, 5, cellList.get(0).nx -5, cellList.get(0).ny-5);
+		//sp = g;
+		
         //Run the search pattern on the polygons
         sp = new SweepingPattern(this, cellList.get(0), this.delta, this.dt);
         //sp = new CircularPattern(this, cellList.get(0), this.delta, this.dt);
-        Thread patternThread = new Thread(sp);
-        patternThread.start();
+        Thread myThread = new Thread(sp);
+        myThread.start();
         
         startTime = System.currentTimeMillis();
         
-
         double[] sensorData = boat.getSensordata();
         double lastX = sensorData[0];
         double lastY = sensorData[1];
         
+		int goalx = (int)Math.round((sensorData[0] - cellList.get(0).xMin) / cellList.get(0).dx);
+        int goaly = (int)Math.round((sensorData[1] - cellList.get(0).yMin) / cellList.get(0).dy);
+
+        
         while(true){
-            try {
-                Thread.sleep((long)(Math.max(500-boat.getSensordata()[3]*10, 100)));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            
-            
             sensorData = boat.getSensordata();
             //calc distance
             double dx = lastX-sensorData[0];
@@ -244,28 +248,42 @@ public class Kex implements Runnable{
             double time = ((double)(System.currentTimeMillis() - startTime))/1000.0;
             
             //false -> no data stored
-            if(true) {
+            if(false) {
 	            distData.add(distance);
 	            timeData.add(time);
 	            cellData.add((100*((double)visitedCells / (double)cellsInPolygon)));
-	            //System.out.println("DATA dist: " + distance + "\t Visited %: " + (int)(100*((double)visitedCells / (double)cellsInPolygon)) + "\t time: " + time);
-            
-	            if(sp.isDone() || time > 2400) {
+	            System.out.println("DATA dist: " + distance + "\t Visited %: " + (int)(100*((double)visitedCells / (double)cellsInPolygon)) + "\t time: " + time);
+	            
+	            if(sp.isDone() || time > 700) {
 	            	System.out.println("printing to file");
 	            	printToFile();
 	            	sp.stop();
 	            	break;
 	            }
             }
+             
             updateDepthValue(sensorData);
             draw.repaint();
+            
+            if(sp.isDone()) {
+            	sp.stop();
+            	break;
+            }
+            
+            try {
+                Thread.sleep((long)(Math.max(500-boat.getSensordata()[3]*10, 100)));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
-        //draw.repaint();
         
-
-
+        System.out.println("pattern done. return to start pos");
+		int startx = (int)Math.round((sensorData[0] - cellList.get(0).xMin) / cellList.get(0).dx);
+        int starty = (int)Math.round((sensorData[1] - cellList.get(0).yMin) / cellList.get(0).dy);
+        
+        GoToPoint g = new GoToPoint(this, cellList.get(0), this.delta, this.dt);
+        g.GO(startx, starty, goalx, goaly);
 	}
-	
 	
 	private void printToFile() {
 		String fileName = "coverageData.csv";
@@ -492,8 +510,13 @@ public class Kex implements Runnable{
 		double xCoord;
 		double yCoord;
 		int status; // 0 = not scanned, 1 = scanned 2 = not accessible, 99 oob
-        private double accumulatedDepth;
+        double accumulatedDepth;
         int timesVisited;
+        
+        int x;
+        int y;
+        
+        ArrayList<searchElement> neighbour;
 
 		public searchElement(double x, double y, int s){
 			xCoord = x;
