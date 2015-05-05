@@ -196,11 +196,12 @@ public class GoToPoint extends SearchPattern {
 				
 				if (!openSet.contains(n) || tentative_g_score < g_score[n.x][n.y]) {
 					came_from[n.x][n.y] = current;
-					f_score[n.x][n.y] = tentative_g_score + (1.0/((n.accumulatedDepth/n.timesVisited)*(n.accumulatedDepth/n.timesVisited))) * heuristic_cost_estimate(n, stopElement);
+					f_score[n.x][n.y] = tentative_g_score +  heuristic_cost_estimate(n, stopElement);
+					
 					if(!openSet.contains(n)) {
 							openSet.add(n);
 						}
-					}
+					} // (1.0/((-1)*(n.accumulatedDepth/n.timesVisited)))
 			}
 			
 		}
