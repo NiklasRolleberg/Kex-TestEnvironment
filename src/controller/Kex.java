@@ -516,7 +516,7 @@ public class Kex implements Runnable{
         int x;
         int y;
         
-        ArrayList<searchElement> neighbour;
+        ArrayList<searchElement> neighbour = new ArrayList<searchElement>();
 
 		public searchElement(double x, double y, int s){
 			xCoord = x;
@@ -619,15 +619,24 @@ public class Kex implements Runnable{
             for(int i=0; i < cellList.get(cellIndex).xpos.size()-1; i++) {
                 int x0 = cellList.get(cellIndex).xpos.get(i).intValue();
                 int y0 = cellList.get(cellIndex).ypos.get(i).intValue();
-
+                int[] p1 = correctCoords(x0,y0);
                 int x1 = cellList.get(cellIndex).xpos.get(i+1).intValue();
                 int y1 = cellList.get(cellIndex).ypos.get(i+1).intValue();
+                int[] p2 = correctCoords(x1,y1);
                 //g.setColor(Color.RED);
                 g.setColor(c);
-                g.drawLine(x0-(int) cellList.get(cellIndex).xMin, y0-(int) cellList.get(cellIndex).yMin, x1-(int) cellList.get(cellIndex).xMin, y1-(int) cellList.get(cellIndex).yMin);
+                //g.drawLine(x0-(int) cellList.get(cellIndex).xMin, y0-(int) cellList.get(cellIndex).yMin, x1-(int) cellList.get(cellIndex).xMin, y1-(int) cellList.get(cellIndex).yMin);
+                g.drawLine(p1[0],p1[1],p2[0],p2[1]);
             }
-            g.drawLine(cellList.get(cellIndex).xpos.get(cellList.get(cellIndex).xpos.size()-1).intValue()-(int) cellList.get(cellIndex).xMin, (cellList.get(cellIndex).ypos.get(cellList.get(cellIndex).xpos.size()-1).intValue()-(int) cellList.get(cellIndex).yMin)
-                    ,cellList.get(cellIndex).xpos.get(0).intValue()-(int) cellList.get(cellIndex).xMin, cellList.get(cellIndex).ypos.get(0).intValue()-(int) cellList.get(cellIndex).yMin);
+            int[] p1 = correctCoords(cellList.get(cellIndex).xpos.get(cellList.get(cellIndex).xpos.size()-1).intValue(),cellList.get(cellIndex).ypos.get(cellList.get(cellIndex).xpos.size() - 1).intValue());
+            int[] p2 = correctCoords(cellList.get(cellIndex).xpos.get(0).intValue(), cellList.get(cellIndex).ypos.get(0).intValue());
+            /*
+            g.drawLine(cellList.get(cellIndex).xpos.get(cellList.get(cellIndex).xpos.size() - 1).intValue() - (int) cellList.get(cellIndex).xMin,
+                    (cellList.get(cellIndex).ypos.get(cellList.get(cellIndex).xpos.size() - 1).intValue() - (int) cellList.get(cellIndex).yMin),
+                    cellList.get(cellIndex).xpos.get(0).intValue() - (int) cellList.get(cellIndex).xMin,
+                    cellList.get(cellIndex).ypos.get(0).intValue() - (int) cellList.get(cellIndex).yMin);
+                    */
+            g.drawLine(p1[0],p1[1],p2[0],p2[1]);
 
         }
         private Color getColor(double depth){
