@@ -22,13 +22,25 @@ public class Kex implements Runnable{
 	ArrayList<Double> polygonX;
 	ArrayList<Double> polygonY;
 	ArrayList<SearchCell> cellList;		//list of all the cells
+	
+	// Matrix containing all Seachelements
+	SearchElement[][] elementMatrix;
+	
+	//number of elements and size
+	int nx;
+    int ny;
+    double dx;
+    double dy;
+    double xMax, yMax, xMin, yMin; 
+	
+	
     int currentCellIndex;
 	int[] endPos;
 	
 	double delta;
 	long dt;
 
-    drawMatrix draw;
+    DrawMatrix draw;
     
     SearchPattern sp;
     
@@ -55,16 +67,70 @@ public class Kex implements Runnable{
 		this.dt = dt;
         currentCellIndex = 0;
 
-        //TODO split polygon + store convex polygons
-        SearchCell entireArea = new SearchCell(x, y);
-        cellList = new ArrayList<SearchCell>();
-        cellList.add(entireArea);
-        //addTestPolygons(entireArea);
-        draw = new drawMatrix(cellList);
+        // (1) Create matrix + populate matrix + addneighbours + set status(0, not accessible)  
+        
+        // _1_calculate number of elements needed and dx,dy
+        SearchCell temp = new SearchCell(polygonX,polygonY);
+        double resolution = 1.0/delta;
+        nx = (int)((Math.round(temp.maxX())-Math.round(temp.minX()))*resolution);
+        ny = (int)((Math.round(temp.maxY())-Math.round(temp.minY()))*resolution);
 
-        cellData = new ArrayList<Double>();
-    	distData = new ArrayList<Double>();
-    	timeData = new ArrayList<Double>();
+        dx = (temp.maxX() - temp.minX())/nx;
+        dy = (temp.maxY() - temp.minY())/ny;
+        
+        xMax = temp.maxX();
+        yMax = temp.maxY();
+        xMin = temp.minX();
+        yMin = temp.minY();
+
+        System.out.println("max x: " + xMax + ", min x: " + xMin + ", nx: " + nx + ", dx: " + dx);
+		System.out.println("max y: " + yMax + ", min y: " + yMin + ", ny: " + ny + ", dy: " + dy);
+
+        
+        // _2_create and populate matrix and set status
+		//initialize the 2D-array. Maybe make sure not to include oob cells at all to save memory?
+		elementMatrix = new SearchElement[nx][ny];
+        double xLeft, xRight;
+        double xCoord = xMin;
+        double yCoord = yMin;
+        for (int iy = 0; iy < ny; iy++) {
+            for (int ix = 0; ix < nx; ix++) {
+                xLeft = temp.findX(yCoord, false);
+                xRight = temp.findX(yCoord, true);
+                if (xCoord <= xLeft || xCoord >= xRight) {
+                    elementMatrix[ix][iy] = new SearchElement(xCoord, yCoord, 99);   //oob
+                    elementMatrix[ix][iy].x = ix;
+                    elementMatrix[ix][iy].y = iy;
+                } else {
+                    elementMatrix[ix][iy] = new SearchElement(xCoord, yCoord, 0); //in bounds
+                    elementMatrix[ix][iy].x = ix;
+                    elementMatrix[ix][iy].y = iy;
+                    cellsInPolygon++;
+                }
+                xCoord += dx;
+            }
+            yCoord += dy;
+            xCoord = xMin;
+        }
+        System.out.println("Matrix created" );
+        
+        // _3_add neighbours
+        addneighbours();
+        System.out.println("Neighbours added");
+        
+        
+        //Start draw
+        draw = new DrawMatrix();
+        
+        
+        //TODO split polygon + store convex polygons
+        cellList = new ArrayList<SearchCell>();
+        cellList.add(temp);
+        
+        // TODO fixa för resultat
+        //cellData = new ArrayList<Double>();
+    	//distData = new ArrayList<Double>();
+    	//timeData = new ArrayList<Double>();
 
 
 	}
@@ -122,7 +188,7 @@ public class Kex implements Runnable{
         SearchCell testCell = new SearchCell(xHard,yHard);
         cellList.add(testCell);
         */
-
+    	/*
         ArrayList<Double> testX = new ArrayList<Double>();
         ArrayList<Double> testY = new ArrayList<Double>();
         double midX = initCell.xMin+(initCell.xMax-initCell.xMin)/2;
@@ -130,7 +196,7 @@ public class Kex implements Runnable{
         System.out.println("xmid = " + midX);
         double midY = initCell.yMin+(initCell.yMax-initCell.yMin)/2;
 //        double midY = (initCell.yMax-initCell.yMin)/2;
-
+	
         System.out.println("ymid = " + midY);
         double d = 50;
         testX.add(midX-d);
@@ -146,9 +212,9 @@ public class Kex implements Runnable{
         testY.add(midY+d);
 
         cellList.add(new SearchCell(testX,testY));
-
+	
         System.out.println("cellList size: " + cellList.size());
-
+	*/
 
     }
 
@@ -162,23 +228,23 @@ public class Kex implements Runnable{
     	double rightSonar = data[5]; 
     	double leftSonar = data[6];
     	
-        int ix = (int)Math.round((xCoord - cellList.get(currentCellIndex).xMin) / cellList.get(currentCellIndex).dx);
-        int iy = (int)Math.round((yCoord - cellList.get(currentCellIndex).yMin) / cellList.get(currentCellIndex).dy);
+    	// TODO fixa
+        int ix = (int)Math.round((xCoord - xMin) / dx);
+        int iy = (int)Math.round((yCoord - yMin) / dy);
 
         //index out of bounds fix
-        if (ix >= cellList.get(currentCellIndex).nx){
-            ix = cellList.get(currentCellIndex).nx-1;
+        if (ix >= nx){
+            ix = nx-1;
         }
-        if (iy >= cellList.get(currentCellIndex).ny){
-            iy = cellList.get(currentCellIndex).ny-1;
+        if (iy >= ny){
+            iy = ny-1;
         }
-        cellList.get(currentCellIndex).elementMatrix[ix][iy].updateDepthData(depthValue);
         
-       
-        //might not be a good way of doing this
+        elementMatrix[ix][iy].updateDepthData(depthValue);
+      
         if (sp.followingLand()) {
-            int maxIndexX = cellList.get(currentCellIndex).nx;
-            int maxIndexY = cellList.get(currentCellIndex).ny;
+            int maxIndexX = nx;
+            int maxIndexY = ny;
             
         	int[] indexX = {ix   , ix+1, ix+1 ,ix+1 ,ix   ,ix-1 ,ix-1 ,ix-1};
         	int[] indexY = {iy-1 , iy-1, iy   ,iy+1 ,iy+1 ,iy+1 ,iy   ,iy-1};
@@ -187,8 +253,8 @@ public class Kex implements Runnable{
         		int j = indexY[k];
         		if(i >= 0 && i < maxIndexX && j >= 0 && j < maxIndexY)
             	{
-            		if(cellList.get(currentCellIndex).elementMatrix[i][j].status != 1){
-            			cellList.get(currentCellIndex).elementMatrix[i][j].status = 2;
+            		if(elementMatrix[i][j].status != 1){
+            			elementMatrix[i][j].status = 2;
             		}
             	}
         	}
@@ -211,10 +277,61 @@ public class Kex implements Runnable{
 		boat.setWayPoint(x, y);
 	}
 	
+
+	private void addneighbours() {
+		
+		//add neighbors 
+		for(int i=0;i<nx;i++) {
+			for(int j=0;j<ny;j++) {
+				
+				elementMatrix[i][j].x = i;
+				elementMatrix[i][j].y = j;
+				
+				int[] indexX = {i   , i+1, i+1 ,i+1 ,i   ,i-1 ,i-1 ,i-1};
+	        	int[] indexY = {j-1 , j-1, j   ,j+1 ,j+1 ,j+1 ,j   ,j-1};
+	        	
+				//int[] indexX = {i   , i+1 , i   ,i-1};
+	        	//int[] indexY = {j-1 , j   , j+1 ,j  };
+
+				
+				for(int k = 0; k < 8;k++) { //8
+	        		int ii = indexX[k];
+	        		int jj = indexY[k];
+	        		if(ii >= 0 && ii < nx && jj >= 0 && jj < ny)
+	            	{
+	        			elementMatrix[i][j].neighbour.add(elementMatrix[ii][jj]);
+	            	}
+	        	}
+			}
+		}		
+	}
+	
+	private ArrayList<SearchElement> newCell(SearchElement first) {
+		ArrayList<SearchElement> list = new ArrayList<SearchElement>();
+		list.add(first);
+		
+		int i = 0;
+		int n = list.size();
+		
+		while (i<n) {
+			for(SearchElement s: list.get(i).neighbour) {
+				if(list.contains(s) || s.status != 0)
+					continue;
+				list.add(s);
+			}
+			
+			n = list.size();
+			//System.out.println(n);
+			i++;
+		}
+		return list;
+	}
+	
 	@Override
 	public void run() {
 		
-        //find current element
+		
+		//find current element
         //Kex.searchElement goal = cellList.get(0).elementMatrix[ix][iy];
 		
 		//GoToPoint g = new GoToPoint(this, cellList.get(0), this.delta, this.dt);
@@ -233,8 +350,8 @@ public class Kex implements Runnable{
         double lastX = sensorData[0];
         double lastY = sensorData[1];
         
-		int goalx = (int)Math.round((sensorData[0] - cellList.get(0).xMin) / cellList.get(0).dx);
-        int goaly = (int)Math.round((sensorData[1] - cellList.get(0).yMin) / cellList.get(0).dy);
+		//int goalx = (int)Math.round((sensorData[0] - cellList.get(0).xMin) / cellList.get(0).dx);
+        //int goaly = (int)Math.round((sensorData[1] - cellList.get(0).yMin) / cellList.get(0).dy);
 
         
         while(true){
@@ -276,15 +393,19 @@ public class Kex implements Runnable{
                 e.printStackTrace();
             }
         }
-        
+        /*
         System.out.println("pattern done. return to start pos");
 		int startx = (int)Math.round((sensorData[0] - cellList.get(0).xMin) / cellList.get(0).dx);
         int starty = (int)Math.round((sensorData[1] - cellList.get(0).yMin) / cellList.get(0).dy);
         
         GoToPoint g = new GoToPoint(this, cellList.get(0), this.delta, this.dt);
         g.GO(startx, starty, goalx, goaly);
+        */
 	}
 	
+	/**
+	 * print data to file
+	 */
 	private void printToFile() {
 		String fileName = "coverageData.csv";
 		StringBuilder l1 = new StringBuilder();
@@ -324,230 +445,15 @@ public class Kex implements Runnable{
 		}
 	}
 	
-	/**Returns true if all cells are complete, false otherwise*/
-	public boolean getScanStatus(){
-		for (SearchCell sc : cellList){
-			if (!sc.isComplete){
-				return false;
-			}
-		}
-		return true;
-	}
 	
-	public class SearchCell{
-		public boolean isComplete;
-		ArrayList<Double> xpos;
-		ArrayList<Double> ypos;
-		double xMax, yMax, xMin, yMin;
-        int nx;
-        int ny;
-        double dx;
-        double dy;
-		searchElement[][] elementMatrix;
-        double resolution;
-
-        /**Constructor
-		 * @param xpos x-positions for the polygon
-		 * @param ypos y-positions for the polygon
-		 * */
-		public SearchCell (ArrayList<Double> xpos, ArrayList<Double> ypos){
-            isComplete = false;
-            this.xpos = xpos;
-            this.ypos = ypos;
-            xMax = maxX();
-            yMax = maxY();
-            xMin = minX();
-            yMin = minY();
-            resolution = 1.0/delta;
-
-            nx = (int)((Math.round(xMax)-Math.round(xMin))*resolution);
-            ny = (int)((Math.round(yMax)-Math.round(yMin))*resolution);
-
-            dx = (xMax - xMin)/nx;
-            dy = (yMax - yMin)/ny;
-
-            System.out.println("max x: " + maxX() + ", min x: " + minX()+ ", nx: " + nx + ", dx: " + dx);
-			System.out.println("max y: " + maxY() + ", min y: " + minY()+ ", ny: " + ny + ", dy: " + dy);
-            //read here!
-            populateElementMatrix();
-            //draw = new drawMatrix(cellList);
-        }
-
-
-        /**Reads the whole polygon into one single searchcell, mostly for test purposes!*/
-        private void populateElementMatrix() {
-            //initialize the 2D-array. Maybe make sure not to include oob cells at all to save memory?
-            elementMatrix = new searchElement[nx][ny];
-            double xLeft, xRight;
-            double xCoord = xMin;
-            double yCoord = yMin;
-            for (int iy = 0; iy < ny; iy++) {
-                for (int ix = 0; ix < nx; ix++) {
-                    xLeft = findX(yCoord, false);
-                    xRight = findX(yCoord, true);
-                    if (xCoord <= xLeft || xCoord >= xRight) {
-                        elementMatrix[ix][iy] = new searchElement(xCoord, yCoord, 99);   //oob
-                    } else {
-                        elementMatrix[ix][iy] = new searchElement(xCoord, yCoord, 0); //in bounds
-                        cellsInPolygon++;
-                    }
-                    xCoord += dx;
-                }
-                yCoord += dy;
-                xCoord = xMin;
-            }
-            System.out.println("----------Cell read done!----------");
-        }
-
-		public double findX(double y, boolean right) {
-			int[] l1 = {-1,-1};
-			int[] l2 = {-1,-1};
-			
-			int l = ypos.size();
-			for(int i=0; i < l; i++) {
-				
-				if(((ypos.get((i+1)%l) >= y) && (ypos.get(i) <= y))
-				|| ((ypos.get((i+1)%l) <= y) && (ypos.get(i) >= y))) {
-					//interpolate
-					if(l1[0] == -1) {
-						l1[0] = (i+1)%l;
-						l1[1] = i%l;
-						//System.out.println("L1 set" + "\t (" + xpos.get(l1[0]) + " , " + ypos.get(l1[0]) + ") -> ("
-						//									 + xpos.get(l1[1]) + " , " + ypos.get(l1[1]) + ")");
-					}else {
-						l2[0] = (i+1)%l;
-						l2[1] = i%l;
-						//System.out.println("L2 set" + "\t (" + xpos.get(l2[0]) + " , " + ypos.get(l2[0]) + ") -> ("
-						//		 + xpos.get(l2[1]) + " , " + xpos.get(l2[1]) + ")");
-					}
-				}
-			}
-			
-			/*error return some default value*/
-			if(l1[0] == -1 || l1[1] == -1 || l2[0] == -1 || l2[1] == -1) {
-				double meanX = 0;
-				for(int i=0;i<xpos.size();i++) {
-					meanX += xpos.get(i);
-				}
-				meanX /= xpos.size();
-				return meanX;
-			}
-				
-			
-			//interpolate x
-			
-			double x0 = xpos.get(l1[0]);
-			double y0 = ypos.get(l1[0]);
-			
-			double x1 = xpos.get(l1[1]);
-			double y1 = ypos.get(l1[1]);
-			
-			//how far is y on the line
-			double p = (y-y0) / (y1-y0);
-			double l1X = (1-p)*x0 + p*x1;
-			
-			//System.out.println("p1=" + p);
-			
-			x0 = xpos.get(l2[0]);
-			y0 = ypos.get(l2[0]);
-			
-			x1 = xpos.get(l2[1]);
-			y1 = ypos.get(l2[1]);
-			
-			//how far is y on the line
-			p = (y-y0) / (y1-y0);
-			double l2X = (1-p)*x0 + p*x1;
-			//System.out.println("p2=" + p);
-			
-			if(right) {
-				return Math.max(l1X, l2X);
-			}
-			return Math.min(l1X, l2X);
-		}
 		
-		public double maxX(){
-			Double temp = Double.MIN_VALUE;
-			for (Double value : xpos){
-				if (value > temp)
-					temp = value;
-			}
-			return temp;
-		}
-		
-		public double maxY(){
-			Double temp = Double.MIN_VALUE;
-			for (Double value : ypos){
-				if (value > temp)
-					temp = value;
-			}
-			return temp;
-		}
-		
-		public double minX(){
-
-			Double temp = Double.MAX_VALUE;
-			for (Double value : xpos){
-				if (value < temp)
-					temp = value;
-			}
-			return temp;
-		}
-		
-		public double minY(){
-
-			Double temp = Double.MAX_VALUE;
-			for (Double value : ypos){
-				if (value < temp)
-					temp = value;
-			}
-			return temp;
-		}
-		
-	}
-	
-	/**Smallest element of the map, x and y coords, status and depth data*/
-	public class searchElement{
-		double xCoord;
-		double yCoord;
-		int status; // 0 = not scanned, 1 = scanned 2 = not accessible, 99 oob
-        double accumulatedDepth;
-        int timesVisited;
-        
-        int x;
-        int y;
-        
-        ArrayList<searchElement> neighbour = new ArrayList<searchElement>();
-
-		public searchElement(double x, double y, int s){
-			xCoord = x;
-			yCoord = y;
-			status = s;
-            timesVisited = 0;
-		}
-        private void updateDepthData(double inDepth){
-            if (timesVisited == 0){
-                accumulatedDepth = inDepth;
-                timesVisited++;
-                visitedCells++;
-            }
-            else {
-                timesVisited++;
-                accumulatedDepth = (accumulatedDepth + inDepth);
-            }
-            status = 1;
-        }
-        private double getRecordedDepth(){
-            return accumulatedDepth /timesVisited;
-        }
-	}
-	
-	private class drawMatrix extends JPanel{
+	private class DrawMatrix extends JPanel {
 		JFrame myFrame;
 
-		public drawMatrix(ArrayList<SearchCell> cellList){
+		public DrawMatrix(){
 			myFrame = new JFrame();
             myFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-            int[] dim = correctCoords((int)Math.round(cellList.get(0).xMax*1.2),(int)Math.round(cellList.get(0).yMax*1.2));
+            int[] dim = correctCoords((int)Math.round(xMax*1.2),(int)Math.round(yMax*1.2));
             myFrame.setPreferredSize(new Dimension(dim[0],dim[1]));
             myFrame.add(this);
             myFrame.pack();
@@ -560,86 +466,88 @@ public class Kex implements Runnable{
 		public void paint(Graphics g){
             //draw a background
             drawBackground(g);
-            Color[] colorArray = {Color.green, Color.yellow, Color.magenta};
-            int cIndex = 0;
-            for (SearchCell currCell : cellList) {
-                for (searchElement[] ea : currCell.elementMatrix) {
-                    for (searchElement e : ea) {
-                        if (e.status == 0) {
-                            g.setColor(Color.black);
-                        } else if (e.status == 99) {
-                            g.setColor(Color.gray);
-                        } else if (e.status == 1) {
-                            double depth = e.getRecordedDepth();
-                            g.setColor(getColor(depth));
-                        }else if (e.status == 2) {
-                        	g.setColor(Color.red);
-                        } else {
-                            System.out.println("Dafuq?! Wrong status in initial cell read");
-                            g.setColor(Color.pink);
-                        }
-
-                        drawElements(g, e);
-                        //drawEdges(g, Color.red);
-
+         
+            //draw elements
+            for(int i=0;i<nx;i++) {
+            	for(int j=0;j<ny;j++) {
+            		SearchElement e = elementMatrix[i][j];
+            		if (e.status == 0) {
+                        g.setColor(Color.black);
+                    } else if (e.status == 99) {
+                        g.setColor(Color.gray);
+                    } else if (e.status == 1) {
+                        double depth = e.getRecordedDepth();
+                        g.setColor(getColor(depth));
+                    }else if (e.status == 2) {
+                    	g.setColor(Color.red);
+                    } else {
+                        System.out.println("Dafuq?! Wrong status in initial cell read");
+                        g.setColor(Color.pink);
                     }
-
-                }
-
-                drawEdges(g, Color.red, cIndex);
-                cIndex++;
-
+                    drawElements(g, e);
+            	}
             }
-
-
+            drawEdges(g);
         }
+
+		/**
+		 * clear background
+		 * @param g
+		 * graphics
+		 */
         private void drawBackground(Graphics g){
             g.setColor(new Color(211, 211, 211));
-            int[] c0 = correctCoords((int)Math.round(cellList.get(0).xMin),(int)Math.round(cellList.get(0).yMin));
-            int[] c1 = correctCoords((int)Math.round(cellList.get(0).xMax)*2, (int) Math.round(cellList.get(0).yMax)*2);
+            int[] c0 = correctCoords((int)Math.round(xMin),(int)Math.round(yMin));
+            int[] c1 = correctCoords((int)Math.round(xMax)*2, (int) Math.round(yMax)*2);
             g.fillRect(c0[0],c0[1],c1[0],c1[1]);
         }
 
-        private void drawElements(Graphics g, searchElement e){
-            int tempCellIndex = 0;  //change this to currentCellIndex later on
+        /**
+         * Draw a rectangle representing a seachelement
+         * @param g
+         * graphics
+         * @param e
+         * SearchElement
+         */
+        private void drawElements(Graphics g, SearchElement e) {
             int[] coords = correctCoords((int)e.xCoord,(int)e.yCoord);
-            g.fillRect(coords[0]-(int)Math.round(cellList.get(tempCellIndex).dx/2),coords[1]-(int)Math.round(cellList.get(tempCellIndex).dx/2),(int) cellList.get(tempCellIndex).dx+1,(int) cellList.get(tempCellIndex).dy+1);
-            g.setColor(Color.gray);
+            g.fillRect(coords[0]-(int)Math.round(dx/2),coords[1]-(int)Math.round(dx/2),(int) dx+1, (int) dy+1);
+            
             //vertical lines
-            int[] vCoords = correctCoords((int)Math.round(e.xCoord), (int)Math.round(cellList.get(tempCellIndex).xMax));
-            g.drawLine(coords[0]-(int)Math.round(cellList.get(tempCellIndex).dx/2), coords[1]-(int)Math.round(cellList.get(tempCellIndex).dx/2), vCoords[0]-(int)Math.round(cellList.get(tempCellIndex).dx/2),vCoords[1]-(int)Math.round(cellList.get(tempCellIndex).dy/2));
+            g.setColor(Color.gray);
+            int[] vCoords = correctCoords((int)Math.round(e.xCoord), (int) Math.round(xMax));
+            g.drawLine(coords[0]-(int)Math.round(dx/2), coords[1]-(int)Math.round(dx/2), vCoords[0]-(int)Math.round(dx/2),vCoords[1]-(int)Math.round(dy/2));
+            
             //horizontal lines
-            int[] hCoords = correctCoords((int)Math.round(cellList.get(tempCellIndex).xMax), (int)Math.round(e.yCoord));
-            g.drawLine(coords[0]-(int)Math.round(cellList.get(tempCellIndex).dx/2), coords[1]-(int)Math.round(cellList.get(tempCellIndex).dx/2), hCoords[0]-(int)Math.round(cellList.get(0).dx/2),hCoords[1]-(int)Math.round(cellList.get(tempCellIndex).dy/2));
-
-            }
-
-        //TODO remove the coordinate correction internally and call correctCoords() instead!
-        private void drawEdges(Graphics g, Color c, int cellIndex){
-            for(int i=0; i < cellList.get(cellIndex).xpos.size()-1; i++) {
-                int x0 = cellList.get(cellIndex).xpos.get(i).intValue();
-                int y0 = cellList.get(cellIndex).ypos.get(i).intValue();
-                int[] p1 = correctCoords(x0,y0);
-                int x1 = cellList.get(cellIndex).xpos.get(i+1).intValue();
-                int y1 = cellList.get(cellIndex).ypos.get(i+1).intValue();
-                int[] p2 = correctCoords(x1,y1);
-                //g.setColor(Color.RED);
-                g.setColor(c);
-                //g.drawLine(x0-(int) cellList.get(cellIndex).xMin, y0-(int) cellList.get(cellIndex).yMin, x1-(int) cellList.get(cellIndex).xMin, y1-(int) cellList.get(cellIndex).yMin);
-                g.drawLine(p1[0],p1[1],p2[0],p2[1]);
-            }
-            int[] p1 = correctCoords(cellList.get(cellIndex).xpos.get(cellList.get(cellIndex).xpos.size()-1).intValue(),cellList.get(cellIndex).ypos.get(cellList.get(cellIndex).xpos.size() - 1).intValue());
-            int[] p2 = correctCoords(cellList.get(cellIndex).xpos.get(0).intValue(), cellList.get(cellIndex).ypos.get(0).intValue());
-            /*
-            g.drawLine(cellList.get(cellIndex).xpos.get(cellList.get(cellIndex).xpos.size() - 1).intValue() - (int) cellList.get(cellIndex).xMin,
-                    (cellList.get(cellIndex).ypos.get(cellList.get(cellIndex).xpos.size() - 1).intValue() - (int) cellList.get(cellIndex).yMin),
-                    cellList.get(cellIndex).xpos.get(0).intValue() - (int) cellList.get(cellIndex).xMin,
-                    cellList.get(cellIndex).ypos.get(0).intValue() - (int) cellList.get(cellIndex).yMin);
-                    */
-            g.drawLine(p1[0],p1[1],p2[0],p2[1]);
-
+            int[] hCoords = correctCoords((int)Math.round(xMax), (int)Math.round(e.yCoord));
+            g.drawLine(coords[0]-(int)Math.round(dx/2), coords[1]-(int)Math.round(dx/2), hCoords[0]-(int)Math.round(dx/2),hCoords[1]-(int)Math.round(dy/2));
         }
-        private Color getColor(double depth){
+
+        /**
+         * Draw polygon edges
+         * @param g
+         * graphics
+         */
+        private void drawEdges(Graphics g){           
+        	g.setColor(Color.red);
+        	for(SearchCell cell : cellList) {
+        		for(int i=0;i<cell.xpos.size()-1;i++) {
+        			int x0 = cell.xpos.get(i).intValue();
+                    int y0 = cell.ypos.get(i).intValue();
+                    int[] p1 = correctCoords(x0,y0);
+                    int x1 = cell.xpos.get(i+1).intValue();
+                    int y1 = cell.ypos.get(i+1).intValue();
+                    int[] p2 = correctCoords(x1,y1);
+                    g.drawLine(p1[0],p1[1],p2[0],p2[1]);
+        		}
+        		int[] p1 = correctCoords(cell.xpos.get(cell.xpos.size()-1).intValue() , cell.ypos.get(cell.xpos.size()-1).intValue());
+                int[] p2 = correctCoords(cell.xpos.get(0).intValue(), cell.ypos.get(0).intValue());
+                g.drawLine(p1[0],p1[1],p2[0],p2[1]);
+        	}	
+        }
+        
+        
+        private Color getColor(double depth) {
             Color color;
             if(depth < -21) {
                 color = new Color(0x050068);
@@ -672,8 +580,7 @@ public class Kex implements Runnable{
 
         }
         private int[] correctCoords(int x, int y){
-            //return new int[] {x,y};
-            return new int[] {x - (int) cellList.get(0).xMin, y - (int) cellList.get(0).yMin};
+            return new int[] {x - (int) xMin, y - (int) yMin};
         }
     }
 

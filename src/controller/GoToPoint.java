@@ -2,7 +2,7 @@ package controller;
 
 import java.util.ArrayList;
 
-import controller.Kex.SearchCell;
+import controller.SearchCell;
 
 public class GoToPoint extends SearchPattern {
 	
@@ -47,13 +47,14 @@ public class GoToPoint extends SearchPattern {
 		
 		//add neighbors 
 		//TODO gör inte såhär
-		for(int i=0;i<region.nx;i++) {
-			for(int j=0;j<region.ny;j++) {
+		/*
+		for(int i=0;i<kex.nx;i++) {
+			for(int j=0;j<kex.ny;j++) {
 				
-				region.elementMatrix[i][j].x = i;
-				region.elementMatrix[i][j].y = j;
+				kex.elementMatrix[i][j].x = i;
+				kex.elementMatrix[i][j].y = j;
 				
-				if(region.elementMatrix[i][j].status == 99)
+				if(kex.elementMatrix[i][j].status == 99)
 					continue;
 				
 				int[] indexX = {i   , i+1, i+1 ,i+1 ,i   ,i-1 ,i-1 ,i-1};
@@ -73,12 +74,12 @@ public class GoToPoint extends SearchPattern {
 	        	}
 			}
 		}
+		*/
 		
+		SearchElement startElement = kex.elementMatrix[startX][startY];
+		SearchElement stopElement = kex.elementMatrix[stopX][stopY];
 		
-		Kex.searchElement startElement = region.elementMatrix[startX][startY];
-		Kex.searchElement stopElement = region.elementMatrix[stopX][stopY];
-		
-		ArrayList<Kex.searchElement> path = Astar(startElement, stopElement); 
+		ArrayList<SearchElement> path = Astar(startElement, stopElement); 
 		
 		int index = path.size()-1;
 		double targetX = path.get(index).xCoord;
@@ -142,15 +143,15 @@ public class GoToPoint extends SearchPattern {
 		}
 	}
 	
-	public ArrayList<Kex.searchElement> Astar(Kex.searchElement startElement, Kex.searchElement stopElement ) {
+	public ArrayList<SearchElement> Astar(SearchElement startElement, SearchElement stopElement ) {
 		
-		int maxX = region.nx;
-		int maxY = region.ny;
+		int maxX = kex.nx;
+		int maxY = kex.ny;
 		
-		ArrayList<Kex.searchElement> closedSet = new ArrayList<Kex.searchElement>();
-		ArrayList<Kex.searchElement> openSet = new ArrayList<Kex.searchElement>();
+		ArrayList<SearchElement> closedSet = new ArrayList<SearchElement>();
+		ArrayList<SearchElement> openSet = new ArrayList<SearchElement>();
 		
-		Kex.searchElement[][] came_from = new Kex.searchElement[maxX][maxY]; 
+		SearchElement[][] came_from = new SearchElement[maxX][maxY]; 
 		double[][] g_score = new double[maxX][maxY];
 		double[][] f_score = new double[maxX][maxY];
 		
@@ -168,8 +169,8 @@ public class GoToPoint extends SearchPattern {
 			//System.out.println("A* openSet: " + openSet.size() + "\t closedSet: " + closedSet.size());
 			
 			double min = Double.MAX_VALUE;
-			Kex.searchElement current =  null;
-			for(Kex.searchElement n:openSet) {
+			SearchElement current =  null;
+			for(SearchElement n:openSet) {
 				if(f_score[n.x][n.y] <= min || n.status != 1) {
 					min = f_score[n.x][n.y];
 					//System.out.println(min);
@@ -186,7 +187,7 @@ public class GoToPoint extends SearchPattern {
 			closedSet.add(current);
 			
 			//itterate through neighbours
-			for(Kex.searchElement n:current.neighbour) {
+			for(SearchElement n:current.neighbour) {
 				if(closedSet.contains(n) || n.status != 1)
 					continue;
 				
@@ -209,17 +210,17 @@ public class GoToPoint extends SearchPattern {
 		return null;
 	}
 	
-	private double heuristic_cost_estimate(Kex.searchElement one, Kex.searchElement two) {
+	private double heuristic_cost_estimate(SearchElement one, SearchElement two) {
 		double dx = one.xCoord - two.xCoord;
 		double dy = one.yCoord - two.yCoord;;
 		
 		return Math.sqrt(dx*dx + dy*dy);
 	}
 	
-	ArrayList<Kex.searchElement> reconstructPath(Kex.searchElement start, Kex.searchElement current, Kex.searchElement[][] came_from) { 
-		ArrayList<Kex.searchElement> path = new ArrayList<Kex.searchElement>();
+	ArrayList<SearchElement> reconstructPath(SearchElement start, SearchElement current, SearchElement[][] came_from) { 
+		ArrayList<SearchElement> path = new ArrayList<SearchElement>();
 		
-		Kex.searchElement temp = current;
+		SearchElement temp = current;
 		path.add(temp);
 		
 		while(true) {

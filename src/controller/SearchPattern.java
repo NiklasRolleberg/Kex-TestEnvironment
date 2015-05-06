@@ -3,13 +3,13 @@ package controller;
 public abstract class SearchPattern implements Runnable {
 	
 	Kex kex;
-	Kex.SearchCell region;
+	SearchCell region;
 	double delta;
 	long dt;
 	AverageData data;
 	XTE xte; 
 	
-	public SearchPattern(Kex kex, Kex.SearchCell region, double delta, long  dt) {
+	public SearchPattern(Kex kex, SearchCell region, double delta, long  dt) {
 		this.kex = kex;
 		this.region = region;
 		this.delta = delta;

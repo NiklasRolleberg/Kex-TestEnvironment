@@ -5,7 +5,7 @@ public class SweepingPattern extends SearchPattern {
 	boolean stop = false;
 	boolean followingLand = false;
 	
-	public SweepingPattern(Kex kex, Kex.SearchCell subregion, double delta, long dt) {
+	public SweepingPattern(Kex kex, SearchCell subregion, double delta, long dt) {
 		super(kex, subregion, delta*0.8, dt);
 	}
 
@@ -213,7 +213,7 @@ public class SweepingPattern extends SearchPattern {
 	
 	private boolean outOfBounds(double x, double y) {
 		
-		if(y > region.yMax || y < region.yMin || x > region.xMax || x < region.xMin)
+		if(y > region.maxY() || y < region.minY() || x > region.maxX() || x < region.minX())
 			return true;
 		if(x < region.findX(y, false) || x > region.findX(y, true))
 			return true;

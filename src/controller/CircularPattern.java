@@ -1,6 +1,6 @@
 package controller;
 
-import controller.Kex.SearchCell;
+import controller.SearchCell;
 
 public class CircularPattern extends SearchPattern {
 	
@@ -223,7 +223,7 @@ public class CircularPattern extends SearchPattern {
 	}
 
 	private boolean outOfBounds(double x, double y) {
-		if(y > region.yMax || y < region.yMin || x > region.xMax || x < region.xMin)
+		if(y > region.maxY() || y < region.minY() || x > region.maxX() || x < region.minX())
 			return true;
 		if(x < region.findX(y, false) || x > region.findX(y, true))
 			return true;
