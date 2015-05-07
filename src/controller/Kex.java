@@ -67,7 +67,7 @@ public class Kex implements Runnable{
 		this.dt = dt;
         currentCellIndex = 0;
 
-        // (1) Create matrix + populate matrix + addneighbours + set status(0, not accessible)  
+        /** (1) Create matrix + populate matrix + addneighbours + set status(unknown or not accessible) */ 
         
         // _1_calculate number of elements needed and dx,dy
         SearchCell temp = new SearchCell(polygonX,polygonY);
@@ -123,16 +123,16 @@ public class Kex implements Runnable{
         draw = new DrawMatrix();
         
         
-        //TODO split polygon + store convex polygons
+        /**(2) Create cell from the given polygon*/
         cellList = new ArrayList<SearchCell>();
         cellList.add(temp);
         
-        // TODO fixa för resultat
-        //cellData = new ArrayList<Double>();
-    	//distData = new ArrayList<Double>();
-    	//timeData = new ArrayList<Double>();
+        
+        cellData = new ArrayList<Double>();
+    	distData = new ArrayList<Double>();
+    	timeData = new ArrayList<Double>();
 
-
+        //TODO split polygon + store convex polygons
 	}
     /**adds some extra polygons to the list, for test purposes*/
     private void addTestPolygons(SearchCell initCell){
@@ -240,6 +240,9 @@ public class Kex implements Runnable{
             iy = ny-1;
         }
         
+        if(elementMatrix[ix][iy].status == 0)
+        	visitedCells++;
+        
         elementMatrix[ix][iy].updateDepthData(depthValue);
       
         if (sp.followingLand()) {
@@ -255,6 +258,7 @@ public class Kex implements Runnable{
             	{
             		if(elementMatrix[i][j].status != 1){
             			elementMatrix[i][j].status = 2;
+            			visitedCells++;
             		}
             	}
         	}
@@ -277,7 +281,7 @@ public class Kex implements Runnable{
 		boat.setWayPoint(x, y);
 	}
 	
-
+	/**Add neighbours to all SearchElements*/
 	private void addneighbours() {
 		
 		//add neighbors 
@@ -306,6 +310,12 @@ public class Kex implements Runnable{
 		}		
 	}
 	
+	/**Identify the content of a new searchcell
+	 * @param first
+	 * One SearchElement in the new cell
+	 * @return
+	 * List of all elements in that cell
+	 */
 	private ArrayList<SearchElement> newCell(SearchElement first) {
 		ArrayList<SearchElement> list = new ArrayList<SearchElement>();
 		list.add(first);
@@ -327,34 +337,25 @@ public class Kex implements Runnable{
 		return list;
 	}
 	
-	@Override
-	public void run() {
+	/**Scan a cell
+	 * @param c
+	 * cell to be scanned 
+	 * @param S
+	 * SearchPattern to use
+	 */
+	private void scanCell(SearchCell c) {
 		
+		sp = new SweepingPattern(this, c, this.delta, this.dt);
+        //sp = new CircularPattern(this, c, this.delta, this.dt);
 		
-		//find current element
-        //Kex.searchElement goal = cellList.get(0).elementMatrix[ix][iy];
-		
-		//GoToPoint g = new GoToPoint(this, cellList.get(0), this.delta, this.dt);
-		//g.GO(5, 5, cellList.get(0).nx -5, cellList.get(0).ny-5);
-		//sp = g;
-		
-        //Run the search pattern on the polygons
-        sp = new SweepingPattern(this, cellList.get(0), this.delta, this.dt);
-        //sp = new CircularPattern(this, cellList.get(0), this.delta, this.dt);
         Thread myThread = new Thread(sp);
         myThread.start();
-        
-        startTime = System.currentTimeMillis();
-        
-        double[] sensorData = boat.getSensordata();
+
+		double[] sensorData = boat.getSensordata();
         double lastX = sensorData[0];
         double lastY = sensorData[1];
-        
-		//int goalx = (int)Math.round((sensorData[0] - cellList.get(0).xMin) / cellList.get(0).dx);
-        //int goaly = (int)Math.round((sensorData[1] - cellList.get(0).yMin) / cellList.get(0).dy);
-
-        
-        while(true){
+		
+		while(true){
             sensorData = boat.getSensordata();
             //calc distance
             double dx = lastX-sensorData[0];
@@ -393,10 +394,43 @@ public class Kex implements Runnable{
                 e.printStackTrace();
             }
         }
-        /*
+	}
+	
+	@Override
+	public void run() {
+
+		startTime = System.currentTimeMillis();
+       
+		/**Start scanning the first cell (given by operator)*/
+        scanCell(cellList.get(0));
+        /**Scanning of the first cell complete*/
+        
+        
+        while(true) {
+        	/**Check completeness*/
+        	
+        	/**Identify new cells*/
+        	
+        	/**Pick one cell and select start position */
+        	
+        	/**Travel to that position*/
+        	
+        	/**Start scanning selected cell*/
+        	
+        	//break;
+        }
+       
+        
+        
+        /*A* stuff 
+        
+        double[] sensorData = boat.getSensordata();
+		int goalx = (int)Math.round((sensorData[0] - xMin) / dx);
+        int goaly = (int)Math.round((sensorData[1] - yMin) / dy);
+        
         System.out.println("pattern done. return to start pos");
-		int startx = (int)Math.round((sensorData[0] - cellList.get(0).xMin) / cellList.get(0).dx);
-        int starty = (int)Math.round((sensorData[1] - cellList.get(0).yMin) / cellList.get(0).dy);
+		int startx = (int)Math.round((sensorData[0] - xMin) / dx);
+        int starty = (int)Math.round((sensorData[1] - yMin) / dy);
         
         GoToPoint g = new GoToPoint(this, cellList.get(0), this.delta, this.dt);
         g.GO(startx, starty, goalx, goaly);
