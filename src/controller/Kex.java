@@ -426,6 +426,8 @@ public class Kex implements Runnable{
                 xRest.add(se.xCoord);
                 yRest.add(se.yCoord);
             }
+
+            /*
             Double xMaxRest = PolygonLib.findMax(xRest);
             Double xMinRest = PolygonLib.findMin(xRest);
 
@@ -443,12 +445,15 @@ public class Kex implements Runnable{
             yRest.add(yMinRest);
             yRest.add(yMaxRest);
             yRest.add(yMaxRest);
+            */
             ArrayList<Double> tempListX = new ArrayList<Double>();
             ArrayList<Double> tempListY = new ArrayList<Double>();
             tempListX.addAll(xRest);
             tempListY.addAll(yRest);
 
-            SearchCell newC = new SearchCell(tempListX,tempListY);
+            //SearchCell newC = new SearchCell(tempListX,tempListY);
+            ArrayList<ArrayList<Double>> convexCell = PolygonLib.findConvexHull(tempListX,tempListY);
+            SearchCell newC = new SearchCell(convexCell.get(0),convexCell.get(1));
             //System.out.println(".-----sizes xy " + xRest.size() + " " + yRest.size());
             cellList.add(newC);
             xRest.clear();
