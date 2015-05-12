@@ -1,4 +1,5 @@
 package controller;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
 	public class SearchCell{
@@ -207,6 +208,10 @@ import java.util.ArrayList;
 			/*Check if triangle = ear*/
 			double[] triangleX = new double[3];
 			double[] triangleY = new double[3];
+			for(int i=0;i<3;i++) {
+				triangleX[i] = xVertex.get(triangle[i]);
+				triangleY[i] = yVertex.get(triangle[i]);
+			}
 			
 			for(int i=0; i<xVertex.size(); i++) {
 				if(i == triangle[0] || i == triangle[1] || i == triangle[2]) 
@@ -215,6 +220,11 @@ import java.util.ArrayList;
 					System.out.println("No ear");
 					ear = false;
 				}
+			}
+			
+			if(!rightTurn(triangleX,triangleY)) {
+				System.out.println("No ear");
+				ear = false;
 			}
 			
 			/*if triangle is an ear, remove the ear and create a SearchCell*/
@@ -251,6 +261,23 @@ import java.util.ArrayList;
 		
 		
 		return list;
+	}
+	
+	/** Check if a turn is to the right
+	 * @param x
+	 * x-coordinates of triangle
+	 * @param y
+	 * y-coordinates of triangle
+	 * @return
+	 * true = right turn or no turn
+	 * false = left turn
+	 */
+	private static boolean rightTurn(double[] x, double[] y) {
+		System.out.println("Calculate angle");
+		double x1 = (x[1]-x[0]) * (y[2]-y[0]);
+		double x2 = (x[2]-x[0]) * (y[1]-y[0]);
+		double x3 = x1-x2;
+		return (x3>=0);
 	}
 	
 	/** Check if point is inside a triangle
