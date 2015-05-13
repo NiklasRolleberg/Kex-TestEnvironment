@@ -106,7 +106,7 @@ public class PolygonLib {
         int i = 0;
         int tempIndex = 0;
         for (Point2D p : points){
-            if (p.getX() < temp){
+            if (p.getX() <= temp){
                 temp = p.getX();
                 tempIndex = i;
             }
