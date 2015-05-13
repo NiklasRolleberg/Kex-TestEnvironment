@@ -4,24 +4,55 @@ import java.util.ArrayList;
 
 public class GoToPoint {
 	
-	int startX;
-	int startY;
-	int stopX;
-	int stopY;
 	Kex kex;
 	
 	public GoToPoint(Kex kex) {
 		this.kex = kex;
 	}
 	
+	public double distance (int startX, int startY, int stopX, int stopY) {
+		
+		ArrayList<SearchElement> path = null;
+		try {
+			path = Astar(kex.elementMatrix[startX][startY],kex.elementMatrix[stopX][stopY]);
+		}
+		catch(Exception e) {
+			return -1;
+		}
+		if(path == null)
+			return -1;
+		
+		double dist = 0;
+		
+		double lastX = path.get(0).xCoord;
+		double lastY = path.get(0).yCoord;
+		for(int i=1;i<path.size();i++) {
+			double newX = path.get(i).xCoord;
+			double newY = path.get(i).yCoord;
+			
+			dist += Math.sqrt((newX-lastX)*(newX-lastX) + (newY-lastY)*(newY-lastY));
+			lastX = newX;
+			lastY = newY;
+		}
+		
+		return dist;
+	}
+	
 	public boolean GO(int startX, int startY, int stopX, int stopY) {
-		this.startX = startX;
-		this.startY = startY;
-		this.stopX = stopX;
-		this.stopY = stopY;
+		//this.startX = startX;
+		//this.startY = startY;
+		//this.stopX = stopX;
+		//this.stopY = stopY;
 		
-		ArrayList<SearchElement> path = Astar(kex.elementMatrix[startX][startY],kex.elementMatrix[stopX][stopY]);
+		ArrayList<SearchElement> path = null;
 		
+		try {
+			path = Astar(kex.elementMatrix[startX][startY],kex.elementMatrix[stopX][stopY]);
+		}
+		catch(Exception e) {
+			return false;
+		}
+			
 		//No path found
 		if(path == null) 
 			return false;
@@ -93,8 +124,8 @@ public class GoToPoint {
 		
 		openSet.add(startElement);
 		
-		g_score[startX][startY] = 0;
-		f_score[startX][startY] = heuristic_cost_estimate(startElement, stopElement);
+		g_score[startElement.x][startElement.y] = 0;
+		f_score[stopElement.x][stopElement.y] = heuristic_cost_estimate(startElement, stopElement);
 		
 		while(!openSet.isEmpty()) {
 			//find node with lowest f_score value

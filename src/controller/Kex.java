@@ -44,6 +44,7 @@ public class Kex implements Runnable{
     DrawMatrix draw;
     
     SearchPattern sp;
+    GoToPoint gp;
     
     //for data log
 	int cellsInPolygon = 0;
@@ -67,6 +68,7 @@ public class Kex implements Runnable{
 		this.endPos = endPos;
 		this.dt = dt;
         currentCellIndex = 0;
+        gp = new GoToPoint(this);
 
         /** (1) Create matrix + populate matrix + addneighbours + set status(unknown or not accessible) */ 
         
@@ -126,8 +128,8 @@ public class Kex implements Runnable{
         
         /**(2) Create cell from the given polygon*/
         cellList = new ArrayList<SearchCell>();
-        cellList.add(temp);
-
+        //cellList.add(temp);
+        cellList.addAll(SearchCell.trianglulatePolygon(polygonX, polygonY));
         
         cellData = new ArrayList<Double>();
     	distData = new ArrayList<Double>();
@@ -348,10 +350,14 @@ public class Kex implements Runnable{
 	 * cell to be scanned 
 	 * param S
 	 * SearchPattern to use
+	 * @param b 
 	 */
-	private void scanCell(SearchCell c) {
+	private void scanCell(SearchCell c, boolean b) {
 		
-		sp = new SweepingPattern(this, c, this.delta, this.dt);
+		if(b)
+			sp = new SweepingPattern(this, c, this.delta, this.dt);
+		else
+			sp = new SweepingPattern(this, c, -this.delta, this.dt);
         //sp = new CircularPattern(this, c, this.delta, this.dt);
 		
         Thread myThread = new Thread(sp);
@@ -489,49 +495,106 @@ public class Kex implements Runnable{
         return inList;
     }
 
-    @Override
-	public void run() {
+    /** Finds the closest searchElement 
+     * @param startY 
+     * @param startX 
+     * @return
+     * int[] { SearchCellIndex, elementIndexX, elementIndexY }
+     */
+    private int[] findClosest(int startX, int startY) {
+    	
+    	if(cellList.size() == 0) 
+    		return null;
+    	
+    	double minDistance = Double.MAX_VALUE;
+    	int cellIndex = -1;
+    	int minX = 0;
+    	int minY = 0;
+    	
+    	//compare the distance of all possible targets
+    	for(int i=0;i<cellList.size();i++) {
+    		SearchCell c = cellList.get(i);
+    		double ypos = c.minY();
+    		while(ypos < c.maxY()) {
+    			double xpos1 = c.findX(ypos, true);
+        		double xpos2 = c.findX(ypos, false);
+        		int xIndex1 = (int) Math.round((xpos1 - xMin) / dx);
+        		int xIndex2 = (int) Math.round((xpos2 - xMin) / dx);
+        		int yIndex = (int) Math.round((ypos - xMin) / dx);
+        		
+        		double dist1 = gp.distance(startX, startY, xIndex1, yIndex);
+        		double dist2 = gp.distance(startX, startY, xIndex2, yIndex);
+        		
+        		if(dist1 < minDistance || dist1 != -1) {
+        			minDistance = dist1;
+        			cellIndex = i;
+        			minX = xIndex1;
+        			minY = yIndex;
+        		}
+        		
+        		if(dist2 < minDistance || dist2 != -1) {
+        			minDistance = dist2;
+        			cellIndex = i;
+        			minX = xIndex2;
+        			minY = yIndex;
+        		}
+        		ypos += this.delta;
+    		}
+    	}
+    	
+    	//return the target with the shortest distance
+    	if(cellIndex == -1)
+    		return null;
 
+    	return new int[] {cellIndex, minX, minY};
+    }
+	
+	@Override
+	public void run() {
 		startTime = System.currentTimeMillis();
        
 		/**Start scanning the first cell (given by operator)*/
-        scanCell(cellList.get(0));
+        scanCell(cellList.get(0),true);
+        cellList.remove(0);
         /**Scanning of the first cell complete*/
         
-        
         while(true) {
-        	/**Check completeness*/
-
-
-            idRegions();
-
-
-            /**Pick one cell and select start position */
+        	//My position
+        	int startX = (int)Math.round((boat.getPos()[0] - xMin) / dx);
+        	int startY = (int)Math.round((boat.getPos()[1] - yMin) / dy);
+        	if(startY >= ny)
+        		startY = ny-1;
         	
+        	/**Pick one cell and select start position */
+        	System.out.println("Looking for closest path");
+        	//find shortest distance to other cells
+        	int[] target = findClosest(startX,startY);
+        	if(target == null) {
+        		idRegions();
+        		target = findClosest(startX,startY);
+        		if(target == null) {
+        			System.out.println("Search complete");
+        			break;
+        		}
+        	}
+
         	/**Travel to that position*/
+        	System.out.println("Going to new position");
+        	if(gp.GO(startX, startY, target[1], target[2]))
+        		continue;
         	
         	/**Start scanning selected cell*/
-        	
-        	break;
+        	System.out.println("Scanning new cell");
+        	SearchCell sc = cellList.get(target[0]);
+        	boolean b = ((boat.getPos()[1]-sc.minY()) < (sc.maxY()-sc.minY())/2);
+        	scanCell(cellList.get(target[0]),b);
+        	cellList.remove(target[0]);
+        	System.out.println("CellList size: " + cellList.size());
         }
-       
-        
-        
-        /*A* stuff 
-        
-        double[] sensorData = boat.getSensordata();
-		int goalx = (int)Math.round((sensorData[0] - xMin) / dx);
-        int goaly = (int)Math.round((sensorData[1] - yMin) / dy);
-        
-        System.out.println("pattern done. return to start pos");
-		int startx = (int)Math.round((sensorData[0] - xMin) / dx);
-        int starty = (int)Math.round((sensorData[1] - yMin) / dy);
-        
-        GoToPoint g = new GoToPoint(this, cellList.get(0), this.delta, this.dt);
-        g.GO(startx, starty, goalx, goaly);
-        */
-	}
+   	}
+
 	
+    
 	/**
 	 * print data to file
 	 */
