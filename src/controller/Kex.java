@@ -75,16 +75,21 @@ public class Kex implements Runnable{
         // _1_calculate number of elements needed and dx,dy
         SearchCell temp = new SearchCell(polygonX,polygonY);
         double resolution = 1.0/delta;
-        nx = (int)((Math.round(temp.maxX())-Math.round(temp.minX()))*resolution);
-        ny = (int)((Math.round(temp.maxY())-Math.round(temp.minY()))*resolution);
-
-        dx = (temp.maxX() - temp.minX())/nx;
-        dy = (temp.maxY() - temp.minY())/ny;
         
         xMax = temp.maxX();
         yMax = temp.maxY();
         xMin = temp.minX();
         yMin = temp.minY();
+        
+        nx = (int)((Math.round(xMax)-Math.round(xMin))*resolution);
+        ny = (int)((Math.round(yMax)-Math.round(yMin))*resolution);
+
+        dx = (temp.maxX() - temp.minX())/nx;
+        dy = (temp.maxY() - temp.minY())/ny;
+        
+        // TODO fundera på varför det inte funkar utan detta
+        nx+=1;
+        ny+=1;
 
         System.out.println("max x: " + xMax + ", min x: " + xMin + ", nx: " + nx + ", dx: " + dx);
 		System.out.println("max y: " + yMax + ", min y: " + yMin + ", ny: " + ny + ", dy: " + dy);
@@ -408,7 +413,8 @@ public class Kex implements Runnable{
         }
 	}
     /**Identify new cells and add them to cellList*/
-    private void idRegions(){
+    
+	private void idRegions(){
         alreadyAdded.clear();
         ArrayList<SearchElement> uncovered = getUncoveredElments();
         ArrayList<ArrayList<SearchElement>> listOfLists = new ArrayList<ArrayList<SearchElement>>();
@@ -427,7 +433,7 @@ public class Kex implements Runnable{
         ArrayList<Double> yRest = new ArrayList<Double>();
 
         //add extra elements to boundaries!
-        listOfLists = extendBoundaries(listOfLists);
+        //listOfLists = extendBoundaries(listOfLists);
 
         for (ArrayList<SearchElement> al : listOfLists){
             for (SearchElement se : al){
@@ -477,11 +483,18 @@ public class Kex implements Runnable{
                         System.out.println(newE + " new elements in region " + cellIndex);
                         newE++;
                         neighbourList.get(cellIndex).add(seN);
-                        //seN.status = 42;
+                        if(seN.status == 42){
+                        	System.err.println("INTE BRA! DEN FINNS REDAN MED");
+                        	//System.exit(0)
+                        	seN.status = 0;
+                        }
+                        else
+                        	seN.status = 42;
+                        draw.repaint();
                     }
                 }
             }
-            newE = 0;
+            newE = 1;
             cellIndex++;
         }
 
@@ -508,31 +521,32 @@ public class Kex implements Runnable{
     	
     	double minDistance = Double.MAX_VALUE;
     	int cellIndex = -1;
-    	int minX = 0;
-    	int minY = 0;
+    	int minX = -1;
+    	int minY = -1;
     	
     	//compare the distance of all possible targets
     	for(int i=0;i<cellList.size();i++) {
     		SearchCell c = cellList.get(i);
-    		double ypos = c.minY();
+    		double ypos = c.minY()+1;
     		while(ypos < c.maxY()) {
     			double xpos1 = c.findX(ypos, true);
         		double xpos2 = c.findX(ypos, false);
         		int xIndex1 = (int) Math.round((xpos1 - xMin) / dx);
         		int xIndex2 = (int) Math.round((xpos2 - xMin) / dx);
-        		int yIndex = (int) Math.round((ypos - xMin) / dx);
+        		int yIndex = (int) Math.round((ypos - yMin) / dy);
+        		
         		
         		double dist1 = gp.distance(startX, startY, xIndex1, yIndex);
         		double dist2 = gp.distance(startX, startY, xIndex2, yIndex);
         		
-        		if(dist1 < minDistance || dist1 != -1) {
+        		if(dist1 < minDistance && dist1 != -1) {
         			minDistance = dist1;
         			cellIndex = i;
         			minX = xIndex1;
         			minY = yIndex;
         		}
         		
-        		if(dist2 < minDistance || dist2 != -1) {
+        		if(dist2 < minDistance && dist2 != -1) {
         			minDistance = dist2;
         			cellIndex = i;
         			minX = xIndex2;
@@ -546,6 +560,9 @@ public class Kex implements Runnable{
     	if(cellIndex == -1)
     		return null;
 
+    	System.out.println("new target found: " + minX + " " + minY);
+    	System.out.println("Distance: " + distance);
+    	
     	return new int[] {cellIndex, minX, minY};
     }
 	
@@ -570,6 +587,7 @@ public class Kex implements Runnable{
         	//find shortest distance to other cells
         	int[] target = findClosest(startX,startY);
         	if(target == null) {
+        		cellList.clear();
         		idRegions();
         		target = findClosest(startX,startY);
         		if(target == null) {
@@ -579,9 +597,13 @@ public class Kex implements Runnable{
         	}
 
         	/**Travel to that position*/
-        	System.out.println("Going to new position");
-        	if(gp.GO(startX, startY, target[1], target[2]))
-        		continue;
+        	System.out.println("Going to new position: (" + startX +" , " + startY + ") -> (" + target[1] + " , " + target[2] + ")");
+
+        	if(!gp.GO(startX, startY, target[1], target[2]))
+    		{
+        		System.out.println("Cant go to that position");
+        		break;
+    		}
         	
         	/**Start scanning selected cell*/
         	System.out.println("Scanning new cell");

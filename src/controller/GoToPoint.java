@@ -17,10 +17,13 @@ public class GoToPoint {
 			path = Astar(kex.elementMatrix[startX][startY],kex.elementMatrix[stopX][stopY]);
 		}
 		catch(Exception e) {
+			System.out.println("Distance: A* failed: " + e);
 			return -1;
 		}
-		if(path == null)
+		if(path == null) {
+			System.out.println("No path found");
 			return -1;
+		}
 		
 		double dist = 0;
 		
@@ -35,6 +38,7 @@ public class GoToPoint {
 			lastY = newY;
 		}
 		
+		System.out.println("Path found: (" + startX + " , " + startY + ") -> (" + stopX + " , " + stopY + ")" );
 		return dist;
 	}
 	
@@ -46,16 +50,24 @@ public class GoToPoint {
 		
 		ArrayList<SearchElement> path = null;
 		
+		if(startX == stopX && startY == stopY) {
+			System.out.println("Already at target point");
+			return true;
+		}
+		
 		try {
 			path = Astar(kex.elementMatrix[startX][startY],kex.elementMatrix[stopX][stopY]);
 		}
 		catch(Exception e) {
+			System.out.println("A* failed " + e);
 			return false;
 		}
 			
 		//No path found
-		if(path == null) 
+		if(path == null) {
+			System.out.println("no path found");
 			return false;
+		}
 		
 		//follow the path
 		int index = path.size()-1;
