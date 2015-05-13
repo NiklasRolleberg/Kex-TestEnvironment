@@ -44,7 +44,7 @@ public class PolygonLib {
      * @return convex hull based on x and y coords
      */
     public static ArrayList<ArrayList<Double>> findConvexHull(ArrayList<Double> xIn, ArrayList<Double> yIn){//(final ArrayList<SearchElement> vertices){
-
+        System.out.println("Convex hull! Sizes x, y: " + xIn.size() + ", " + yIn.size());
         ArrayList<ArrayList<Double>> cHull = new ArrayList<ArrayList<Double>>();
         ArrayList<Double> xPts, yPts, xHull, yHull;
         xHull = new ArrayList<Double>();
@@ -80,7 +80,7 @@ public class PolygonLib {
             xHull.add(pointOnHull.getX());
             yHull.add(pointOnHull.getY());
 
-            hullPts.add(pointOnHull);   //needed?
+            hullPts.add(pointOnHull);
             endpoint = pts.get(0);
 
             for (final Point2D pt : pts){
@@ -95,6 +95,7 @@ public class PolygonLib {
 
         cHull.add(xHull);
         cHull.add(yHull);
+        System.out.println("Convex hull found! Sizes x, y: " + cHull.get(0).size() + ", " + cHull.get(1).size());
         return cHull;
     }
 

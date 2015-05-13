@@ -133,7 +133,6 @@ public class Kex implements Runnable{
     	distData = new ArrayList<Double>();
     	timeData = new ArrayList<Double>();
         //addTestPolygons(temp);
-        //TODO split polygon + store convex polygons
 	}
     /**adds some extra polygons to the list, for test purposes*/
     private void addTestPolygons(SearchCell initCell){
@@ -314,6 +313,7 @@ public class Kex implements Runnable{
 
 
 
+
 	/**Identify the content of a new searchcell
 	 * @param first
 	 * One SearchElement in the new cell
@@ -403,6 +403,7 @@ public class Kex implements Runnable{
 	}
     /**Identify new cells and add them to cellList*/
     private void idRegions(){
+        alreadyAdded.clear();
         ArrayList<SearchElement> uncovered = getUncoveredElments();
         ArrayList<ArrayList<SearchElement>> listOfLists = new ArrayList<ArrayList<SearchElement>>();
         for (SearchElement se : uncovered){
@@ -416,46 +417,31 @@ public class Kex implements Runnable{
         }
 
         System.out.println("Nr of regions left uncovered: " + listOfLists.size());
-        //loop through lol
         ArrayList<Double> xRest = new ArrayList<Double>();
         ArrayList<Double> yRest = new ArrayList<Double>();
-        int tempCellIndex = 0;
+
+        //add extra elements to boundaries!
+        listOfLists = extendBoundaries(listOfLists);
+
         for (ArrayList<SearchElement> al : listOfLists){
-            tempCellIndex++;
             for (SearchElement se : al){
                 xRest.add(se.xCoord);
                 yRest.add(se.yCoord);
             }
 
-            /*
-            Double xMaxRest = PolygonLib.findMax(xRest);
-            Double xMinRest = PolygonLib.findMin(xRest);
-
-            Double yMaxRest = PolygonLib.findMax(yRest);
-            Double yMinRest = PolygonLib.findMin(yRest);
-            xRest.clear();
-            yRest.clear();
-            System.out.println("Rest cell nr: " + tempCellIndex + " x max: " + xMaxRest + " x min: " + xMinRest + " y max: " + yMaxRest + " y min: " + yMinRest);
-            xRest.add(xMinRest);
-            xRest.add(xMaxRest);
-            xRest.add(xMaxRest);
-            xRest.add(xMinRest);
-
-            yRest.add(yMinRest);
-            yRest.add(yMinRest);
-            yRest.add(yMaxRest);
-            yRest.add(yMaxRest);
-            */
             ArrayList<Double> tempListX = new ArrayList<Double>();
             ArrayList<Double> tempListY = new ArrayList<Double>();
             tempListX.addAll(xRest);
             tempListY.addAll(yRest);
 
-            //SearchCell newC = new SearchCell(tempListX,tempListY);
+            //get convex hull
             ArrayList<ArrayList<Double>> convexCell = PolygonLib.findConvexHull(tempListX,tempListY);
-            SearchCell newC = new SearchCell(convexCell.get(0),convexCell.get(1));
-            //System.out.println(".-----sizes xy " + xRest.size() + " " + yRest.size());
+            //create new cell
+            SearchCell newC = new SearchCell(convexCell.get(0), convexCell.get(1));
+
             cellList.add(newC);
+            draw.repaint();
+
             xRest.clear();
             yRest.clear();
         }
@@ -463,8 +449,47 @@ public class Kex implements Runnable{
         draw.repaint();
 
     }
-	
-	@Override
+
+    private ArrayList<ArrayList<SearchElement>> extendBoundaries(ArrayList<ArrayList<SearchElement>> inList) {
+        System.out.println("-------Boundaries!--------");
+        System.out.println("inList size: " + inList.size());
+        ArrayList<ArrayList<SearchElement>> neighbourList = new ArrayList<ArrayList<SearchElement>>(inList.size());
+        ArrayList<SearchElement> tempList = new ArrayList<SearchElement>();
+
+        for (int ci = 0; ci < inList.size(); ci++){
+            neighbourList.add(new ArrayList<SearchElement>());
+        }
+        System.out.println("nList size: " + neighbourList.size());
+
+        int cellIndex = 0;
+        int newE = 1;
+        for (ArrayList<SearchElement> subRegion : inList){
+            System.out.println("Size of region nr " + cellIndex + " : " + subRegion.size());
+            for (SearchElement se : subRegion){
+                for (SearchElement seN : se.neighbour){
+                    if (!neighbourList.get(cellIndex).contains(seN) && !subRegion.contains(seN) && seN.status!=99){
+                        System.out.println(newE + " new elements in region " + cellIndex);
+                        newE++;
+                        neighbourList.get(cellIndex).add(seN);
+                        //seN.status = 42;
+                    }
+                }
+            }
+            newE = 0;
+            cellIndex++;
+        }
+
+        for (int ci = 0; ci<neighbourList.size(); ci++){
+            System.out.println("Size pre: " + inList.get(ci).size());
+            System.out.println("new shit: " + neighbourList.get(ci).size());
+            inList.get(ci).addAll(neighbourList.get(ci));
+            System.out.println("Size post: " + inList.get(ci).size());
+        }
+        System.out.println("---------------");
+        return inList;
+    }
+
+    @Override
 	public void run() {
 
 		startTime = System.currentTimeMillis();
@@ -476,12 +501,12 @@ public class Kex implements Runnable{
         
         while(true) {
         	/**Check completeness*/
-        	
+
 
             idRegions();
 
 
-        	/**Pick one cell and select start position */
+            /**Pick one cell and select start position */
         	
         	/**Travel to that position*/
         	
@@ -541,10 +566,10 @@ public class Kex implements Runnable{
 			writer.close();
 			
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
+			// TODOz Auto-generated catch block
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
+			// TODOz Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -584,9 +609,9 @@ public class Kex implements Runnable{
                         g.setColor(getColor(depth));
                     }else if (e.status == 2) {
                     	g.setColor(Color.red);
-                    /*}else if (e.status == 90) {
-                        System.out.println("90!");
-                        g.setColor(Color.darkGray);*/
+                    }else if (e.status == 42) {
+                        System.out.println("42!");
+                        g.setColor(Color.magenta);
                     } else {
                         System.out.println("Dafuq?! Wrong status in cell read");
                         g.setColor(Color.pink);
