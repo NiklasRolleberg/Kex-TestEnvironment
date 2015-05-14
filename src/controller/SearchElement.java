@@ -13,6 +13,9 @@ public class SearchElement{
     int x;
     int y;
     
+    //false = not targeted before, true = targeted before
+    boolean targeted = false;
+    
     ArrayList<SearchElement> neighbour = new ArrayList<SearchElement>();
 
 	public SearchElement(double x, double y, int s){

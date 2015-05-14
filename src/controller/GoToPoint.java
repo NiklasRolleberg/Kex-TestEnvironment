@@ -39,6 +39,9 @@ public class GoToPoint {
 		}
 		
 		System.out.println("Path found: (" + startX + " , " + startY + ") -> (" + stopX + " , " + stopY + ")" );
+		if(kex.elementMatrix[stopX][stopY].targeted)
+			dist*=10;
+		
 		return dist;
 	}
 	
@@ -74,9 +77,10 @@ public class GoToPoint {
 		double targetX = path.get(index).xCoord;
 		double targetY = path.get(index).yCoord;
 		double data[] = kex.getData();
+		kex.elementMatrix[stopX][stopY].targeted = true;
 		
-		kex.setWaypoint(targetX, targetY);
 		while (index >= 0) {
+			kex.setWaypoint(targetX, targetY);
 			kex.setSpeed(15);
 			data = kex.getData();
 			double dx = targetX-data[0];

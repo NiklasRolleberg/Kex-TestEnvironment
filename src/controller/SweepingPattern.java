@@ -13,17 +13,18 @@ public class SweepingPattern extends SearchPattern {
 	@Override
 	public void run() {
 		
+		
+		boolean goToRight = (Math.random() < 0.5); //traveling from left side to right
+		boolean goToNextLine = true;
+		boolean skipRest = false; //true -> the boat has to find a new waypoint
+		
 		double targetY = data.getPosY();
-		double targetX = region.findX(targetY, true);
+		double targetX = region.findX(targetY, !goToRight);
 	
-		//kex.setWaypoint(targetX, targetY);
 		xte.setWaypoint(data.getPosX(), data.getPosY(), targetX, targetY);
 		double dx = targetX-data.getPosX();
 		double dy = targetY-data.getPosY();
-		
-		boolean goToRight = false; //traveling from left side to right
-		boolean goToNextLine = true;
-		boolean skipRest = false; //true -> the boat has to find a new waypoint
+			
 		double targetLine = targetY;
 		
 		//start sweeping
@@ -145,7 +146,7 @@ public class SweepingPattern extends SearchPattern {
 		
 		
 		double mean = (line1 + line2) / 2;
-		while(Math.abs(mean - data.getPosY()) < Math.abs(delta*0.55)) {
+		while(Math.abs(mean - data.getPosY()) < Math.abs(delta*0.55) && !stop) {
 
 			//stop the boat from going outside the polygon
 			if(outOfBounds(data.getPosX(), data.getPosY())) {
@@ -196,6 +197,7 @@ public class SweepingPattern extends SearchPattern {
 	
 	@Override
 	void stop() {
+		System.out.println("Sweeping pattern aborted");
 		stop = true;
 		data.stop(); //stop data object
 		xte.stop();

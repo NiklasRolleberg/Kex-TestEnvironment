@@ -145,7 +145,7 @@ public class Kex implements Runnable{
    
 
     /**Updates cellmatrix depth data*/
-    public void updateDepthValue(double[] data){
+    public boolean updateDepthValue(double[] data){
     	
     	double xCoord = data[0];
     	double yCoord = data[1];
@@ -175,6 +175,9 @@ public class Kex implements Runnable{
         	visitedCells++;
         
         elementMatrix[ix][iy].updateDepthData(depthValue);
+        if(elementMatrix[ix][iy].accumulatedDepth > 0)
+        	elementMatrix[ix][iy].status = 2;
+        
       
         if (sp.followingLand()) {
             int maxIndexX = nx;
@@ -194,7 +197,11 @@ public class Kex implements Runnable{
             	}
         	}
         }
-
+        //System.out.println("Visited: " + elementMatrix[ix][iy].timesVisited);
+        if(elementMatrix[ix][iy].timesVisited > 100)
+        	return false;
+        
+        return true;
     }
 
 	
@@ -341,8 +348,14 @@ public class Kex implements Runnable{
 	            	break;
 	            }
             }
-             
-            updateDepthValue(sensorData);
+            
+            
+            if(!updateDepthValue(sensorData)) {
+            	System.out.println("Boat is stuck!");
+            	sp.stop();
+            	break;
+            }
+            
             draw.repaint();
             
             if(sp.isDone()) {
