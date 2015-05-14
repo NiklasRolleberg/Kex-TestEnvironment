@@ -369,6 +369,7 @@ public class Kex implements Runnable{
                 e.printStackTrace();
             }
         }
+		sp.stop();
 	}
 	
 	
@@ -407,10 +408,19 @@ public class Kex implements Runnable{
 
             //get convex hull
             ArrayList<ArrayList<Double>> convexCell = PolygonLib.findConvexHull(tempListX,tempListY);
+            
             //create new cell
-            SearchCell newC = new SearchCell(convexCell.get(0), convexCell.get(1));
-
-            cellList.add(newC);
+            if(tempListX.size() > 100) {
+            	ArrayList<Double> xpos = new ArrayList<Double>(convexCell.get(0).size());
+            	ArrayList<Double> ypos = new ArrayList<Double>(convexCell.get(0).size());
+            	for(int i=convexCell.get(0).size()-1; i>=0; i--) {
+            		xpos.add(convexCell.get(0).get(i));
+            		ypos.add(convexCell.get(1).get(i));
+            	}
+            	cellList.addAll(SearchCell.trianglulatePolygon(xpos, ypos));
+            } else { 
+            	cellList.add(new SearchCell(convexCell.get(0), convexCell.get(1)));
+            }
             draw.repaint();
 
             xRest.clear();
@@ -578,6 +588,16 @@ public class Kex implements Runnable{
         		target = findClosest(startX,startY);
         		if(target == null) {
         			System.out.println("Search complete");
+        			boat.setTargetSpeed(0);
+        			
+        			double[] data = boat.getSensordata();
+        			System.out.println("DATA");
+        			System.out.println("X: " + data[0]);
+        			System.out.println("Y: " + data[1]);
+        			System.out.println("Heading: " + data[2]);
+        			System.out.println("Speed: " + data[3]);
+        			System.out.println("Depth: " + data[4]);
+        			
         			break;
         		}
         	}
