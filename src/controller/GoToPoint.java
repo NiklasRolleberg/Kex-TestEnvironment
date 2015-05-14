@@ -76,8 +76,8 @@ public class GoToPoint {
 		double data[] = kex.getData();
 		
 		kex.setWaypoint(targetX, targetY);
-		kex.setSpeed(15);
 		while (index >= 0) {
+			kex.setSpeed(15);
 			data = kex.getData();
 			double dx = targetX-data[0];
 			double dy = targetY-data[1];

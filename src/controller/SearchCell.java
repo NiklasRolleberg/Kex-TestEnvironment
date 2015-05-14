@@ -1,73 +1,55 @@
 package controller;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
-	public class SearchCell{
+	public class SearchCell {
 		public boolean isComplete;
 		ArrayList<Double> xpos;
 		ArrayList<Double> ypos;
 		//double xMax, yMax, xMin, yMin;
 
+		
     /**Constructor
 	 * @param xpos x-positions for the polygon
 	 * @param ypos y-positions for the polygon
 	 * */
-	public SearchCell (ArrayList<Double> xpos, ArrayList<Double> ypos){
+	public SearchCell (ArrayList<Double> xpos, ArrayList<Double> ypos) {
         isComplete = false;
         this.xpos = xpos;
         this.ypos = ypos;   
 	}
 
+	
 	/** Is the polygon convex?
 	 * @return
 	 * true = convex, false = not convex
 	 */
 	public boolean isConvex() {
-		
 		// TODO GÖR NÅGOT SOM FUNKAR!
-		
-		/*
-		int n = xpos.size();
-		for(int i=0;i<n;i++) {
-			//point one
-			double x0 = xpos.get(i%n);
-			double y0 = ypos.get(i%n);
-			
-			//point two
-			double x1 = xpos.get((i+1)%n);
-			double y1 = ypos.get((i+1)%n);
-			
-			//point three
-			double x2 = xpos.get((i+2)%n);
-			double y2 = ypos.get((i+2)%n);
-			
-			//vector 1
-			double v1x = x0-x1;
-			double v1y = y0-y1;
-			
-			//vector 2
-			double v2x = x2-x1;
-			double v2y = y2-y1;
-			
-			
-			//normalize v1,v2
-			double n1 = Math.sqrt((v1x*v1x + v1y*v1y));
-			double n2 = Math.sqrt((v2x*v2x + v2y*v2y));
-			v1x /= n1;
-			v1y /= n1;
-			v2x /= n2; 
-			v2y /= n2;
-			
-			double alpha = Math.acos(v1x*v2x + v1y*v2y);
-			//System.out.println("v1x: " + v1x + "\t v1y: " + v1y + "\t v2x: " + v2x + "\t v2y: " + v2y );
-			if(v1x < 0 && v2x < 0)
-				alpha = Math.PI + alpha;
-				
-			System.out.println("angle: " + alpha / Math.PI*180);
-			
-		}*/
 		return true;
 	}
+	
+	
+	/** Returns true if a point is inside the searchcell
+	 * @param x
+	 * xpos
+	 * @param y
+	 * ypos
+	 * @return
+	 * true/false
+	 */
+	public boolean contains(double x, double y) {
+		if(y>maxY() || y<minY() || x>maxX() || x<minX())
+			return false;
+		
+		double left = findX(y,false);
+		double right = findX(y,true);
+		
+		if(x<right || x>left)
+			return true;
+		
+		return false;
+	}
+	
 	
     /** Finds the x-value for a given y 
      * @param y
@@ -89,13 +71,9 @@ import java.util.ArrayList;
 				if(l1[0] == -1) {
 					l1[0] = (i+1)%l;
 					l1[1] = i%l;
-					//System.out.println("L1 set" + "\t (" + xpos.get(l1[0]) + " , " + ypos.get(l1[0]) + ") -> ("
-					//									 + xpos.get(l1[1]) + " , " + ypos.get(l1[1]) + ")");
 				}else {
 					l2[0] = (i+1)%l;
 					l2[1] = i%l;
-					//System.out.println("L2 set" + "\t (" + xpos.get(l2[0]) + " , " + ypos.get(l2[0]) + ") -> ("
-					//		 + xpos.get(l2[1]) + " , " + xpos.get(l2[1]) + ")");
 				}
 			}
 		}
@@ -142,6 +120,7 @@ import java.util.ArrayList;
 		return Math.min(l1X, l2X);
 	}
 	
+	
 	public double maxX(){
 		Double temp = Double.MIN_VALUE;
 		for (Double value : xpos){
@@ -150,6 +129,7 @@ import java.util.ArrayList;
 		}
 		return temp;
 	}
+	
 	
 	public double maxY(){
 		Double temp = Double.MIN_VALUE;
@@ -160,8 +140,8 @@ import java.util.ArrayList;
 		return temp;
 	}
 	
+	
 	public double minX(){
-
 		Double temp = Double.MAX_VALUE;
 		for (Double value : xpos){
 			if (value < temp)
@@ -170,8 +150,8 @@ import java.util.ArrayList;
 		return temp;
 	}
 	
+	
 	public double minY(){
-
 		Double temp = Double.MAX_VALUE;
 		for (Double value : ypos){
 			if (value < temp)
@@ -179,6 +159,7 @@ import java.util.ArrayList;
 		}
 		return temp;
 	}
+	
 	
 	/** Split a polygon into triangles 
 	 * @param xPos
@@ -258,10 +239,9 @@ import java.util.ArrayList;
 			triangle[1] = (index+1) % xVertex.size();
 			triangle[2] = (index+2) % xVertex.size();
 		}
-		
-		
 		return list;
 	}
+	
 	
 	/** Check if a turn is to the right
 	 * @param x
@@ -279,6 +259,7 @@ import java.util.ArrayList;
 		double x3 = x1-x2;
 		return (x3>=0);
 	}
+	
 	
 	/** Check if point is inside a triangle
 	 * @param xpos

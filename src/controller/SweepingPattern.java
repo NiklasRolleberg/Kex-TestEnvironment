@@ -9,6 +9,7 @@ public class SweepingPattern extends SearchPattern {
 		super(kex, subregion, delta*0.8, dt);
 	}
 
+	
 	@Override
 	public void run() {
 		
@@ -23,7 +24,6 @@ public class SweepingPattern extends SearchPattern {
 		boolean goToRight = false; //traveling from left side to right
 		boolean goToNextLine = true;
 		boolean skipRest = false; //true -> the boat has to find a new waypoint
-		
 		double targetLine = targetY;
 		
 		//start sweeping
@@ -38,24 +38,24 @@ public class SweepingPattern extends SearchPattern {
 				double lastTargetX = targetX;
 				double lastTargetY = targetY;
 				
-				System.out.println("Waypoint reached");
+				//System.out.println("Waypoint reached");
 				
 				if(goToNextLine) {
-					System.out.println("GO TO NEXT LINE");
+					//System.out.println("GO TO NEXT LINE");
 					targetLine +=delta;
 					targetY = targetLine;
 					targetX = region.findX(targetY, !goToRight);
 					goToNextLine = false;
 				}
 				else if(goToRight && !goToNextLine) {
-					System.out.println("GO TO RIGHT");
+					//System.out.println("GO TO RIGHT");
 					targetY = targetLine;
 					targetX = region.findX(targetY,true);
 					goToRight = false;
 					goToNextLine = true;
 				}
 				else if(!goToRight && !goToNextLine) {
-					System.out.println("GO TO LEFT");
+					//System.out.println("GO TO LEFT");
 					targetY = targetLine;
 					targetX = region.findX(targetY,false);
 					goToRight = true;
@@ -65,12 +65,6 @@ public class SweepingPattern extends SearchPattern {
 				if(targetY > region.maxY() || targetY < region.minY()) {
 					this.stop();
 					kex.setSpeed(0);
-					/*delta *=-1;
-					targetLine += 2*delta;
-					targetY = targetLine;
-					goToNextLine = false;
-					goToRight = (goToRight == false);
-					targetX = region.findX(targetY, goToRight);*/
 				}
 				
 				xte.setWaypoint(lastTargetX, lastTargetY, targetX, targetY);
@@ -84,8 +78,8 @@ public class SweepingPattern extends SearchPattern {
 			//close to land
 			if(data.getDepth() > -0.5) {
 
-				System.out.println("Close to land " + data.getDepth());
-				System.out.println("Coordinates: (" + data.getPosX() + "),(" + data.getPosY() + ")");
+				//System.out.println("Close to land " + data.getDepth());
+				//System.out.println("Coordinates: (" + data.getPosX() + "),(" + data.getPosY() + ")");
 				
 				double lastTargetX = data.getPosX();
 				double lastTargetY = data.getPosY();
@@ -118,6 +112,7 @@ public class SweepingPattern extends SearchPattern {
 		}
 	}
 	
+	
 	/**
 	 * @param line1
 	 * line above
@@ -148,18 +143,17 @@ public class SweepingPattern extends SearchPattern {
 		
 		sleep(dt);
 		
-		while( ((line1 < line2) && (data.getPosY() > line1-delta/2) && (data.getPosY() < line2)) ||
-				((line1 > line2) && (data.getPosY() > line2) && (data.getPosY() < line1+delta/2)) )  {
 		
+		double mean = (line1 + line2) / 2;
+		while(Math.abs(mean - data.getPosY()) < Math.abs(delta*0.55)) {
+
 			//stop the boat from going outside the polygon
 			if(outOfBounds(data.getPosX(), data.getPosY())) {
 				if(data.getPosX() < ((region.maxX()-region.minX())/2))
-					//kex.setWaypoint(region.findX(data.getPosY(),false), data.getPosY());
 					xte.setWaypoint(region.findX(data.getPosY(),false), data.getPosY());
 				else
-					//kex.setWaypoint(region.findX(data.getPosY(),true), data.getPosY());
 					xte.setWaypoint(region.findX(data.getPosY(),true), data.getPosY());
-				System.out.println("target out of bounds");
+					//System.out.println("target out of bounds");
 				return true;
 			}
 			
@@ -188,16 +182,12 @@ public class SweepingPattern extends SearchPattern {
 			if(data.getRightSonar() > data.getLeftSonar()) {
 				turnAngle *= -1;
 			}
-			
-			//System.out.println("TurnAnlge: " + turnAngle);
-			//System.out.println("derivative: " + derivative);
-			//System.out.println("Integral " + Integral);
-			//kex.setWaypoint(data.getPosX() + Math.cos(data.getHeading() - turnAngle) * 50, data.getPosY() + Math.sin(data.getHeading()- turnAngle) * 50);
+		
 			xte.setWaypoint(data.getPosX() + Math.cos(data.getHeading() - turnAngle) * 50, data.getPosY() + Math.sin(data.getHeading()- turnAngle) * 50);
 			
 			sleep(dt);
 		}
-		//close to first line
+		//close to upper line
 		if(Math.abs(data.getPosY()-line1) < Math.abs(delta/2))
 			return false;
 		//close to line below

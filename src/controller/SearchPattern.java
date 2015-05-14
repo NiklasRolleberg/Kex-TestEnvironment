@@ -85,7 +85,7 @@ public abstract class SearchPattern implements Runnable {
 						on = false;
 					else {
 						//distance to next waypoint
-						double ahead = 10 + data.getSpeed();//10;
+						double ahead = Math.max(4, Math.min(10,data.getSpeed()));
 						
 						if(Math.sqrt((targetX-data.posX)*(targetX-data.posX) + (targetY-data.posY)*(targetY-data.posY)) < ahead)
 							kex.setWaypoint(targetX, targetY);
@@ -101,7 +101,7 @@ public abstract class SearchPattern implements Runnable {
 				}
 				
 				try {
-					Thread.sleep(dt*5);
+					Thread.sleep(dt*3);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

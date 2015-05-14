@@ -21,6 +21,8 @@ public class SearchElement{
 		status = s;
         timesVisited = 0;
 	}
+	
+	
     void updateDepthData(double inDepth){
         if (timesVisited == 0){
             accumulatedDepth = inDepth;

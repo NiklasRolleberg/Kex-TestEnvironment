@@ -56,6 +56,7 @@ public class Kex implements Runnable{
 	ArrayList<Double> distData;
 	ArrayList<Double> timeData;
 	
+	
 	/**Main controller thingy for the boat
 	 * @param delta is map resolution, not used yet
 	 * */
@@ -141,83 +142,17 @@ public class Kex implements Runnable{
     	timeData = new ArrayList<Double>();
         //addTestPolygons(temp);
 	}
-    /**adds some extra polygons to the list, for test purposes*/
-    private void addTestPolygons(SearchCell initCell){
-
-
-
-        //hardcoded cell for testing
-
-        ArrayList<Double> xHard, yHard;
-        xHard = new ArrayList<Double>();
-        yHard = new ArrayList<Double>();
-        double xminR, xmaxR, yminR, ymaxR;
-        /*
-        xmaxR = 845.7142857142858;
-        xminR = 835.7142857142858;
-        ymaxR = 461.92546583850924;
-        yminR = 431.73913043478257;
-        */
-        xmaxR = 925.7142857142858;
-        xminR = 875.7142857142858;
-        ymaxR = 562.5465838509318;
-        yminR = 492.1118012422359;
-
-
-
-        xHard.add(xminR);
-        xHard.add(xmaxR);
-        xHard.add(xmaxR);
-        xHard.add(xminR);
-
-        yHard.add(yminR);
-        yHard.add(yminR);
-        yHard.add(ymaxR);
-        yHard.add(ymaxR);
-
-        SearchCell testCell = new SearchCell(xHard,yHard);
-        cellList.add(testCell);
-
-        /*
-        ArrayList<Double> testX = new ArrayList<Double>();
-        ArrayList<Double> testY = new ArrayList<Double>();
-        double midX = initCell.minX()+(initCell.minX()-initCell.minX())/2;
-//        double midX = (initCell.xMax-initCell.xMin)/2;
-        System.out.println("xmid = " + midX);
-        double midY = initCell.minY()+(initCell.minY()-initCell.minY())/2;
-//        double midY = (initCell.yMax-initCell.yMin)/2;
-	
-        System.out.println("ymid = " + midY);
-        double d = 50;
-        testX.add(midX-d);
-        testY.add(midY-d);
-
-        testX.add(midX+d);
-        testY.add(midY-d);
-
-        testX.add(midX+d);
-        testY.add(midY+d);
-
-        testX.add(midX-d);
-        testY.add(midY+d);
-        */
-
-        //cellList.add(new SearchCell(testX,testY));
-	
-        System.out.println("cellList size: " + cellList.size());
-
-
-    }
+   
 
     /**Updates cellmatrix depth data*/
     public void updateDepthValue(double[] data){
     	
     	double xCoord = data[0];
     	double yCoord = data[1];
-    	double heading = data[2];
+    	//double heading = data[2];
     	double depthValue = data[4]; 
-    	double rightSonar = data[5]; 
-    	double leftSonar = data[6];
+    	//double rightSonar = data[5]; 
+    	//double leftSonar = data[6];
 
 
         int ix = (int)Math.round((xCoord - xMin) / dx);
@@ -230,6 +165,11 @@ public class Kex implements Runnable{
         if (iy >= ny){
             iy = ny-1;
         }
+        if(ix<0)
+        	ix = 0;
+        
+        if(iy<0)
+        	iy = 0;
         
         if(elementMatrix[ix][iy].status == 0)
         	visitedCells++;
@@ -257,20 +197,24 @@ public class Kex implements Runnable{
 
     }
 
-	/**Boat sensordata*/
+	
+    /**Boat sensordata*/
 	public double[] getData() {
 		return boat.getSensordata();
 	}
+	
 	
 	/**Set targetspeed for boat*/
 	public void setSpeed(double speed) {
 		boat.setTargetSpeed(speed);
 	}
 	
+	
 	/**set waypoint for boat*/
 	public void setWaypoint(double x, double y) {
 		boat.setWayPoint(x, y);
 	}
+	
 	
 	/**Add neighbours to all SearchElements*/
 	private void addneighbours() {
@@ -301,7 +245,11 @@ public class Kex implements Runnable{
 		}		
 	}
 
-
+	
+	/** Find uncovered searchElements
+	 * @return 
+	 * List of searchElements
+	 */
     private ArrayList<SearchElement> getUncoveredElments(){
         ArrayList<SearchElement> list = new ArrayList<SearchElement>();
         int count = 0;
@@ -316,9 +264,6 @@ public class Kex implements Runnable{
         }
         return list;
     }
-
-
-
 
 
 	/**Identify the content of a new searchcell
@@ -412,8 +357,9 @@ public class Kex implements Runnable{
             }
         }
 	}
+	
+	
     /**Identify new cells and add them to cellList*/
-    
 	private void idRegions(){
         alreadyAdded.clear();
         ArrayList<SearchElement> uncovered = getUncoveredElments();
@@ -433,7 +379,7 @@ public class Kex implements Runnable{
         ArrayList<Double> yRest = new ArrayList<Double>();
 
         //add extra elements to boundaries!
-        //listOfLists = extendBoundaries(listOfLists);
+        listOfLists = extendBoundaries(listOfLists);
 
         for (ArrayList<SearchElement> al : listOfLists){
             for (SearchElement se : al){
@@ -461,12 +407,18 @@ public class Kex implements Runnable{
         draw.repaint();
 
     }
-
+	
+	
+	/** Extends the boundaries of a set of searchelements by adding neighbours
+	 * @param inList
+	 * list with SearchElements
+	 * @return
+	 * list with SearchElements + neighbours
+	 */
     private ArrayList<ArrayList<SearchElement>> extendBoundaries(ArrayList<ArrayList<SearchElement>> inList) {
         System.out.println("-------Boundaries!--------");
         System.out.println("inList size: " + inList.size());
         ArrayList<ArrayList<SearchElement>> neighbourList = new ArrayList<ArrayList<SearchElement>>(inList.size());
-        ArrayList<SearchElement> tempList = new ArrayList<SearchElement>();
 
         for (int ci = 0; ci < inList.size(); ci++){
             neighbourList.add(new ArrayList<SearchElement>());
@@ -483,14 +435,6 @@ public class Kex implements Runnable{
                         System.out.println(newE + " new elements in region " + cellIndex);
                         newE++;
                         neighbourList.get(cellIndex).add(seN);
-                        if(seN.status == 42){
-                        	System.err.println("INTE BRA! DEN FINNS REDAN MED");
-                        	//System.exit(0)
-                        	seN.status = 0;
-                        }
-                        else
-                        	seN.status = 42;
-                        draw.repaint();
                     }
                 }
             }
@@ -508,9 +452,12 @@ public class Kex implements Runnable{
         return inList;
     }
 
-    /** Finds the closest searchElement 
+    
+    /** Finds the closest interesting searchElement
      * @param startY 
-     * @param startX 
+     * x-pos
+     * @param startX
+     * y-pos 
      * @return
      * int[] { SearchCellIndex, elementIndexX, elementIndexY }
      */
@@ -556,7 +503,6 @@ public class Kex implements Runnable{
     		}
     	}
     	
-    	//return the target with the shortest distance
     	if(cellIndex == -1)
     		return null;
 
@@ -566,13 +512,40 @@ public class Kex implements Runnable{
     	return new int[] {cellIndex, minX, minY};
     }
 	
-	@Override
+    
+	/** Returns the index of the current searchCell
+	 * @return
+	 * Index
+	 */
+    private int getCurrentSearchCell() {
+    	
+    	double xPos = boat.getPos()[0];
+    	double yPos = boat.getPos()[1];
+    	
+    	for(int i=0;i<cellList.size(); i++) {
+    		SearchCell s = cellList.get(i);
+    		if(s.contains(xPos, yPos))
+    			return i;
+    	}
+    	
+    	return -1;
+    }
+    
+    
+    /** Run method- This method is called when the thread is started */
+    @Override
 	public void run() {
 		startTime = System.currentTimeMillis();
        
-		/**Start scanning the first cell (given by operator)*/
-        scanCell(cellList.get(0),true);
-        cellList.remove(0);
+		/**Start scanning the first cell */
+		int index = getCurrentSearchCell();
+		if(index == -1) {
+			System.out.println("Error boat is not inside a polygon");
+			System.exit(-1);
+		}
+			
+		scanCell(cellList.get(index),((boat.getPos()[1]-cellList.get(index).minY()) < (cellList.get(index).maxY()-cellList.get(index).minY())/2));
+        cellList.remove(index);
         /**Scanning of the first cell complete*/
         
         while(true) {
@@ -614,12 +587,9 @@ public class Kex implements Runnable{
         	System.out.println("CellList size: " + cellList.size());
         }
    	}
-
 	
     
-	/**
-	 * print data to file
-	 */
+	/** print data to file */
 	private void printToFile() {
 		String fileName = "coverageData.csv";
 		StringBuilder l1 = new StringBuilder();
@@ -651,19 +621,18 @@ public class Kex implements Runnable{
 			writer.close();
 			
 		} catch (FileNotFoundException e) {
-			// TODOz Auto-generated catch block
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
-			// TODOz Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
 	
-		
+	/** This object shows what the boat knows and what is has seen*/	
 	private class DrawMatrix extends JPanel {
 		JFrame myFrame;
 
+		
 		public DrawMatrix(){
 			myFrame = new JFrame();
             myFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
@@ -707,6 +676,7 @@ public class Kex implements Runnable{
             drawEdges(g);
         }
 
+		
 		/**
 		 * clear background
 		 * @param g
@@ -719,6 +689,7 @@ public class Kex implements Runnable{
             g.fillRect(c0[0],c0[1],c1[0],c1[1]);
         }
 
+        
         /**
          * Draw a rectangle representing a seachelement
          * @param g
@@ -740,6 +711,7 @@ public class Kex implements Runnable{
             g.drawLine(coords[0]-(int)Math.round(dx/2), coords[1]-(int)Math.round(dx/2), hCoords[0]-(int)Math.round(dx/2),hCoords[1]-(int)Math.round(dy/2));
         }
 
+        
         /**
          * Draw polygon edges
          * @param g
@@ -764,6 +736,12 @@ public class Kex implements Runnable{
         }
         
         
+        /** Gives a color corresponding to a depth
+         * @param depth
+         * depth
+         * @return
+         * color corresponding to depth
+         */
         private Color getColor(double depth) {
             Color color;
             if(depth < -21) {
@@ -796,6 +774,9 @@ public class Kex implements Runnable{
             return color;
 
         }
+        
+        
+        /**changes the coordinats from lat-long to xy in the image */
         private int[] correctCoords(int x, int y){
             return new int[] {x - (int) xMin, y - (int) yMin};
         }
