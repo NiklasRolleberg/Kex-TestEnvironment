@@ -44,7 +44,7 @@ import java.util.ArrayList;
 		double left = findX(y,false);
 		double right = findX(y,true);
 		
-		if(x<right || x>left)
+		if(x<right && x>left)
 			return true;
 		
 		return false;
