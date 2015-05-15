@@ -124,7 +124,7 @@ public class GoToPoint {
 	 * path, or null if no path was found 
 	 */
 	public ArrayList<SearchElement> Astar(SearchElement startElement, SearchElement stopElement ) {
-		if(startElement.status != 1 || stopElement.status != 1)
+		if(stopElement.status != 1)
 			return null;
 		
 		int maxX = kex.nx;

@@ -175,6 +175,8 @@ public class Kex implements Runnable{
         	visitedCells++;
         
         elementMatrix[ix][iy].updateDepthData(depthValue);
+        
+        // Gjorde så att båten fastnade på land
         if(elementMatrix[ix][iy].accumulatedDepth > 0)
         	elementMatrix[ix][iy].status = 2;
         
@@ -198,7 +200,7 @@ public class Kex implements Runnable{
         	}
         }
         //System.out.println("Visited: " + elementMatrix[ix][iy].timesVisited);
-        if(elementMatrix[ix][iy].timesVisited > 100)
+        if(elementMatrix[ix][iy].timesVisited > delta*3)
         	return false;
         
         return true;
@@ -369,13 +371,57 @@ public class Kex implements Runnable{
                 e.printStackTrace();
             }
         }
+		System.out.println("scanning stopped by scancell");
 		sp.stop();
 	}
 	
+	/**  true if cell is connected to a scanned cell*/
+	private boolean BFS(SearchElement e) {
+		
+		if(e.status == 1)
+			return true;
+
+		if(e.status != 0)
+			return false;
+		
+		for(int i=0;i<e.neighbour.size();i++) {
+			if(alreadyAdded.contains(e.neighbour.get(i)))
+				continue;
+			
+			alreadyAdded.add(e.neighbour.get(i));
+			if(BFS(e.neighbour.get(i)))
+				return true;
+		}
+		return false;	
+	}
+	
+	/** Finds land and changes status to 2*/
+	private void idLand() {
+		System.out.println("id land");
+		alreadyAdded.clear();
+		
+		for(int i=0; i<nx; i++) {
+			for(int j=0; j<ny; j++) {
+				if(elementMatrix[i][j].status == 0) {
+					alreadyAdded.clear();
+					if(!BFS(elementMatrix[i][j])) {
+						elementMatrix[i][j].status = 2;
+						for(SearchElement s:alreadyAdded) {
+							s.status = 2;
+						}
+					}
+					//System.out.println(alreadyAdded.size());
+				}
+			}
+		}
+	}
 	
     /**Identify new cells and add them to cellList*/
 	private void idRegions(){
-        alreadyAdded.clear();
+		
+		idLand();
+		alreadyAdded.clear();
+		
         ArrayList<SearchElement> uncovered = getUncoveredElments();
         ArrayList<ArrayList<SearchElement>> listOfLists = new ArrayList<ArrayList<SearchElement>>();
         for (SearchElement se : uncovered){
@@ -559,7 +605,7 @@ public class Kex implements Runnable{
     @Override
 	public void run() {
 		startTime = System.currentTimeMillis();
-       
+		boolean newRegions = false;
 		/**Start scanning the first cell */
 		int index = getCurrentSearchCell();
 		if(index == -1) {
@@ -570,6 +616,9 @@ public class Kex implements Runnable{
 		scanCell(cellList.get(index),((boat.getPos()[1]-cellList.get(index).minY()) < (cellList.get(index).maxY()-cellList.get(index).minY())/2));
         cellList.remove(index);
         /**Scanning of the first cell complete*/
+        
+        //idRegions();
+      	//draw.repaint();
         
         while(true) {
         	//My position
@@ -583,6 +632,7 @@ public class Kex implements Runnable{
         	//find shortest distance to other cells
         	int[] target = findClosest(startX,startY);
         	if(target == null) {
+        		newRegions = true;
         		cellList.clear();
         		idRegions();
         		target = findClosest(startX,startY);
@@ -616,7 +666,13 @@ public class Kex implements Runnable{
         	SearchCell sc = cellList.get(target[0]);
         	boolean b = ((boat.getPos()[1]-sc.minY()) < (sc.maxY()-sc.minY())/2);
         	scanCell(cellList.get(target[0]),b);
-        	cellList.remove(target[0]);
+        	
+        	if(newRegions) {
+        		cellList.clear();
+        		idRegions();
+        	} else {
+        		cellList.remove(target[0]);
+        	}
         	System.out.println("CellList size: " + cellList.size());
         }
    	}

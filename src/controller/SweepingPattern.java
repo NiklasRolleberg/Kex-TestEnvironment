@@ -31,7 +31,7 @@ public class SweepingPattern extends SearchPattern {
 		while(!stop) {			
 			dx = targetX-data.getPosX();//data[0];
 			dy = targetY-data.getPosY();//data[1];
-			kex.setSpeed(Math.max(-data.getDepth()*3,3));
+			kex.setSpeed(Math.max(-0.1-data.getDepth()*3,3));
 			
 			//target reached -> choose new target
 			if(Math.sqrt(dx*dx + dy*dy) < 3 || skipRest) {
@@ -42,21 +42,21 @@ public class SweepingPattern extends SearchPattern {
 				//System.out.println("Waypoint reached");
 				
 				if(goToNextLine) {
-					//System.out.println("GO TO NEXT LINE");
+					System.out.println("GO TO NEXT LINE");
 					targetLine +=delta;
 					targetY = targetLine;
 					targetX = region.findX(targetY, !goToRight);
 					goToNextLine = false;
 				}
 				else if(goToRight && !goToNextLine) {
-					//System.out.println("GO TO RIGHT");
+					System.out.println("GO TO RIGHT");
 					targetY = targetLine;
 					targetX = region.findX(targetY,true);
 					goToRight = false;
 					goToNextLine = true;
 				}
 				else if(!goToRight && !goToNextLine) {
-					//System.out.println("GO TO LEFT");
+					System.out.println("GO TO LEFT");
 					targetY = targetLine;
 					targetX = region.findX(targetY,false);
 					goToRight = true;
@@ -64,10 +64,12 @@ public class SweepingPattern extends SearchPattern {
 				}
 				
 				if(targetY > region.maxY() || targetY < region.minY()) {
+					System.out.println("Scanning completed, min/max y reached");
 					this.stop();
 					kex.setSpeed(0);
 				}
 				
+				System.out.println("TARGET: " +targetX + "  " + targetY);
 				xte.setWaypoint(lastTargetX, lastTargetY, targetX, targetY);
 				
 				if(skipRest) {
@@ -77,7 +79,7 @@ public class SweepingPattern extends SearchPattern {
 			}
 			
 			//close to land
-			if(data.getDepth() > -0.5) {
+			if(data.getDepth() > -0.5 && !stop) {
 
 				//System.out.println("Close to land " + data.getDepth());
 				//System.out.println("Coordinates: (" + data.getPosX() + "),(" + data.getPosY() + ")");
@@ -111,6 +113,9 @@ public class SweepingPattern extends SearchPattern {
 			}	
 			sleep(dt);
 		}
+		
+		System.out.println("SweepingPattern done");
+		kex.setSpeed(0);
 	}
 	
 	
@@ -201,6 +206,7 @@ public class SweepingPattern extends SearchPattern {
 		stop = true;
 		data.stop(); //stop data object
 		xte.stop();
+		kex.setSpeed(0);
 	}
 	
 	private boolean outOfBounds(double x, double y) {
