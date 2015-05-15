@@ -55,6 +55,7 @@ public abstract class SearchPattern implements Runnable {
 			targetX = x;
 			targetY = y;
 			kex.setWaypoint(targetX,targetY);
+			//System.out.println("XTE waypoint: " +targetX + " , " + targetY);
 		}
 		
 		/**
@@ -70,6 +71,7 @@ public abstract class SearchPattern implements Runnable {
 			targetX = stopX;
 			targetY = stopY;
 			kex.setWaypoint(stopX,stopY);
+			//System.out.println("XTE waypoint: " +stopX + " , " + stopY);
 		}
 
 		@Override
@@ -85,9 +87,9 @@ public abstract class SearchPattern implements Runnable {
 						on = false;
 					else {
 						//distance to next waypoint
-						double ahead = Math.max(4, Math.min(10,data.getSpeed()));
+						double ahead = Math.max(10, Math.min(10,data.getSpeed()));
 						
-						if(Math.sqrt((targetX-data.posX)*(targetX-data.posX) + (targetY-data.posY)*(targetY-data.posY)) < ahead)
+						if(Math.sqrt((targetX-data.posX)*(targetX-data.posX) + (targetY-data.posY)*(targetY-data.posY)) < 10)
 							kex.setWaypoint(targetX, targetY);
 						else {
 							double[] n = {(targetX-lastTargetX) / norm , (targetY-lastTargetY) / norm};
@@ -96,9 +98,12 @@ public abstract class SearchPattern implements Runnable {
 							double sp = (v[0]*n[0] + v[1]*n[1]);
 							double[] u = {sp*n[0], sp*n[1]};
 							kex.setWaypoint(lastTargetX + u[0] + ahead * n[0], lastTargetY + u[1] + ahead * n[1]);
+							//System.out.println("u[0]: " +u[0] + "\t n[0]: " + n[0]);
+							System.out.println("XTE on: TargetX: " + targetX + "\t boat target: " + (lastTargetX + u[0] + ahead * n[0]) + "\t boat pos: " + data.getPosX());
 						}
 					}
 				}
+				
 				
 				try {
 					Thread.sleep(dt*3);

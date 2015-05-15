@@ -568,7 +568,7 @@ public class Kex implements Runnable{
         			minX = xIndex2;
         			minY = yIndex;
         		}
-        		ypos += this.delta;
+        		ypos += this.delta/4;
     		}
     	}
     	
@@ -605,7 +605,7 @@ public class Kex implements Runnable{
     @Override
 	public void run() {
 		startTime = System.currentTimeMillis();
-		boolean newRegions = false;
+
 		/**Start scanning the first cell */
 		int index = getCurrentSearchCell();
 		if(index == -1) {
@@ -632,7 +632,6 @@ public class Kex implements Runnable{
         	//find shortest distance to other cells
         	int[] target = findClosest(startX,startY);
         	if(target == null) {
-        		newRegions = true;
         		cellList.clear();
         		idRegions();
         		target = findClosest(startX,startY);
@@ -667,12 +666,8 @@ public class Kex implements Runnable{
         	boolean b = ((boat.getPos()[1]-sc.minY()) < (sc.maxY()-sc.minY())/2);
         	scanCell(cellList.get(target[0]),b);
         	
-        	if(newRegions) {
-        		cellList.clear();
-        		idRegions();
-        	} else {
-        		cellList.remove(target[0]);
-        	}
+        	cellList.remove(target[0]);
+       
         	System.out.println("CellList size: " + cellList.size());
         }
    	}
