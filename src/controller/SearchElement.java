@@ -6,7 +6,7 @@ import java.util.ArrayList;
 public class SearchElement{
 	double xCoord;
 	double yCoord;
-	int status; // 0 = not scanned, 1 = scanned 2 = not accessible, 99 oob
+	int status; // 0 = not scanned, 1 = scanned 2 = not accessible, 3 estimated coast?, 99 oob, 42 test
     double accumulatedDepth;
     int timesVisited;
     
