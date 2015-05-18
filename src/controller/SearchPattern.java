@@ -79,7 +79,7 @@ public abstract class SearchPattern implements Runnable {
 
 			while(!stop) {
 				
-				if(on) {
+				if(on && false) {
 					//System.out.println("XTE update");
 					double norm = Math.sqrt((targetX-lastTargetX)*(targetX-lastTargetX) + (targetY-lastTargetY)*(targetY-lastTargetY));
 					//System.out.println(norm);
