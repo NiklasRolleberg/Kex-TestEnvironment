@@ -53,7 +53,9 @@ public class PolygonLib {
         yPts = new ArrayList<Double>();
         ArrayList<Point2D> pts = new ArrayList<Point2D>();
         ArrayList<Point2D> hullPts = new ArrayList<Point2D>();
+        
         //initialize
+        //System.out.println("Loop1");
         for (int i = 0; i<xIn.size();i++){
             xPts.add(xIn.get(i));
             yPts.add(yIn.get(i));
@@ -73,7 +75,7 @@ public class PolygonLib {
 
 
 
-//        final ArrayList<Point> hull = new ArrayList<Point>();
+        //System.out.println("Loop2");
         Point2D pointOnHull = getMinXPoint(pts);
         Point2D endpoint = null;
         do{
@@ -82,7 +84,7 @@ public class PolygonLib {
 
             hullPts.add(pointOnHull);
             endpoint = pts.get(0);
-
+            //System.out.println("loop i loop2");
             for (final Point2D pt : pts){
                 final int turn = findTurn(pointOnHull, endpoint, pt);
                 if (endpoint.equals(pointOnHull) || turn == -1 || turn == 0 && pointOnHull.distance(pt) > endpoint.distance(pointOnHull)){
@@ -101,18 +103,27 @@ public class PolygonLib {
 
     /**Returns the leftmost point*/
     private static Point2D getMinXPoint(ArrayList<Point2D> points) {
-        //Point2D tempP = new Point2D.Double(Double.MAX_VALUE, Double.MAX_VALUE);
-        Double temp = Double.MAX_VALUE;
-        int i = 0;
-        int tempIndex = 0;
-        for (Point2D p : points){
-            if (p.getX() <= temp){
-                temp = p.getX();
-                tempIndex = i;
-            }
-            i++;
+        int index = -1;   	
+        double minX = Double.MAX_VALUE;
+        double minY = Double.MAX_VALUE;
+        
+        for(int i=0;i<points.size();i++) {
+        	if(points.get(i).getX() < minX) {
+        		index = i;
+        		minX = points.get(i).getX();
+        		minY = points.get(i).getY();
+        	}
+        	else if(points.get(i).getX() == minX) {
+        		if(points.get(i).getY() < minY) {
+        			index = i;
+        			minX = points.get(i).getX();
+        			minY = points.get(i).getY();
+        		}
+        	}
         }
-        return points.get(tempIndex);
+     
+        
+        return points.get(index);
     }
 
 
