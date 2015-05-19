@@ -3,11 +3,14 @@ package controller;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -266,7 +269,7 @@ public class Kex implements Runnable{
             for (SearchElement se : seA){
                 if (se.status == 0){
                     count++;
-                    System.out.println("uncovered! " + count);
+                    //System.out.println("uncovered! " + count);
                     list.add(se);
                 }
             }
@@ -325,7 +328,7 @@ public class Kex implements Runnable{
 		double[] sensorData = boat.getSensordata();
         double lastX = sensorData[0];
         double lastY = sensorData[1];
-		
+        
 		while(true){
             sensorData = boat.getSensordata();
             //calc distance
@@ -342,13 +345,6 @@ public class Kex implements Runnable{
 	            timeData.add(time);
 	            cellData.add((100*((double)visitedCells / (double)cellsInPolygon)));
 	            System.out.println("DATA dist: " + distance + "\t Visited %: " + (int)(100*((double)visitedCells / (double)cellsInPolygon)) + "\t time: " + time);
-	            
-	            if(sp.isDone() || time > 700) {
-	            	System.out.println("printing to file");
-	            	printToFile();
-	            	sp.stop();
-	            	break;
-	            }
             }
             
             
@@ -416,6 +412,96 @@ public class Kex implements Runnable{
 		}
 	}
 	
+	
+	/**Turns a searchCell into triangles and removes scanned elements 
+	 * @param c
+	 * SearchCell
+	 * @return
+	 * ArrayList with new SearchCells
+	 */
+	private ArrayList<SearchCell> triangulateCell(SearchCell c) {
+		System.out.println("TriangulateCell");
+		
+		ArrayList<Double> x = c.xpos;
+		ArrayList<Double> y = c.ypos;
+		
+		ArrayList<SearchCell> tri = SearchCell.trianglulatePolygon(x, y);
+		
+		System.out.println("Triangles: " + tri.size());
+		//return tri;
+		
+		
+		ArrayList<ArrayList<SearchElement>> newElementList = new ArrayList<ArrayList<SearchElement>>();
+		
+		for(int i=0;i<tri.size();i++) {
+			SearchCell t = tri.get(i);
+			ArrayList<SearchElement> temp = new ArrayList<SearchElement>();
+			
+			double yVal = t.minY()+1;
+			while(yVal < t.maxY()) {
+				double xL = t.findX(yVal, false);
+				double xR = t.findX(yVal, true);
+				
+				while(xL<=xR) {
+					int xIndex = (int) Math.round((xL- xMin) / dx);
+	        		int yIndex = (int) Math.round((yVal - yMin) / dy);
+	        		
+	        		System.out.println("--------------------------");
+	        		System.out.println("XL:" + xL);
+	        		System.out.println("XR:" + xR);
+	        		System.out.println("Y:" + yVal);
+	        		System.out.println("--------------------------");
+	        		
+	        		System.out.println("Index: (" + xIndex + " , " + yIndex + ") Status:" + elementMatrix[xIndex][yIndex].status);
+	        		if(elementMatrix[xIndex][yIndex].status == 0) {
+	        			temp.add(elementMatrix[xIndex][yIndex]);
+	        			System.out.println("Adding : (" + elementMatrix[xIndex][yIndex].xCoord + "), \t (" + elementMatrix[xIndex][yIndex].yCoord + ")" );
+	        		}
+					xL+=delta;
+				}
+				yVal+=delta;
+			}
+			
+			System.out.println("TEMP SIZE: " + temp.size());
+			if(temp.size()>1) {
+				newElementList.add(temp);
+			}
+			//break;
+		}
+		
+		ArrayList<SearchCell> newCells = new ArrayList<SearchCell>();
+		
+		
+		//add extra elements to boundaries!
+		newElementList = extendBoundaries(newElementList);
+		
+		//get convex hull
+        
+		for(int i=0;i<newElementList.size();i++) {
+			ArrayList<SearchElement> list = newElementList.get(i);
+			ArrayList<Double> xList = new ArrayList<Double>();
+			ArrayList<Double> yList = new ArrayList<Double>();
+			for(SearchElement e: list) {
+				xList.add(e.xCoord);
+				yList.add(e.yCoord);
+			}
+			ArrayList<ArrayList<Double>> convexCell = PolygonLib.findConvexHull(xList,yList);
+			newCells.add(new SearchCell(convexCell.get(0), convexCell.get(1)));
+		}
+		
+		System.out.println("cell pos: min(" + xMin + ")\t(" + yMin + ")");
+		System.out.println("cell pos: max(" + xMax + ")\t(" + yMax + ")");
+		for(int i=0;i < newCells.get(0).xpos.size(); i++) {
+			System.out.println("(" + newCells.get(0).xpos.get(i) + ") \t (" + newCells.get(0).ypos.get(i));
+		}
+		
+		System.out.println("NewCells: " + newCells.size());
+		
+		
+		//return tri;
+		return newCells;
+	}
+	
     /**Identify new cells and add them to cellList*/
 	private void idRegions(){
 		
@@ -463,7 +549,9 @@ public class Kex implements Runnable{
             		xpos.add(convexCell.get(0).get(i));
             		ypos.add(convexCell.get(1).get(i));
             	}
-            	cellList.addAll(SearchCell.trianglulatePolygon(xpos, ypos));
+            	System.out.println("Calling triangulate function");
+            	//cellList.addAll(SearchCell.trianglulatePolygon(xpos, ypos));
+            	cellList.addAll(triangulateCell(new SearchCell(xpos, ypos))); // split into triangles and remove scanned elements if possible
             } else { 
             	cellList.add(new SearchCell(convexCell.get(0), convexCell.get(1)));
             }
@@ -497,11 +585,11 @@ public class Kex implements Runnable{
         int cellIndex = 0;
         int newE = 1;
         for (ArrayList<SearchElement> subRegion : inList){
-            System.out.println("Size of region nr " + cellIndex + " : " + subRegion.size());
+            //System.out.println("Size of region nr " + cellIndex + " : " + subRegion.size());
             for (SearchElement se : subRegion){
                 for (SearchElement seN : se.neighbour){
                     if (!neighbourList.get(cellIndex).contains(seN) && !subRegion.contains(seN) && seN.status!=99){
-                        System.out.println(newE + " new elements in region " + cellIndex);
+                        //System.out.println(newE + " new elements in region " + cellIndex);
                         newE++;
                         neighbourList.get(cellIndex).add(seN);
                     }
@@ -512,10 +600,10 @@ public class Kex implements Runnable{
         }
 
         for (int ci = 0; ci<neighbourList.size(); ci++){
-            System.out.println("Size pre: " + inList.get(ci).size());
-            System.out.println("new shit: " + neighbourList.get(ci).size());
+            //System.out.println("Size pre: " + inList.get(ci).size());
+            //System.out.println("new shit: " + neighbourList.get(ci).size());
             inList.get(ci).addAll(neighbourList.get(ci));
-            System.out.println("Size post: " + inList.get(ci).size());
+            //System.out.println("Size post: " + inList.get(ci).size());
         }
         System.out.println("---------------");
         return inList;
@@ -575,8 +663,8 @@ public class Kex implements Runnable{
     	if(cellIndex == -1)
     		return null;
 
-    	System.out.println("new target found: " + minX + " " + minY);
-    	System.out.println("Distance: " + distance);
+    	//System.out.println("new target found: " + minX + " " + minY);
+    	//System.out.println("Distance: " + distance);
     	
     	return new int[] {cellIndex, minX, minY};
     }
@@ -604,6 +692,23 @@ public class Kex implements Runnable{
     /** Run method- This method is called when the thread is started */
     @Override
 	public void run() {
+    	
+    	//Window with save button
+    	JFrame frame = new JFrame();
+    	JButton button = new JButton("Save");
+    	button.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				System.out.println("SAVE!");
+				printToFile();
+			}
+    	});
+    	frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+    	frame.add(button);
+    	frame.pack();
+    	frame.setVisible(true);
+
+    	
 		startTime = System.currentTimeMillis();
 
 		/**Start scanning the first cell */
@@ -621,6 +726,21 @@ public class Kex implements Runnable{
       	//draw.repaint();
         
         while(true) {
+        	//cellList.clear();
+        	//idRegions();
+        	//draw.repaint();
+        	
+        	System.out.println("--------------------new regions-----------------");
+        	System.out.println("regions: " + cellList.size());
+        	
+        	/*
+        	try {
+				Thread.sleep(100000);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}*/
+        	
         	//My position
         	int startX = (int)Math.round((boat.getPos()[0] - xMin) / dx);
         	int startY = (int)Math.round((boat.getPos()[1] - yMin) / dy);
@@ -634,6 +754,7 @@ public class Kex implements Runnable{
         	if(target == null) {
         		cellList.clear();
         		idRegions();
+        		
         		target = findClosest(startX,startY);
         		if(target == null) {
         			System.out.println("Search complete");
@@ -674,7 +795,7 @@ public class Kex implements Runnable{
 	
     
 	/** print data to file */
-	private void printToFile() {
+	public void printToFile() {
 		String fileName = "coverageData.csv";
 		StringBuilder l1 = new StringBuilder();
 		StringBuilder l2 = new StringBuilder();
