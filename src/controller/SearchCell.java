@@ -169,7 +169,7 @@ import java.util.ArrayList;
 	 * @return
 	 * List of SearchCells (one for each area)
 	 */
-	static ArrayList<SearchCell> trianglulatePolygon(ArrayList<Double> xPos, ArrayList<Double> yPos) {
+	static ArrayList<SearchCell> triangulatePolygon(ArrayList<Double> xPos, ArrayList<Double> yPos) {
 		
 		ArrayList<Double> xVertex = new ArrayList<Double>();
 		xVertex.addAll(xPos);
@@ -198,19 +198,19 @@ import java.util.ArrayList;
 				if(i == triangle[0] || i == triangle[1] || i == triangle[2]) 
 					continue;
 				if(insideTriangle(triangleX, triangleY, xVertex.get(i), yVertex.get(i))) {
-					System.out.println("No ear");
+					//System.out.println("No ear");
 					ear = false;
 				}
 			}
 			
 			if(!rightTurn(triangleX,triangleY)) {
-				System.out.println("No ear");
+				//System.out.println("No ear");
 				ear = false;
 			}
 			
 			/*if triangle is an ear, remove the ear and create a SearchCell*/
 			if(ear) {
-				System.out.println("Ear found");
+				//System.out.println("Ear found");
 				ArrayList<Double> X = new ArrayList<Double>();
 				ArrayList<Double> Y = new ArrayList<Double>();
 				for(int j=0;j<3;j++) {
@@ -218,19 +218,19 @@ import java.util.ArrayList;
 					Y.add(yVertex.get(triangle[j]));
 				}
 				list.add(new SearchCell(X,Y));
-				System.out.println("Removing vertexes");
+				//System.out.println("Removing vertexes");
 				xVertex.remove(triangle[1]);
 				yVertex.remove(triangle[1]);
 				
 				index = triangle[1];
-				System.out.println("Remaining vertexes: " + xVertex.size());
+				//System.out.println("Remaining vertexes: " + xVertex.size());
 			}
 			if(!ear) {
 				index++;
 			}
 	
 			if(xVertex.size() < 4) {
-				System.out.println("KLAR!");
+				System.out.println("Earclipping done!");
 				list.add(new SearchCell(xVertex, yVertex));
 				break;
 			}
@@ -253,7 +253,7 @@ import java.util.ArrayList;
 	 * false = left turn
 	 */
 	private static boolean rightTurn(double[] x, double[] y) {
-		System.out.println("Calculate angle");
+		//System.out.println("Calculate angle");
 		double x1 = (x[1]-x[0]) * (y[2]-y[0]);
 		double x2 = (x[2]-x[0]) * (y[1]-y[0]);
 		double x3 = x1-x2;

@@ -138,7 +138,7 @@ public class Kex implements Runnable{
         /**(2) Create cell from the given polygon*/
         cellList = new ArrayList<SearchCell>();
         //cellList.add(temp);
-        cellList.addAll(SearchCell.trianglulatePolygon(polygonX, polygonY));
+        cellList.addAll(SearchCell.triangulatePolygon(polygonX, polygonY));
         
         cellData = new ArrayList<Double>();
     	distData = new ArrayList<Double>();
@@ -456,7 +456,7 @@ public class Kex implements Runnable{
 		ArrayList<Double> x = c.xpos;
 		ArrayList<Double> y = c.ypos;
 		
-		ArrayList<SearchCell> tri = SearchCell.trianglulatePolygon(x, y);
+		ArrayList<SearchCell> tri = SearchCell.triangulatePolygon(x, y);
 		
 		System.out.println("Triangles: " + tri.size());
 		//return tri;
@@ -537,7 +537,7 @@ public class Kex implements Runnable{
 	private void idRegions(){
 		
 		idLand();
-        //idCoastlines();
+        idCoastlines();
 		alreadyAdded.clear();
 		
         ArrayList<SearchElement> uncovered = getUncoveredElments();
