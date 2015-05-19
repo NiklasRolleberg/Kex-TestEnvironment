@@ -91,7 +91,7 @@ public class Kex implements Runnable{
         dx = (temp.maxX() - temp.minX())/nx;
         dy = (temp.maxY() - temp.minY())/ny;
         
-        // TODO fundera på varför det inte funkar utan detta
+        // TODO fundera pï¿½ varfï¿½r det inte funkar utan detta
         nx+=1;
         ny+=1;
 
@@ -125,7 +125,7 @@ public class Kex implements Runnable{
             xCoord = xMin;
         }
         System.out.println("Matrix created" );
-        
+
         // _3_add neighbours
         addneighbours();
         System.out.println("Neighbours added");
@@ -179,7 +179,7 @@ public class Kex implements Runnable{
         
         elementMatrix[ix][iy].updateDepthData(depthValue);
         
-        // Gjorde så att båten fastnade på land
+        // Gjorde sï¿½ att bï¿½ten fastnade pï¿½ land
         if(elementMatrix[ix][iy].accumulatedDepth > 0)
         	elementMatrix[ix][iy].status = 2;
         
@@ -391,7 +391,7 @@ public class Kex implements Runnable{
 		return false;	
 	}
 	
-	/** Finds land and changes status to 2*/
+	/** Finds regions enclosed by land and changes status to 2*/
 	private void idLand() {
 		System.out.println("id land");
 		alreadyAdded.clear();
@@ -411,6 +411,37 @@ public class Kex implements Runnable{
 			}
 		}
 	}
+    /**Identifies uncovered coasts with at least two neighbours marked as 2 and one marked as 1 with depth less than 1m
+     *  and marks them as status 3
+     * //TODO make sure that status 3 does not affect other parts (A* etc)
+     * */
+    private void idCoastlines(){
+        int adjacentLand = 0;
+        int adjScanned = 0;
+        int[] adjIndex = {0,2,4,6}; //only check immediate neighbours, not diagonal
+        ArrayList<SearchElement> coastElements = new ArrayList<SearchElement>();
+        ArrayList<SearchElement> uncovered = getUncoveredElments();
+        for (SearchElement se : uncovered){
+            for (int i : adjIndex){
+                if (se.neighbour.get(i).status==2){
+                    adjacentLand++;
+                }
+                if (se.neighbour.get(i).status==1 && Math.abs(se.neighbour.get(i).getRecordedDepth()) > 1){
+                    adjScanned++;
+                }
+            }
+            if (adjacentLand>=2 && adjScanned >=1){
+                coastElements.add(se);
+            }
+            adjacentLand = 0;
+            adjScanned = 0;
+        }
+        System.out.println("coastElements size: " + coastElements.size());
+        for (SearchElement seC : coastElements){
+            seC.status = 3;
+        }
+
+    }
 	
 	
 	/**Turns a searchCell into triangles and removes scanned elements 
@@ -506,6 +537,7 @@ public class Kex implements Runnable{
 	private void idRegions(){
 		
 		idLand();
+        //idCoastlines();
 		alreadyAdded.clear();
 		
         ArrayList<SearchElement> uncovered = getUncoveredElments();
@@ -868,8 +900,10 @@ public class Kex implements Runnable{
                         g.setColor(getColor(depth));
                     }else if (e.status == 2) {
                     	g.setColor(Color.red);
+                    }else if (e.status == 3) {
+                        g.setColor(new Color(0x4D0000));
                     }else if (e.status == 42) {
-                        System.out.println("42!");
+                        //System.out.println("42!");
                         g.setColor(Color.magenta);
                     } else {
                         System.out.println("Dafuq?! Wrong status in cell read");
