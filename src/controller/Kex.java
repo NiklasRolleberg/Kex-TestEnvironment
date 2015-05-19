@@ -415,7 +415,7 @@ public class Kex implements Runnable{
      *  and marks them as status 3
      * //TODO make sure that status 3 does not affect other parts (A* etc)
      * */
-    private void idCoastlines(){
+    private void idCoastElements(){
         int adjacentLand = 0;
         int adjScanned = 0;
         int[] adjIndex = {0,2,4,6}; //only check immediate neighbours, not diagonal
@@ -537,7 +537,7 @@ public class Kex implements Runnable{
 	private void idRegions(){
 		
 		idLand();
-        idCoastlines();
+        idCoastElements();
 		alreadyAdded.clear();
 		
         ArrayList<SearchElement> uncovered = getUncoveredElments();
@@ -874,7 +874,8 @@ public class Kex implements Runnable{
 			myFrame = new JFrame();
             myFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
             int[] dim = correctCoords((int)Math.round(xMax*1.2),(int)Math.round(yMax*1.2));
-            myFrame.setPreferredSize(new Dimension(dim[0],dim[1]));
+            myFrame.setPreferredSize(new Dimension(dim[0], dim[1]));
+            myFrame.setLocation(520,0);
             myFrame.add(this);
             myFrame.pack();
             myFrame.setVisible(true);
@@ -901,7 +902,7 @@ public class Kex implements Runnable{
                     }else if (e.status == 2) {
                     	g.setColor(Color.red);
                     }else if (e.status == 3) {
-                        g.setColor(new Color(0x4D0000));
+                        g.setColor(new Color(0xB2490B));
                     }else if (e.status == 42) {
                         //System.out.println("42!");
                         g.setColor(Color.magenta);
