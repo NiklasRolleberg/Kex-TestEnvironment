@@ -346,7 +346,7 @@ public class Kex implements Runnable{
 	            distData.add(distance);
 	            timeData.add(time);
 	            cellData.add((100*((double)visitedCells / (double)cellsInPolygon)));
-	            System.out.println("DATA dist: " + distance + "\t Visited %: " + (int)(100*((double)visitedCells / (double)cellsInPolygon)) + "\t time: " + time);
+	            System.out.println("Dist: " + Math.round(distance) + "\t Complete: " + (int)(100*((double)visitedCells / (double)cellsInPolygon)) + "%\t time: " + Math.round(time)+" s");
             }
             
             
@@ -406,6 +406,7 @@ public class Kex implements Runnable{
 						elementMatrix[i][j].status = 2;
 						for(SearchElement s:alreadyAdded) {
 							s.status = 2;
+                            visitedCells++;
 						}
 					}
 					//System.out.println(alreadyAdded.size());
