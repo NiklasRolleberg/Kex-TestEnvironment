@@ -35,9 +35,9 @@ public class SearchElement{
             timesVisited++;
             accumulatedDepth = (accumulatedDepth + inDepth);
         }
-        if(status != 99)
-        	status = 1;
-        // TODO fix om allt slutar funka
+        
+        //if(status != 99)
+        status = 1;
     }
     double getRecordedDepth(){
         return accumulatedDepth /timesVisited;

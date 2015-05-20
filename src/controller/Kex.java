@@ -876,9 +876,8 @@ public class Kex implements Runnable{
         	}
 
         	/**Travel to that position*/
-        	long time = System.currentTimeMillis();
         	double d = gp.GO(startX, startY, target[1], target[2]);        	
-        	time = System.currentTimeMillis()-time;
+        	double time = ((System.currentTimeMillis() - startTime))/1000.0;
 
         	System.out.println("Going to new position: (" + startX +" , " + startY + ") -> (" + target[1] + " , " + target[2] + ")");
           	if(d == -1)
@@ -888,7 +887,7 @@ public class Kex implements Runnable{
     		} else if(saveData){ //save distance
     			distance += d;
     			distData.add(distance);
-	            timeData.add((double) time);
+	            timeData.add(time);
 	            cellData.add((100*((double)visitedCells / (double)cellsInPolygon)));
 	            System.out.println("GoToPoint: " + distance);
     		}
