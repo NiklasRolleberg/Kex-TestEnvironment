@@ -197,7 +197,7 @@ public class Kex implements Runnable{
         		int j = indexY[k];
         		if(i >= 0 && i < maxIndexX && j >= 0 && j < maxIndexY)
             	{
-            		if(elementMatrix[i][j].status != 1){
+            		if(elementMatrix[i][j].status != 1 && elementMatrix[i][j].status != 2){
             			elementMatrix[i][j].status = 2;
             			visitedCells++;
             		}
@@ -803,6 +803,7 @@ public class Kex implements Runnable{
     	});
     	frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
     	frame.add(button);
+        frame.setLocation(0,550);
     	frame.pack();
     	frame.setVisible(true);
 
