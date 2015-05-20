@@ -418,10 +418,16 @@ public class Kex implements Runnable{
     private void idCoastlines(){
         int adjacentLand = 0;
         int adjScanned = 0;
-        int[] adjIndex = {0,2,4,6}; //only check immediate neighbours, not diagonal
+        //int[] adjIndex = {0,2,4,6}; //only check immediate neighbours, not diagonal
+        int[] adjIndex = {0,1,2,3,4,5,6,7}; //only check all neighbours
         ArrayList<SearchElement> coastElements = new ArrayList<SearchElement>();
         ArrayList<SearchElement> uncovered = getUncoveredElments();
         for (SearchElement se : uncovered){
+        	
+        	//Fulfix!
+        	if(se.neighbour.size() != 8)
+        		continue;
+        	
             for (int i : adjIndex){
                 if (se.neighbour.get(i).status==2){
                     adjacentLand++;
@@ -442,7 +448,92 @@ public class Kex implements Runnable{
         }
 
     }
+    
+    
+    /** Find the searchElement in a searchcell
+     * @param c
+     * SearchCell
+     * @return
+     * list of searchElements
+     */
+    private ArrayList<SearchElement> findElementsInCell(SearchCell c) {
+    	ArrayList<SearchElement> temp = new ArrayList<SearchElement>();
+		
+		double yVal = c.minY()+1;
+		while(yVal < c.maxY()) {
+			double xL = c.findX(yVal, false);
+			double xR = c.findX(yVal, true);
+			
+			while(xL<=xR) {
+				int xIndex = (int) Math.round((xL- xMin) / dx);
+        		int yIndex = (int) Math.round((yVal - yMin) / dy);
+        		/*
+        		System.out.println("--------------------------");
+        		System.out.println("XL:" + xL);
+        		System.out.println("XR:" + xR);
+        		System.out.println("Y:" + yVal);
+        		System.out.println("--------------------------");
+        		*/
+        		//System.out.println("Index: (" + xIndex + " , " + yIndex + ") Status:" + elementMatrix[xIndex][yIndex].status);
+        		if(elementMatrix[xIndex][yIndex].status == 0) {
+        			temp.add(elementMatrix[xIndex][yIndex]);
+        			//System.out.println("Adding : (" + elementMatrix[xIndex][yIndex].xCoord + "), \t (" + elementMatrix[xIndex][yIndex].yCoord + ")" );
+        		}
+				xL+=delta;
+			}
+			yVal+=delta;
+		}
+		return temp;
+    }
 	
+    /** Looks for cells in cellList to remove/ rework
+     */
+    private void reworkSearchCells() {
+    	System.out.println("ReworkCells: number of cells before: " + cellList.size());
+    	
+       	ArrayList<SearchCell> newList = new ArrayList<SearchCell>();
+    	
+    	for(int index = 0;index<cellList.size();index++){
+    		SearchCell current = cellList.get(index);
+    		
+    		//FInd searchElelemts in current cell
+    		ArrayList<SearchElement> elements = findElementsInCell(current);
+    		ArrayList<SearchElement> unknownElements = new ArrayList<SearchElement>();
+    		for(int i=0;i<elements.size();i++) {
+    			if(elements.get(i).status != 0) {
+    				unknownElements.add(elements.get(i));
+    			}
+    		}
+    		
+    		System.out.println("Uncovered: " + unknownElements.size() + " \t total: " + elements.size());
+    		
+    		//more than 30% cleared -> remake cell
+    		if((((double)unknownElements.size()) / ((double)elements.size())) > 0.3 && unknownElements.size() > 4)
+    		{
+    			//System.out.println("IF (1)");
+    			ArrayList<Double> xIn = new ArrayList<Double>();
+    			ArrayList<Double> yIn = new ArrayList<Double>();
+    			
+    			for(int i=0;i<unknownElements.size();i++) {
+    				xIn.add(unknownElements.get(i).xCoord);
+    				yIn.add(unknownElements.get(i).yCoord);
+    			}
+    			
+    			ArrayList<ArrayList<Double>> hull = PolygonLib.findConvexHull(xIn, yIn);
+    			newList.add(new SearchCell(hull.get(0), hull.get(1)));
+    		}
+    		else if(unknownElements.size() == elements.size()) {
+    			//System.out.println("IF (2)");
+    			continue; // don't add completed cells
+    		}
+    		else { //cell is ok
+    			//System.out.println("IF (3)");
+    			newList.add(current);
+    		}	
+    	}
+    	System.out.println("ReworkCells: number of cells after: " + newList.size());
+    	cellList = newList;
+    }
 	
 	/**Turns a searchCell into triangles and removes scanned elements 
 	 * @param c
@@ -466,38 +557,12 @@ public class Kex implements Runnable{
 		
 		for(int i=0;i<tri.size();i++) {
 			SearchCell t = tri.get(i);
-			ArrayList<SearchElement> temp = new ArrayList<SearchElement>();
-			
-			double yVal = t.minY()+1;
-			while(yVal < t.maxY()) {
-				double xL = t.findX(yVal, false);
-				double xR = t.findX(yVal, true);
-				
-				while(xL<=xR) {
-					int xIndex = (int) Math.round((xL- xMin) / dx);
-	        		int yIndex = (int) Math.round((yVal - yMin) / dy);
-	        		
-	        		System.out.println("--------------------------");
-	        		System.out.println("XL:" + xL);
-	        		System.out.println("XR:" + xR);
-	        		System.out.println("Y:" + yVal);
-	        		System.out.println("--------------------------");
-	        		
-	        		System.out.println("Index: (" + xIndex + " , " + yIndex + ") Status:" + elementMatrix[xIndex][yIndex].status);
-	        		if(elementMatrix[xIndex][yIndex].status == 0) {
-	        			temp.add(elementMatrix[xIndex][yIndex]);
-	        			System.out.println("Adding : (" + elementMatrix[xIndex][yIndex].xCoord + "), \t (" + elementMatrix[xIndex][yIndex].yCoord + ")" );
-	        		}
-					xL+=delta;
-				}
-				yVal+=delta;
-			}
+			ArrayList<SearchElement> temp = this.findElementsInCell(t);//new ArrayList<SearchElement>();
 			
 			System.out.println("TEMP SIZE: " + temp.size());
 			if(temp.size()>1) {
 				newElementList.add(temp);
 			}
-			//break;
 		}
 		
 		ArrayList<SearchCell> newCells = new ArrayList<SearchCell>();
@@ -507,7 +572,6 @@ public class Kex implements Runnable{
 		newElementList = extendBoundaries(newElementList);
 		
 		//get convex hull
-        
 		for(int i=0;i<newElementList.size();i++) {
 			ArrayList<SearchElement> list = newElementList.get(i);
 			ArrayList<Double> xList = new ArrayList<Double>();
@@ -520,8 +584,8 @@ public class Kex implements Runnable{
 			newCells.add(new SearchCell(convexCell.get(0), convexCell.get(1)));
 		}
 		
-		System.out.println("cell pos: min(" + xMin + ")\t(" + yMin + ")");
-		System.out.println("cell pos: max(" + xMax + ")\t(" + yMax + ")");
+		//System.out.println("cell pos: min(" + xMin + ")\t(" + yMin + ")");
+		//System.out.println("cell pos: max(" + xMax + ")\t(" + yMax + ")");
 		for(int i=0;i < newCells.get(0).xpos.size(); i++) {
 			System.out.println("(" + newCells.get(0).xpos.get(i) + ") \t (" + newCells.get(0).ypos.get(i));
 		}
@@ -758,6 +822,9 @@ public class Kex implements Runnable{
       	//draw.repaint();
         
         while(true) {
+        	
+        	reworkSearchCells();
+        	draw.repaint();
         	//cellList.clear();
         	//idRegions();
         	//draw.repaint();
@@ -818,7 +885,6 @@ public class Kex implements Runnable{
         	SearchCell sc = cellList.get(target[0]);
         	boolean b = ((boat.getPos()[1]-sc.minY()) < (sc.maxY()-sc.minY())/2);
         	scanCell(cellList.get(target[0]),b);
-        	
         	cellList.remove(target[0]);
        
         	System.out.println("CellList size: " + cellList.size());
