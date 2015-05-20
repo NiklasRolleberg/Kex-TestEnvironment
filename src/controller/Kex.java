@@ -55,6 +55,8 @@ public class Kex implements Runnable{
 	double distance = 0;
 	long startTime = 0;
 	
+	boolean saveData = true;
+	
 	ArrayList<Double> cellData;
 	ArrayList<Double> distData;
 	ArrayList<Double> timeData;
@@ -340,7 +342,7 @@ public class Kex implements Runnable{
             double time = ((double)(System.currentTimeMillis() - startTime))/1000.0;
             
             //false -> no data stored
-            if(false) {
+            if(saveData) {
 	            distData.add(distance);
 	            timeData.add(time);
 	            cellData.add((100*((double)visitedCells / (double)cellsInPolygon)));
@@ -872,12 +874,21 @@ public class Kex implements Runnable{
         	}
 
         	/**Travel to that position*/
-        	System.out.println("Going to new position: (" + startX +" , " + startY + ") -> (" + target[1] + " , " + target[2] + ")");
+        	long time = System.currentTimeMillis();
+        	double d = gp.GO(startX, startY, target[1], target[2]);        	
+        	time = System.currentTimeMillis()-time;
 
-        	if(!gp.GO(startX, startY, target[1], target[2]))
+        	System.out.println("Going to new position: (" + startX +" , " + startY + ") -> (" + target[1] + " , " + target[2] + ")");
+          	if(d == -1)
     		{
         		System.out.println("Cant go to that position");
         		break;
+    		} else if(saveData){ //save distance
+    			distance += d;
+    			distData.add(distance);
+	            timeData.add((double) time);
+	            cellData.add((100*((double)visitedCells / (double)cellsInPolygon)));
+	            System.out.println("GoToPoint: " + distance);
     		}
         	
         	/**Start scanning selected cell*/

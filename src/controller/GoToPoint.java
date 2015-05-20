@@ -45,7 +45,15 @@ public class GoToPoint {
 		return dist;
 	}
 	
-	public boolean GO(int startX, int startY, int stopX, int stopY) {
+	/**Go from one point to another
+	 * @param startX
+	 * @param startY
+	 * @param stopX
+	 * @param stopY
+	 * @return
+	 * distance / -1 if fail
+	 */
+	public double GO(int startX, int startY, int stopX, int stopY) {
 		//this.startX = startX;
 		//this.startY = startY;
 		//this.stopX = stopX;
@@ -55,7 +63,7 @@ public class GoToPoint {
 		
 		if(startX == stopX && startY == stopY) {
 			System.out.println("Already at target point");
-			return true;
+			return -1;
 		}
 		
 		try {
@@ -63,13 +71,13 @@ public class GoToPoint {
 		}
 		catch(Exception e) {
 			System.out.println("A* failed " + e);
-			return false;
+			return -1;
 		}
 			
 		//No path found
 		if(path == null) {
 			System.out.println("no path found");
-			return false;
+			return -1;
 		}
 		
 		//follow the path
@@ -78,7 +86,7 @@ public class GoToPoint {
 		double targetY = path.get(index).yCoord;
 		double data[] = kex.getData();
 		kex.elementMatrix[stopX][stopY].targeted = true;
-		
+		double dist = 0;
 		while (index >= 0) {
 			kex.setWaypoint(targetX, targetY);
 			kex.setSpeed(15);
@@ -89,11 +97,12 @@ public class GoToPoint {
 			//target reached -> choose new target
 			if(Math.sqrt(dx*dx + dy*dy) < 3) {
 				index--;
-				if(index < 0)
-				{
+				if(index < 0) {
 					break;
 				}
-
+				
+				dist += Math.sqrt(dx*dx + dy*dy);
+				
 				targetX = path.get(index).xCoord;
 				targetY = path.get(index).yCoord;
 				kex.setWaypoint(targetX, targetY);
@@ -102,7 +111,7 @@ public class GoToPoint {
 		}
 		System.out.println("Target reached");
 		kex.setSpeed(0);
-		return true;
+		return dist;
 	}
 
 	
