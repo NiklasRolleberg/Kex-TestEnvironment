@@ -25,7 +25,24 @@ public class TestEnvironment {
 		/**Create map*/
 		//map = new Map("MapTest.csv");
 		map = new Map(mapFile);
-
+		
+		// Create np Boats
+		ArrayList<NpBoat> otherBoats = new ArrayList<NpBoat>();
+		
+		//max
+		double maxY = Double.MIN_VALUE;
+		int index = -1;
+		for(int i=0;i<polygonY.size();i++) {
+			if(polygonY.get(i) > maxY) {
+				maxY = polygonY.get(i);
+				index = i;
+			}
+		}
+		
+		//otherBoats.add(new NpBoat(new double[]{polygonX.get(index),polygonY.get(index)},-Math.PI/2, 10, polygonX,polygonY));
+		for(int i = 0; i< 40;i++) {
+			otherBoats.add(new NpBoat(polygonX,polygonY));
+		}
 		
 		/**Create boat*/
 		//boat = new Boat(map, 25, startLong, startLat); //25
@@ -34,10 +51,10 @@ public class TestEnvironment {
 		/**Create kex*/
 		//polygon
 		int[] endPos = {1,3};
-		kex = new Kex(boat, polygonX, polygonY , 30 , endPos , 100); //100
+		kex = new Kex(boat, polygonX, polygonY, otherBoats , 10 , endPos , 200); //100
 				
 		/**Create view*/
-		view = new View(map, boat,20 , polygonX, polygonY);
+		view = new View(map, boat, otherBoats, 20 , polygonX, polygonY);
 		
 		/**create and start threads*/
 		boatThread = new Thread(boat);
@@ -57,8 +74,8 @@ public class TestEnvironment {
 		
 		
 		//kex.stop();
-		boat.stop();
-		view.stop();
+		//boat.stop();
+		//view.stop();
 	}
 	
 	
@@ -145,6 +162,6 @@ public class TestEnvironment {
 			startLat = meanY;
 		}
 		
-		TestEnvironment t = new TestEnvironment("test.csv", X , Y, startLong, startLat);	
+		TestEnvironment t = new TestEnvironment("test.csv", X , Y, startLong, startLat);
 	}
 }

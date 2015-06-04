@@ -1,5 +1,7 @@
 package controller;
 
+import kex2015.NpBoat;
+
 public class SweepingPattern extends SearchPattern {
 
 	boolean stop = false;
@@ -28,10 +30,64 @@ public class SweepingPattern extends SearchPattern {
 		double targetLine = targetY;
 		
 		//start sweeping
-		while(!stop) {			
+		while(!stop) {
+			
+			//calculate distance to other boats
+			
+			
+			
+			for(NpBoat other: kex.otherBoats) {
+				double ox = other.posX;
+				double oy = other.posY;
+				
+				double distX = ox - data.getPosX();
+				double distY = oy - data.getPosY();
+				double distance = Math.sqrt(distX*distX + distY*distY);
+				
+				//System.out.println("Distance to other boat: " + distance);
+				
+				//calculate if the boat is about to hit another boat, ignore boats far away
+				if(distance < 30) {
+					System.out.println("Another boat is close!, calculating non-evasive maneuver");
+					//calculate speed to hit the boat
+					
+					// equation from http://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+					
+					//Points
+					/*
+					// L1
+					double x1 = other.posX;
+					double y1 = other.posY;
+					double x2 = other.posX + 100 * Math.cos(other.heading);
+					double y2 = other.posY + 100 * Math.sin(other.heading);;
+					
+					double x3 = data.getPosX();
+					double y3 = data.getPosY();
+					double x4 = data.getPosX() + 100 * Math.cos(data.getHeading());
+					double y4 = data.getPosY() + 100 * Math.sin(data.getHeading()); 
+					
+					//intersectionPoint
+					double Px = ( (x1*y2 - y1*x2)*(x3-x4) - (x1-x2)*(x3*y4 - y3*x4) ) /
+									( (x1-x2)*(y3-y4) - ()    );
+					
+					*/
+					
+					
+				}
+			}
+			
+			
+			
+			
 			dx = targetX-data.getPosX();//data[0];
 			dy = targetY-data.getPosY();//data[1];
-			kex.setSpeed(Math.max(-0.1-data.getDepth()*3,3));
+			//kex.setSpeed(Math.max(-0.1-data.getDepth()*3,3));
+			
+			if(data.getDepth() < 3)
+				kex.setSpeed(30);
+			if(data.getDepth() < 1)
+				kex.setSpeed(Math.max(-0.1-data.getDepth()*3,3));
+			
 			
 			//target reached -> choose new target
 			if(Math.sqrt(dx*dx + dy*dy) < 3 || skipRest) {
