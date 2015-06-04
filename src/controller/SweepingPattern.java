@@ -14,7 +14,7 @@ public class SweepingPattern extends SearchPattern {
 	public void run() {
 		
 		
-		boolean goToRight = (Math.random() < 0.5); //traveling from left side to right
+		boolean goToRight = false;//(Math.random() < 0.5); //traveling from left side to right
 		boolean goToNextLine = true;
 		boolean skipRest = false; //true -> the boat has to find a new waypoint
 		
@@ -42,21 +42,21 @@ public class SweepingPattern extends SearchPattern {
 				//System.out.println("Waypoint reached");
 				
 				if(goToNextLine) {
-					System.out.println("GO TO NEXT LINE");
+					//System.out.println("GO TO NEXT LINE");
 					targetLine +=delta;
 					targetY = targetLine;
 					targetX = region.findX(targetY, !goToRight);
 					goToNextLine = false;
 				}
 				else if(goToRight && !goToNextLine) {
-					System.out.println("GO TO RIGHT");
+					//System.out.println("GO TO RIGHT");
 					targetY = targetLine;
 					targetX = region.findX(targetY,true);
 					goToRight = false;
 					goToNextLine = true;
 				}
 				else if(!goToRight && !goToNextLine) {
-					System.out.println("GO TO LEFT");
+					//System.out.println("GO TO LEFT");
 					targetY = targetLine;
 					targetX = region.findX(targetY,false);
 					goToRight = true;
@@ -69,7 +69,7 @@ public class SweepingPattern extends SearchPattern {
 					kex.setSpeed(0);
 				}
 				
-				System.out.println("TARGET: " +targetX + "  " + targetY);
+				//System.out.println("TARGET: " +targetX + "  " + targetY);
 				xte.setWaypoint(lastTargetX, lastTargetY, targetX, targetY);
 				
 				if(skipRest) {
@@ -94,11 +94,11 @@ public class SweepingPattern extends SearchPattern {
 				xte.setWaypoint(data.getPosX(), targetLine + delta); 
 				kex.setSpeed(0);
 				sleep(dt*5);
-				kex.setSpeed(4*Math.sqrt(Math.abs(depth)+1) * -sign);
+				kex.setSpeed(2*Math.sqrt(Math.abs(depth)+1) * -sign); // 4*
 				followingLand = true;
 				if(followLand(targetLine, targetLine + delta)) {
 					targetLine +=delta;
-					System.out.println("Lower line reached");
+					//System.out.println("Lower line reached");
 					skipRest = true;
 					goToNextLine = false;
 					targetY = targetLine;
@@ -107,7 +107,7 @@ public class SweepingPattern extends SearchPattern {
 					targetY = targetLine;				
 					//xte.setWaypoint(targetX, targetY);
 					xte.setWaypoint(lastTargetX, lastTargetY, targetX, targetY);
-					System.out.println("Upper line reached");
+					//System.out.println("Upper line reached");
 				}
 				followingLand = false;
 			}	
@@ -137,9 +137,9 @@ public class SweepingPattern extends SearchPattern {
 		double targetDepth = -1;
 		
 		//PID controller
-		double KP = 0.2; //Proportional gain
-		double KI = 1.0 / 5000; //integral gain
-		double KD = 300; //derivative gain
+		double KP = 0.01; //Proportional gain //0.2
+		double KI = 1.0 / 5000; //integral gain // 1/5000
+		double KD = 900; //derivative gain //300
 		
 		long time = System.currentTimeMillis();
 		double Integral = 0; 

@@ -224,9 +224,9 @@ public class CircularPattern extends SearchPattern {
 	}
 
 	private boolean outOfBounds(double x, double y) {
-		if(y > region.maxY()+10 || y < region.minY()-10 || x > region.maxX()+10 || x < region.minX()-10)
+		if(y > region.maxY() || y < region.minY() || x > region.maxX() || x < region.minX())
 			return true;
-		if((x+10) < region.findX(y, false) || (x-10) > region.findX(y, true))
+		if((x) < region.findX(y, false) || (x) > region.findX(y, true))
 			return true;
 		return false;
 	}

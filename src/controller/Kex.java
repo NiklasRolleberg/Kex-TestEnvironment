@@ -8,7 +8,10 @@ import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -318,10 +321,12 @@ public class Kex implements Runnable{
 	 */
 	private void scanCell(SearchCell c, boolean b) {
 		
+		
 		if(b)
 			sp = new SweepingPattern(this, c, this.delta, this.dt);
 		else
 			sp = new SweepingPattern(this, c, -this.delta, this.dt);
+        
         //sp = new CircularPattern(this, c, this.delta, this.dt);
 		
         Thread myThread = new Thread(sp);
@@ -807,7 +812,16 @@ public class Kex implements Runnable{
         frame.setLocation(0,550);
     	frame.pack();
     	frame.setVisible(true);
-
+    	
+    	/*
+    	boat.setTargetSpeed(0);
+    	try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}*/
+    	
     	
 		startTime = System.currentTimeMillis();
 
@@ -824,7 +838,7 @@ public class Kex implements Runnable{
         
         //idRegions();
       	//draw.repaint();
-        
+        //boolean a = false;
         while(true) {
         	
         	reworkSearchCells();
@@ -901,12 +915,19 @@ public class Kex implements Runnable{
        
         	System.out.println("CellList size: " + cellList.size());
         }
+        
+        printToFile();
    	}
 	
     
 	/** print data to file */
 	public void printToFile() {
-		String fileName = "coverageData.csv";
+		
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+		Date date = new Date();
+		System.out.println(dateFormat.format(date));
+			
+		String fileName = "coverageData" +dateFormat.format(date) + ".csv";
 		StringBuilder l1 = new StringBuilder();
 		StringBuilder l2 = new StringBuilder();
 		StringBuilder l3 = new StringBuilder();
