@@ -318,11 +318,11 @@ public class Kex implements Runnable{
 	 */
 	private void scanCell(SearchCell c, boolean b) {
 		
-		if(b)
-			sp = new SweepingPattern(this, c, this.delta, this.dt);
-		else
-			sp = new SweepingPattern(this, c, -this.delta, this.dt);
-        //sp = new CircularPattern(this, c, this.delta, this.dt);
+		/* Scan a search cell...*/
+		//sp = new SweepingPattern(this, c, this.delta, this.dt);
+		
+		
+		sp = new MultiBeamSweepingPattern(this, c, elementMatrix, this.delta, this.dt);
 		
         Thread myThread = new Thread(sp);
         myThread.start();
