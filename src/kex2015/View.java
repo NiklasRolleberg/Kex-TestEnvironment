@@ -318,10 +318,14 @@ public class View extends JFrame implements Runnable {
 			
 			
 			//Draw other boats
-			for(NpBoat npb: otherBoats) {
-				double[] pos = {npb.posX, npb.posY};
-				
-				dawBoat(g2d,pos, npb.heading, Color.GREEN);
+			try{
+				for(NpBoat npb: otherBoats) {
+					double[] pos = {npb.posX, npb.posY};
+					
+					dawBoat(g2d,pos, npb.heading, Color.GREEN);
+				}
+			} catch(Exception e) {
+				System.out.println("Thread interferance");
 			}
 			
 			
@@ -388,6 +392,7 @@ public class View extends JFrame implements Runnable {
 			
 			g2d.setColor(c);
 			g2d.fillPolygon(xPoints, yPoints, nPoints);
+			g2d.drawLine((int)X1, (int)Y1, (int)(X1 + Math.cos(h) *50), (int)(Y1 + Math.sin(h) * 50));
 			
 		}
 	}
