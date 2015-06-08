@@ -74,7 +74,6 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 			// TODO land?
 			if(data.getDepth() > -0.5) {
 				System.out.println("LAND!");
-				//followLand(Math.abs(data.getDepth() * ratio))
 				followLand(30);
 				findNew = true;
 				continue;
@@ -132,7 +131,7 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 			// TODO mark scanned elements (based on depth)
 			
 			//Unvisited, but scanned by multibeam
-			double ratio = 5.0; // scan width = 3*depth
+			double ratio = 10.0; // scan width = 3*depth
 			double dist = Math.abs(data.getDepth()) * (ratio/2.0); // distance scanned on each side
 			//System.out.println("Dist:" + dist);
 			double h = data.getHeading() - (Math.PI/2);
@@ -146,7 +145,6 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 					int[] index = getIndex(xpos + p*Math.cos(h), ypos + p*Math.sin(h));
 					if(matrix[index[0]][index[1]].status == 2)
 						break;
-					
 					matrix[index[0]][index[1]].status = 1;
 					//System.out.println(p);
 					p+=0.2;
@@ -333,16 +331,23 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 				h+=Math.PI/2;
 			}
 			
-			double p = 0.2;
+			double p = 0;
 			double xpos = data.getPosX();
 			double ypos = data.getPosY();
-			while(p<delta) {
+			while(p<delta*2) {
 				int[] in = getIndex(xpos + p*Math.cos(h), ypos + p*Math.sin(h));
+				p+=0.2;
+				
+				
+				if(matrix[in[0]][in[1]].status == 1 && matrix[in[0]][in[1]].timesVisited != 0)
+					continue;
+				
+				
 				matrix[in[0]][in[1]].status = 2;
 				//System.out.println(p);
-				p+=0.2;
 			}
 			matrix[index[0]][index[1]].status = 1;
+			matrix[index[0]][index[1]].updateDepthData(data.getDepth());
 			
 			
 			
