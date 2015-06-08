@@ -43,6 +43,9 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 
 	@Override
 	public void run() {
+		
+		boolean findNew = false;
+		
 		//find current element from position
 		int[] iixy = getIndex(data.getPosX(), data.getPosY());
 		
@@ -63,24 +66,43 @@ public class MultiBeamSweepingPattern extends SearchPattern {
         
         // TODO chose element to go towards
 		// TODO go there
+        //kex.setSpeed(15);
         
-        kex.setSpeed(15);
         
 		while(!stop) {
+			
+			// TODO land?
+			if(data.getDepth() > -0.5) {
+				System.out.println("LAND!");
+				//followLand(Math.abs(data.getDepth() * ratio))
+				followLand(30);
+				findNew = true;
+				continue;
+			}
+			
+			kex.setSpeed(Math.max(-data.getDepth()*3, 5));
+			
 			// TODO target reached?
 			double dx = targetX - data.getPosX();
 			double dy = targetY - data.getPosY();
 			
-			if(Math.sqrt(dx*dx + dy*dy) < 3) {
-				
+			if(Math.sqrt(dx*dx + dy*dy) < 3 || findNew) {
 				//target reached choosing new target
+				int[] current;
 				
 				//change status of scanned elements
-				matrix[next[0]][next[1]].status = 1;
-				matrix[next[0]][next[1]].updateDepthData(data.getDepth());
+				if(!findNew) {
+					matrix[next[0]][next[1]].status = 1;
+					matrix[next[0]][next[1]].updateDepthData(data.getDepth());
+					current  = next;
+				} else {
+					//last = next;
+					current = getIndex(data.getPosX(), data.getPosY());
+				}
+				findNew = false;
 				
-				next = calculateNextWaypoint(next[0],next[1],last[0],last[1]);
-				last = next;
+				next = calculateNextWaypoint(current[0],current[1],last[0],last[1]);
+				last = current;
 				if(next == null) {
 					this.stop();
 					break;
@@ -97,29 +119,15 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 
 			}
 			
+			/*
 			// TODO land?
 			if(data.getDepth() > -1) {
 				System.out.println("LAND!");
-				int[] index = getIndex(data.getPosX(), data.getPosY());
-				matrix[index[0]][index[1]].status = 2;
-				
-				next = calculateNextWaypoint(next[0],next[1],last[0],last[1]);
-				last = next;
-				if(next == null) {
-					this.stop();
-					break;
-				}
-				if(matrix[next[0]][next[1]].timesVisited > 3*delta) {
-					this.stop();
-					break;
-				}
-				
-		        targetX = matrix[next[0]][next[1]].xCoord;
-		        targetY = matrix[next[0]][next[1]].yCoord;
-		        
-		        xte.setWaypoint(targetX, targetY);
-				
-			}
+				//followLand(Math.abs(data.getDepth() * ratio))
+				followLand(delta);
+				findNew = true;
+				continue;
+			}*/
 			
 			// TODO mark scanned elements (based on depth)
 			
@@ -133,7 +141,7 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 			
 			for(int i=0;i<2;i++) {
 				h += (Math.PI);
-				double p = 0.5;
+				double p = 0.2;
 				while(p<dist) {
 					int[] index = getIndex(xpos + p*Math.cos(h), ypos + p*Math.sin(h));
 					if(matrix[index[0]][index[1]].status == 2)
@@ -144,14 +152,7 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 					p+=0.2;
 				}
 			}
-			
-			
-			try {
-				Thread.sleep(dt);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			sleep(dt);
 		}
 	}
 	
@@ -243,12 +244,124 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 		sum += elementValue(recursiondepth+1,x-1,y,dontVisit);
 		sum += elementValue(recursiondepth+1,x,y+1,dontVisit);
 		sum += elementValue(recursiondepth+1,x,y-1,dontVisit);
-	
 		
 		return sum;
 	}
 	
-
+	/**
+	 * 
+	 * @return
+	 * true = line under reached
+	 * false = line above reached
+	 */
+	 private void followLand(double distance) {
+		
+		kex.setSpeed(5);
+		 
+		System.out.println("Follow land");
+		double dist = 0;
+		
+		double targetDepth = -1;
+		
+		//PID controller
+		double KP = 0.2; //Proportional gain
+		double KI = 1.0 / 5000; //integral gain
+		double KD = 300; //derivative gain
+		
+		long time = System.currentTimeMillis();
+		double Integral = 0; 
+		double lastError = data.getDepth() - targetDepth;
+		
+		double maxAngle = Math.PI / 8;
+		
+		double lastX = data.getPosX();
+		double lastY = data.getPosY();
+		
+		sleep(dt);
+		
+		while(dist < distance) {
+			
+			double dx = (data.getPosX() - lastX);
+			double dy = (data.getPosY() - lastY);
+			lastX = data.getPosX();
+			lastY = data.getPosY();
+			
+			dist += Math.sqrt(dx*dx + dy*dy);
+			
+			//stop the boat from going outside the polygon
+			if(outOfBounds(data.getPosX(), data.getPosY())) {
+				kex.setSpeed(0);
+				return;
+			}
+			
+			
+			double timeStep = (System.currentTimeMillis() - time);
+			time = System.currentTimeMillis();
+			double error = data.getDepth() - targetDepth;
+			double derivative = (error - lastError) / timeStep;
+			lastError = error;
+			Integral += error * timeStep;
+			
+			//reduce integral value to prevent oscillations
+			if(Integral > 0)
+				Integral = Math.min(Integral, 200);
+			else 
+				Integral = Math.max(Integral, -200);
+			
+			double turnAngle = KP * error + KI*Integral + KD * derivative;
+			
+			if(turnAngle > 0)
+				turnAngle = Math.min(maxAngle,turnAngle);
+			else 
+				turnAngle = Math.max(-maxAngle,turnAngle);
+			
+			//for boat with two front sonars
+			if(data.getRightSonar() > data.getLeftSonar()) {
+				turnAngle *= -1;
+			}
+		
+			xte.setWaypoint(data.getPosX() + Math.cos(data.getHeading() - turnAngle) * 50, data.getPosY() + Math.sin(data.getHeading()- turnAngle) * 50);
+			
+			
+			//change status of element
+			int[] index = this.getIndex(lastX, lastY);
+			
+			double h = data.getHeading();
+			if(data.getRightSonar() > data.getLeftSonar()) { // deeper on right side
+				h-=Math.PI/2;
+			}else { 
+				h+=Math.PI/2;
+			}
+			
+			double p = 0.2;
+			double xpos = data.getPosX();
+			double ypos = data.getPosY();
+			while(p<delta) {
+				int[] in = getIndex(xpos + p*Math.cos(h), ypos + p*Math.sin(h));
+				matrix[in[0]][in[1]].status = 2;
+				//System.out.println(p);
+				p+=0.2;
+			}
+			matrix[index[0]][index[1]].status = 1;
+			
+			
+			
+			
+			sleep(dt);
+		}
+		kex.setSpeed(0);
+	}
+	
+	
+	private boolean outOfBounds(double x, double y) {
+		
+		if(y > region.maxY() || y < region.minY() || x > region.maxX() || x < region.minX())
+			return true;
+		if(x < region.findX(y, false) || x > region.findX(y, true))
+			return true;
+		return false;
+	}
+	
 	@Override
 	void stop() {
 		// TODO Auto-generated method stub
@@ -267,4 +380,9 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 		return stop;
 	}
 
+	private void sleep(long ms) {
+		try {
+			Thread.sleep(ms);
+		}catch(Exception e) {}
+	}
 }

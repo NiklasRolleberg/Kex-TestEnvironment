@@ -48,6 +48,7 @@ public class Kex implements Runnable{
     
     SearchPattern sp;
     GoToPoint gp;
+    SearchCell initialCell;
     
     //for data log
 	int cellsInPolygon = 0;
@@ -79,19 +80,19 @@ public class Kex implements Runnable{
         /** (1) Create matrix + populate matrix + addneighbours + set status(unknown or not accessible) */ 
         
         // _1_calculate number of elements needed and dx,dy
-        SearchCell temp = new SearchCell(polygonX,polygonY);
+        initialCell = new SearchCell(polygonX,polygonY);
         double resolution = 1.0/delta;
         
-        xMax = temp.maxX();
-        yMax = temp.maxY();
-        xMin = temp.minX();
-        yMin = temp.minY();
+        xMax = initialCell.maxX();
+        yMax = initialCell.maxY();
+        xMin = initialCell.minX();
+        yMin = initialCell.minY();
         
         nx = (int)((Math.round(xMax)-Math.round(xMin))*resolution);
         ny = (int)((Math.round(yMax)-Math.round(yMin))*resolution);
 
-        dx = (temp.maxX() - temp.minX())/nx;
-        dy = (temp.maxY() - temp.minY())/ny;
+        dx = (initialCell.maxX() - initialCell.minX())/nx;
+        dy = (initialCell.maxY() - initialCell.minY())/ny;
         
         // TODO fundera p� varf�r det inte funkar utan detta
         nx+=1;
@@ -109,8 +110,8 @@ public class Kex implements Runnable{
         double yCoord = yMin;
         for (int iy = 0; iy < ny; iy++) {
             for (int ix = 0; ix < nx; ix++) {
-                xLeft = temp.findX(yCoord, false);
-                xRight = temp.findX(yCoord, true);
+                xLeft = initialCell.findX(yCoord, false);
+                xRight = initialCell.findX(yCoord, true);
                 if (xCoord <= xLeft || xCoord >= xRight) {
                     elementMatrix[ix][iy] = new SearchElement(xCoord, yCoord, 99);   //oob
                     elementMatrix[ix][iy].x = ix;
@@ -240,14 +241,14 @@ public class Kex implements Runnable{
 				elementMatrix[i][j].x = i;
 				elementMatrix[i][j].y = j;
 				
-				int[] indexX = {i   , i+1, i+1 ,i+1 ,i   ,i-1 ,i-1 ,i-1};
-	        	int[] indexY = {j-1 , j-1, j   ,j+1 ,j+1 ,j+1 ,j   ,j-1};
+				//int[] indexX = {i   , i+1, i+1 ,i+1 ,i   ,i-1 ,i-1 ,i-1};
+	        	//int[] indexY = {j-1 , j-1, j   ,j+1 ,j+1 ,j+1 ,j   ,j-1};
 	        	
-				//int[] indexX = {i   , i+1 , i   ,i-1};
-	        	//int[] indexY = {j-1 , j   , j+1 ,j  };
+				int[] indexX = {i   , i+1 , i   ,i-1};
+	        	int[] indexY = {j-1 , j   , j+1 ,j  };
 
 				
-				for(int k = 0; k < 8;k++) { //8
+				for(int k = 0; k < 4;k++) { //8
 	        		int ii = indexX[k];
 	        		int jj = indexY[k];
 	        		if(ii >= 0 && ii < nx && jj >= 0 && jj < ny)
@@ -322,7 +323,7 @@ public class Kex implements Runnable{
 		//sp = new SweepingPattern(this, c, this.delta, this.dt);
 		
 		
-		sp = new MultiBeamSweepingPattern(this, c, elementMatrix, this.delta, this.dt);
+		sp = new MultiBeamSweepingPattern(this, initialCell, elementMatrix, this.delta, this.dt);
 		
         Thread myThread = new Thread(sp);
         myThread.start();
@@ -423,7 +424,7 @@ public class Kex implements Runnable{
         int adjacentLand = 0;
         int adjScanned = 0;
         //int[] adjIndex = {0,2,4,6}; //only check immediate neighbours, not diagonal
-        int[] adjIndex = {0,1,2,3,4,5,6,7}; //only check all neighbours
+        int[] adjIndex = {0,1,2,3};//,4,5,6,7}; //only check all neighbours
         ArrayList<SearchElement> coastElements = new ArrayList<SearchElement>();
         ArrayList<SearchElement> uncovered = getUncoveredElments();
         for (SearchElement se : uncovered){
