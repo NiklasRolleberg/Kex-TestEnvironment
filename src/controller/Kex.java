@@ -55,7 +55,7 @@ public class Kex implements Runnable{
 	double distance = 0;
 	long startTime = 0;
 	
-	boolean saveData = true;
+	boolean saveData = false;
 	
 	ArrayList<Double> cellData;
 	ArrayList<Double> distData;
@@ -349,11 +349,12 @@ public class Kex implements Runnable{
 	            System.out.println("Dist: " + Math.round(distance) + "\t Complete: " + (int)(100*((double)visitedCells / (double)cellsInPolygon)) + "%\t time: " + Math.round(time)+" s");
             }
             
-            
-            if(!updateDepthValue(sensorData)) {
-            	System.out.println("Boat is stuck!");
-            	sp.stop();
-            	break;
+            if(!(sp instanceof MultiBeamSweepingPattern)) {
+	            if(!updateDepthValue(sensorData)) {
+	            	System.out.println("Boat is stuck!");
+	            	sp.stop();
+	            	break;
+	            }
             }
             
             draw.repaint();
