@@ -32,11 +32,15 @@ public class View extends JFrame implements Runnable {
 	int size = 500;
 	private boolean stop = false;
 	
-	public View(Map seafloor, Boat boat, long dt, ArrayList<Double> polygonX, ArrayList<Double> polygonY) {
+	ArrayList<NpBoat> otherBoats;
+	
+	public View(Map seafloor, Boat boat , ArrayList<NpBoat> otherBoats, long dt, ArrayList<Double> polygonX, ArrayList<Double> polygonY) {
 		this.seaFloor = seafloor;
 		this.boat = boat;
 		this.dt = dt;
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+		
+		this.otherBoats = otherBoats;
 		
 		//store boat pos
 		double[] boatPos = boat.getPos();
@@ -253,6 +257,8 @@ public class View extends JFrame implements Runnable {
 			mapgr.setColor(Color.RED);
 			
 			double[] boatpos = boat.getPos();
+			
+			
 			double X0 = (boatlong - longStart)/stepLong;
 			double Y0 = (boatlat - latStart)/stepLat;
 			
@@ -311,6 +317,18 @@ public class View extends JFrame implements Runnable {
 			g2d.drawOval((int)((waypoint[0] - longStart)/stepLong)-5, (int)((waypoint[1] - latStart)/stepLat)-5, 10, 10);
 			
 			
+			//Draw other boats
+			try{
+				for(NpBoat npb: otherBoats) {
+					double[] pos = {npb.posX, npb.posY};
+					
+					dawBoat(g2d,pos, npb.heading, Color.GREEN);
+				}
+			} catch(Exception e) {
+				System.out.println("Thread interferance");
+			}
+			
+			
 			//draw points for front sonar
 			/*
 			double depth = seaFloor.getDepth(boatpos[0], boatpos[1]) ;
@@ -334,6 +352,48 @@ public class View extends JFrame implements Runnable {
 			posLat = boatpos[1] + dist*Math.sin(boat.heading);
 			g2d.fillOval((int)((posLong - longStart)/stepLong)-2, (int)((posLat - latStart)/stepLat)-2, 4, 4);
 			*/
+		}
+		
+		private void dawBoat(Graphics2D g2d, double[] boatpos, double h, Color c) {
+			
+			double X1 = (boatpos[0] - longStart)/stepLong;
+			double Y1 = (boatpos[1] - latStart)/stepLat;
+			
+			//Draw boat
+			int nPoints = 5;
+			int a = 15;
+			int b = 10;
+
+			int[] xPoints = {
+					(int) (X1 + a*Math.cos(h)),
+					(int) (X1 + b*Math.cos(h + (Math.PI/4))),
+					(int) (X1 + b*Math.cos(h + (3*Math.PI/4))),
+					(int) (X1 + b*Math.cos(h + (5*Math.PI/4))),
+					(int) (X1 + b*Math.cos(h + (7*Math.PI/4)))};
+			
+			int[] yPoints = {
+					(int) (Y1 + a*Math.sin(h)),
+					(int) (Y1 + b*Math.sin(h + (Math.PI/4))),
+					(int) (Y1 + b*Math.sin(h + (3*Math.PI/4))),
+					(int) (Y1 + b*Math.sin(h + (5*Math.PI/4))),
+					(int) (Y1 + b*Math.sin(h + (7*Math.PI/4)))};
+			
+			for(int i = 0; i < nPoints; i++) {
+				if(xPoints[i] < 0)
+					xPoints[i]  = 0;
+				if(yPoints[i] < 0)
+					yPoints[i]  = 0;
+				if(xPoints[i] >= size)
+					xPoints[i]  = size-1;
+				if(yPoints[i] >= size)
+					yPoints[i]  = size-1;
+				
+			}
+			
+			g2d.setColor(c);
+			g2d.fillPolygon(xPoints, yPoints, nPoints);
+			g2d.drawLine((int)X1, (int)Y1, (int)(X1 + Math.cos(h) *50), (int)(Y1 + Math.sin(h) * 50));
+			
 		}
 	}
 }

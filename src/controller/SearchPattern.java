@@ -14,7 +14,7 @@ public abstract class SearchPattern implements Runnable {
 		this.region = region;
 		this.delta = delta;
 		this.dt = dt;
-		data = new AverageData(dt/2);
+		data = new AverageData(50);
 		Thread dataThread = new Thread(data);
 		dataThread.start();
 		
@@ -136,7 +136,7 @@ public abstract class SearchPattern implements Runnable {
 		AverageData(long updateDelay) {
 			
 			//nr = number of values to calculate mean from
-			int nr = 1;
+			int nr = 10;
 			depth = new Mean(nr);
 			rightSonar = new Mean(nr);
 			leftSonar = new Mean(nr);

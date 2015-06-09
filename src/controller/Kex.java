@@ -8,13 +8,17 @@ import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import kex2015.Boat;
+import kex2015.NpBoat;
 
 
 /**extend this class to create a new algorithm*/
@@ -29,6 +33,10 @@ public class Kex implements Runnable{
 	// Matrix containing all Seachelements
 	SearchElement[][] elementMatrix;
     ArrayList<SearchElement> alreadyAdded = new ArrayList<SearchElement>();
+    
+    
+    //Other boats
+    ArrayList<NpBoat> otherBoats;
 	
 	//number of elements and size
 	int nx;
@@ -56,7 +64,7 @@ public class Kex implements Runnable{
 	double distance = 0;
 	long startTime = 0;
 	
-	boolean saveData = true;
+	boolean saveData = false;
 	
 	ArrayList<Double> cellData;
 	ArrayList<Double> distData;
@@ -66,7 +74,7 @@ public class Kex implements Runnable{
 	/**Main controller thingy for the boat
 	 * @param delta is map resolution, not used yet
 	 * */
-	public Kex(Boat inBoat, ArrayList<Double> x, ArrayList<Double> y , double delta , int[] endPos, long dt ) {
+	public Kex(Boat inBoat, ArrayList<Double> x, ArrayList<Double> y , ArrayList<NpBoat> otherBoats, double delta , int[] endPos, long dt ) {
 		
 		this.boat = inBoat;
 		this.polygonX = x;
@@ -76,6 +84,7 @@ public class Kex implements Runnable{
 		this.dt = dt;
         currentCellIndex = 0;
         gp = new GoToPoint(this);
+        this.otherBoats = otherBoats;
 
         /** (1) Create matrix + populate matrix + addneighbours + set status(unknown or not accessible) */ 
         
@@ -140,8 +149,8 @@ public class Kex implements Runnable{
         
         /**(2) Create cell from the given polygon*/
         cellList = new ArrayList<SearchCell>();
-        //cellList.add(temp);
-        cellList.addAll(SearchCell.triangulatePolygon(polygonX, polygonY));
+        cellList.add(temp);
+        //cellList.addAll(SearchCell.triangulatePolygon(polygonX, polygonY));
         
         cellData = new ArrayList<Double>();
     	distData = new ArrayList<Double>();
@@ -319,14 +328,23 @@ public class Kex implements Runnable{
 	 */
 	private void scanCell(SearchCell c, boolean b) {
 		
+<<<<<<< HEAD
 		/* Scan a search cell...*/
 		/*
+=======
+		
+>>>>>>> origin/avoid-boats
 		if(b)
 			sp = new SweepingPattern(this, c, this.delta, this.dt);
 		else
 			sp = new SweepingPattern(this, c, -this.delta, this.dt);
+<<<<<<< HEAD
 		*/
 		sp = new MultiBeamSweepingPattern(this, initialCell, elementMatrix, this.delta, this.dt);
+=======
+        
+        //sp = new CircularPattern(this, c, this.delta, this.dt);
+>>>>>>> origin/avoid-boats
 		
         Thread myThread = new Thread(sp);
         myThread.start();
@@ -812,7 +830,16 @@ public class Kex implements Runnable{
         frame.setLocation(0,550);
     	frame.pack();
     	frame.setVisible(true);
-
+    	
+    	/*
+    	boat.setTargetSpeed(0);
+    	try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}*/
+    	
     	
 		startTime = System.currentTimeMillis();
 
@@ -829,7 +856,7 @@ public class Kex implements Runnable{
         
         //idRegions();
       	//draw.repaint();
-        
+        //boolean a = false;
         while(true) {
         	
         	reworkSearchCells();
@@ -906,12 +933,19 @@ public class Kex implements Runnable{
        
         	System.out.println("CellList size: " + cellList.size());
         }
+        if(this.saveData)
+        	printToFile();
    	}
 	
     
 	/** print data to file */
 	public void printToFile() {
-		String fileName = "coverageData.csv";
+		
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+		Date date = new Date();
+		System.out.println(dateFormat.format(date));
+			
+		String fileName = "coverageData" +dateFormat.format(date) + ".csv";
 		StringBuilder l1 = new StringBuilder();
 		StringBuilder l2 = new StringBuilder();
 		StringBuilder l3 = new StringBuilder();
