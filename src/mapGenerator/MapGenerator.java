@@ -84,8 +84,8 @@ public class MapGenerator implements ActionListener{
 			if (s<=10)
 				return;
 			
-			//generateRandomMap(s,s,fileName);
-			generateContourTestMap(s,s,fileName);
+			generateRandomMap(s,s,fileName);
+			//generateContourTestMap(s,s,fileName);
 			
 		}
 		else if(arg0.getActionCommand()  == "Show map") {

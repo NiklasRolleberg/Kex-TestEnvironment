@@ -6,6 +6,7 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 	
 	SearchElement[][] matrix;
 	boolean stop = false;
+	double sonarRatio = 5;
 	
 	public MultiBeamSweepingPattern(Kex kex, SearchCell region, SearchElement[][] elementMatrix, double delta, long dt) {
 		super(kex, region, delta, dt);
@@ -91,8 +92,11 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 				
 				//change status of scanned elements
 				if(!findNew) {
+					if(matrix[next[0]][next[1]].status == 0)
+						kex.visitedCells ++;
+					
 					matrix[next[0]][next[1]].status = 1;
-					matrix[next[0]][next[1]].updateDepthData(data.getDepth());
+					//matrix[next[0]][next[1]].updateDepthData(data.getDepth());
 					current  = next;
 				} else {
 					//last = next;
@@ -100,13 +104,14 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 				}
 				findNew = false;
 				
-				next = calculateNextWaypoint(current[0],current[1],last[0],last[1]);
-				last = current;
-				if(next == null) {
+				if(matrix[current[0]][current[1]].timesVisited > 3*delta) {
 					this.stop();
 					break;
 				}
-				if(matrix[next[0]][next[1]].timesVisited > 3*delta) {
+				
+				next = calculateNextWaypoint(current[0],current[1],last[0],last[1]);
+				last = current;
+				if(next == null) {
 					this.stop();
 					break;
 				}
@@ -130,24 +135,37 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 			
 			// TODO mark scanned elements (based on depth)
 			
+			//update depth data for current cell
+			double xpos = data.getPosX();
+			double ypos = data.getPosY(); 
+			
+			int[] index = getIndex(xpos, ypos);
+			matrix[index[0]][index[1]].updateDepthData(data.getDepth());
+			
 			//Unvisited, but scanned by multibeam
-			double ratio = 10.0; // scan width = 3*depth
-			double dist = Math.abs(data.getDepth()) * (ratio/2.0); // distance scanned on each side
+			//sonarRatio = 10.0; // scan width = 3*depth
+			double dist = Math.abs(data.getDepth()) * (sonarRatio/2.0); // distance scanned on each side
 			//System.out.println("Dist:" + dist);
 			double h = data.getHeading() - (Math.PI/2);
-			double xpos = data.getPosX();
-			double ypos = data.getPosY();
 			
 			for(int i=0;i<2;i++) {
 				h += (Math.PI);
 				double p = 0.2;
 				while(p<dist) {
-					int[] index = getIndex(xpos + p*Math.cos(h), ypos + p*Math.sin(h));
+					index = getIndex(xpos + p*Math.cos(h), ypos + p*Math.sin(h));
+					p+=0.2;
 					if(matrix[index[0]][index[1]].status == 2)
 						break;
+					
+					if(matrix[index[0]][index[1]].status == 99)
+						continue;
+					
+					if(matrix[index[0]][index[1]].status == 0)
+						kex.visitedCells ++;
+					
 					matrix[index[0]][index[1]].status = 1;
 					//System.out.println(p);
-					p+=0.2;
+					
 				}
 			}
 			sleep(dt);
@@ -164,14 +182,17 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 	 */
 	private int[] calculateNextWaypoint(int ix, int iy, int lastx, int lasty) {
 		
-		int[] i = {ix,ix,ix+1,ix-1};
-		int[] j = {iy+1,iy-1,iy,iy};
+		int[] i = {ix,ix,ix+1,ix-1, 	ix+1,ix-1,ix-1,ix+1};
+		int[] j = {iy+1,iy-1,iy,iy,	 	iy+1,iy-1,iy+1,iy-1};
 		
 		double max = Double.MIN_VALUE;
 		int index = -1;
 		
-		for(int k = 0;k<4;k++) {
-			double value = elementValue(0,i[k],j[k], new ArrayList<SearchElement>());
+		int maxrecursiondepth = (int) Math.max(Math.round(Math.abs(data.getDepth())*(sonarRatio/(2.0 * delta))) , 2);
+		//System.out.println(maxrecursiondepth);
+		
+		for(int k = 0;k<8;k++) {
+			double value = elementValue(0,maxrecursiondepth,i[k],j[k], new ArrayList<SearchElement>());
 			if(value > max) {
 				if(!(i[k] == lastx && j[k]==lasty)) {
 					max = value;
@@ -182,7 +203,7 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 		if(index == -1)
 			return null;
 		
-		System.out.println("New destination chosen: (" +i[index] + "," + j[index] + ") , value:" + max);
+		//System.out.println("New destination chosen: (" +i[index] + "," + j[index] + ") , value:" + max);
 	
 		return new int[] {i[index], j[index]};
 	}
@@ -198,7 +219,7 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 	 * List of elements already calculated
 	 * @return
 	 */
-	private double elementValue(int recursiondepth, int x, int y, ArrayList<SearchElement> dontVisit) {
+	private double elementValue(int recursiondepth, int maxdepth, int x, int y, ArrayList<SearchElement> dontVisit) {
 		
 		//check oob
 		if (x >= kex.nx){
@@ -213,14 +234,14 @@ public class MultiBeamSweepingPattern extends SearchPattern {
         if(y<0)
         	return 0;
 		
-		if(recursiondepth > 2) {
+		if(recursiondepth >= maxdepth) {
 			//maximum depth reached
 			int status = matrix[x][y].status;
 			
 			if(status == 0) // not scanned
 				return 10;
 			if(status == 1) //scanned 
-				return 0;
+				return 0; //
 			return 0;
 		}
 		
@@ -238,10 +259,15 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 		if(status != 1 && status != 0) //land or oob
 			return 0;
 		
-		sum += elementValue(recursiondepth+1,x+1,y,dontVisit);
-		sum += elementValue(recursiondepth+1,x-1,y,dontVisit);
-		sum += elementValue(recursiondepth+1,x,y+1,dontVisit);
-		sum += elementValue(recursiondepth+1,x,y-1,dontVisit);
+		sum += elementValue(recursiondepth+1,maxdepth,x+1,y,dontVisit);
+		sum += elementValue(recursiondepth+1,maxdepth,x-1,y,dontVisit);
+		sum += elementValue(recursiondepth+1,maxdepth,x,y+1,dontVisit);
+		sum += elementValue(recursiondepth+1,maxdepth,x,y-1,dontVisit);
+		
+		sum += elementValue(recursiondepth+1,maxdepth,x+1,y+1,dontVisit);
+		sum += elementValue(recursiondepth+1,maxdepth,x-1,y+1,dontVisit);
+		sum += elementValue(recursiondepth+1,maxdepth,x-1,y+1,dontVisit);
+		sum += elementValue(recursiondepth+1,maxdepth,x+1,y-1,dontVisit);
 		
 		return sum;
 	}
@@ -323,6 +349,7 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 			
 			//change status of element
 			int[] index = this.getIndex(lastX, lastY);
+			matrix[index[0]][index[1]].updateDepthData(data.getDepth());
 			
 			double h = data.getHeading();
 			if(data.getRightSonar() > data.getLeftSonar()) { // deeper on right side
@@ -342,12 +369,14 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 				if(matrix[in[0]][in[1]].status == 1 && matrix[in[0]][in[1]].timesVisited != 0)
 					continue;
 				
+				if(matrix[in[0]][in[1]].status == 0)
+					kex.visitedCells ++;
 				
 				matrix[in[0]][in[1]].status = 2;
 				//System.out.println(p);
 			}
-			matrix[index[0]][index[1]].status = 1;
-			matrix[index[0]][index[1]].updateDepthData(data.getDepth());
+			//matrix[index[0]][index[1]].status = 1;
+			//matrix[index[0]][index[1]].updateDepthData(data.getDepth());
 			
 			
 			

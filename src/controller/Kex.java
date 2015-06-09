@@ -56,7 +56,7 @@ public class Kex implements Runnable{
 	double distance = 0;
 	long startTime = 0;
 	
-	boolean saveData = false;
+	boolean saveData = true;
 	
 	ArrayList<Double> cellData;
 	ArrayList<Double> distData;
@@ -241,14 +241,14 @@ public class Kex implements Runnable{
 				elementMatrix[i][j].x = i;
 				elementMatrix[i][j].y = j;
 				
-				//int[] indexX = {i   , i+1, i+1 ,i+1 ,i   ,i-1 ,i-1 ,i-1};
-	        	//int[] indexY = {j-1 , j-1, j   ,j+1 ,j+1 ,j+1 ,j   ,j-1};
+				int[] indexX = {i   , i+1, i+1 ,i+1 ,i   ,i-1 ,i-1 ,i-1};
+	        	int[] indexY = {j-1 , j-1, j   ,j+1 ,j+1 ,j+1 ,j   ,j-1};
 	        	
-				int[] indexX = {i   , i+1 , i   ,i-1};
-	        	int[] indexY = {j-1 , j   , j+1 ,j  };
+				//int[] indexX = {i   , i+1 , i   ,i-1};
+	        	//int[] indexY = {j-1 , j   , j+1 ,j  };
 
 				
-				for(int k = 0; k < 4;k++) { //8
+				for(int k = 0; k < 8;k++) { //8
 	        		int ii = indexX[k];
 	        		int jj = indexY[k];
 	        		if(ii >= 0 && ii < nx && jj >= 0 && jj < ny)
@@ -320,9 +320,12 @@ public class Kex implements Runnable{
 	private void scanCell(SearchCell c, boolean b) {
 		
 		/* Scan a search cell...*/
-		//sp = new SweepingPattern(this, c, this.delta, this.dt);
-		
-		
+		/*
+		if(b)
+			sp = new SweepingPattern(this, c, this.delta, this.dt);
+		else
+			sp = new SweepingPattern(this, c, -this.delta, this.dt);
+		*/
 		sp = new MultiBeamSweepingPattern(this, initialCell, elementMatrix, this.delta, this.dt);
 		
         Thread myThread = new Thread(sp);
