@@ -322,7 +322,7 @@ public class View extends JFrame implements Runnable {
 				for(NpBoat npb: otherBoats) {
 					double[] pos = {npb.posX, npb.posY};
 					
-					dawBoat(g2d,pos, npb.heading, Color.GREEN);
+					dawBoat(g2d,pos, npb.heading, Color.ORANGE);
 				}
 			} catch(Exception e) {
 				System.out.println("Thread interferance");

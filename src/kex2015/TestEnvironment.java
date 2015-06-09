@@ -51,11 +51,8 @@ public class TestEnvironment {
 		/**Create kex*/
 		//polygon
 		int[] endPos = {1,3};
-<<<<<<< HEAD
-		kex = new Kex(boat, polygonX, polygonY , 10 , endPos , 100); //100
-=======
+
 		kex = new Kex(boat, polygonX, polygonY, otherBoats , 10 , endPos , 200); //100
->>>>>>> origin/avoid-boats
 				
 		/**Create view*/
 		view = new View(map, boat, otherBoats, 20 , polygonX, polygonY);

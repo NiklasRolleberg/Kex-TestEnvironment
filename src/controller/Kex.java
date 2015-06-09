@@ -149,7 +149,7 @@ public class Kex implements Runnable{
         
         /**(2) Create cell from the given polygon*/
         cellList = new ArrayList<SearchCell>();
-        cellList.add(temp);
+        cellList.add(this.initialCell);
         //cellList.addAll(SearchCell.triangulatePolygon(polygonX, polygonY));
         
         cellData = new ArrayList<Double>();
@@ -327,24 +327,19 @@ public class Kex implements Runnable{
 	 * @param b 
 	 */
 	private void scanCell(SearchCell c, boolean b) {
-		
-<<<<<<< HEAD
 		/* Scan a search cell...*/
 		/*
-=======
-		
->>>>>>> origin/avoid-boats
+
 		if(b)
 			sp = new SweepingPattern(this, c, this.delta, this.dt);
 		else
 			sp = new SweepingPattern(this, c, -this.delta, this.dt);
-<<<<<<< HEAD
-		*/
+		 */
+		
 		sp = new MultiBeamSweepingPattern(this, initialCell, elementMatrix, this.delta, this.dt);
-=======
-        
+
+		
         //sp = new CircularPattern(this, c, this.delta, this.dt);
->>>>>>> origin/avoid-boats
 		
         Thread myThread = new Thread(sp);
         myThread.start();
