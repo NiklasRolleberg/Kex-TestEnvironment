@@ -40,7 +40,7 @@ public class TestEnvironment {
 		}
 		
 		//otherBoats.add(new NpBoat(new double[]{polygonX.get(index),polygonY.get(index)},-Math.PI/2, 10, polygonX,polygonY));
-		for(int i = 0; i< 10;i++) {
+		for(int i = 0; i< -1;i++) {
 			otherBoats.add(new NpBoat(polygonX,polygonY));
 		}
 		
