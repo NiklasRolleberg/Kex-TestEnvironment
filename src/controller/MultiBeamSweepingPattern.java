@@ -1,6 +1,7 @@
 package controller;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 import javax.print.attribute.standard.MediaSize.Other;
 
@@ -237,7 +238,7 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 		
 		for(int i=0;i<directionsToAvoid.size();i++) {
 			double[] e = directionsToAvoid.get(i);
-			for(double p=0.5;p<Math.min(2*delta,20);p+=0.5) {
+			for(double p=0.5;p<Math.min(2*delta,30);p+=1) {
 				double xPos = data.getPosX() + e[0] * p;
 				double yPos = data.getPosY() + e[1] * p;
 				
@@ -276,20 +277,18 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 			
 		}
 		
-		
-		
 		double max = Double.MIN_VALUE;
 		int indexX = -1;
 		int indexY = -1;
 		
-		int maxrecursiondepth = (int) Math.max(Math.round(Math.abs(data.getDepth())*(sonarRatio/(2.0 * delta))), 2);
+		double radius = Math.max((Math.abs(data.getDepth())*(sonarRatio/(2.0))), 1.5*delta);
 		
 		for(int k = 0;k<targets.size();k++) {
 			
 			int i = targets.get(k).x;
 			int j = targets.get(k).y;
 			
-			double value = elementValue(0,maxrecursiondepth,i,j, new ArrayList<SearchElement>());
+			double value = elementValue(radius,i,j);
 			if(value > max) {
 				if(!(i == lastx && j==lasty)) {
 					max = value;
@@ -343,73 +342,61 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 	 * List of elements already calculated
 	 * @return
 	 */
-	private double elementValue(int recursiondepth, int maxdepth, int x, int y, ArrayList<SearchElement> dontVisit) {
+	private double elementValue(double radius, int x, int y) {
 		
-		//check oob
-		if (x >= kex.nx){
-			return 0;
-        }
-        if (y >= kex.ny){
-        	return 0;
-        }
-        if(x<0)
-        	return 0;
-        
-        if(y<0)
-        	return 0;
-        
-        if(dontVisit.contains(matrix[x][y]))
-        	return 0;
+		double startX = matrix[x][y].xCoord;
+		double startY = matrix[x][y].yCoord;
 		
-		if(recursiondepth >= maxdepth) {
-			//maximum depth reached
-			int status = matrix[x][y].status;
-			
-			if(status == 0) // not scanned
-				return 10;
-			if(status == 1) //scanned 
-				return 0; //
-			return 0;
-		}
+		ArrayList<SearchElement> visited = new ArrayList<SearchElement>();
+		LinkedList<SearchElement> queue = new LinkedList<SearchElement>();
 		
-		dontVisit.add(matrix[x][y]);
-		
-		double px = x*kex.dx + kex.xMin;
-		double py = y*kex.dy + kex.yMin;
-		
-		//check if there are boats at this position
-		//boolean boat = false;
-		for(NpBoat npb : kex.otherBoats) {
-			
-	        if(Math.abs(px-npb.posX) < 10 && Math.abs(py-npb.posY) < 10) {
-	        	System.out.println("Boat close");
-	        	return 0;
-	        }
-		}
-		
-		//check status
-		int status = matrix[x][y].status;
-		//matrix[x][y].status = 42;
+		queue.add(matrix[x][y]);
 		
 		double sum = 0;
 		
-		if(status == 0) // this element is unscanned
-			sum = 10;
-		if(status == 1) // element is scanned
-			sum = 0;
-		if(status != 1 && status != 0) //land or oob
-			return 0;
+		while(!queue.isEmpty()) {
+			SearchElement element = queue.pop();
+			visited.add(element); //dont look at the same element more than one time
+			
+			double d = Math.sqrt( (element.xCoord - startX)*(element.xCoord - startX) + (element.yCoord - startY)*(element.yCoord - startY));
+			
+			if(d>radius) // element to far away
+				continue;
+			
+			//check if there are boats at this position
+			int boats = 0;
+			for(NpBoat npb : kex.otherBoats) {
+				
+		        if(Math.abs(element.xCoord-npb.posX) < delta && Math.abs(element.yCoord-npb.posY) < delta) {
+		        	//System.out.println("Boat close");
+		        	boats += 1;
+		        }
+			}
+			
+			if(boats != 0) {
+				sum-= (100*boats) / Math.max(1,d);
+				continue;
+			}
+			
+			//element is not scanned or unknown -> element is probably land
+			if(element.status != 1 && element.status != 0) {
+				continue;
+			}
+			
+			if(element.status == 0)
+				sum += 100.0 / Math.max(1, d); //don't divide by zero
+			
+			for(SearchElement se: element.neighbour) {
+				if(!visited.contains(se)) {
+					queue.add(se);
+				}
+			}
+			//System.out.println("Queue size:" + queue.size());
+			//element.status = 42;
+		}
 		
-		sum += elementValue(recursiondepth+1,maxdepth,x+1,y,dontVisit);
-		sum += elementValue(recursiondepth+1,maxdepth,x-1,y,dontVisit);
-		sum += elementValue(recursiondepth+1,maxdepth,x,y+1,dontVisit);
-		sum += elementValue(recursiondepth+1,maxdepth,x,y-1,dontVisit);
-		
-		sum += elementValue(recursiondepth+1,maxdepth,x+1,y+1,dontVisit);
-		sum += elementValue(recursiondepth+1,maxdepth,x-1,y+1,dontVisit);
-		sum += elementValue(recursiondepth+1,maxdepth,x-1,y+1,dontVisit);
-		sum += elementValue(recursiondepth+1,maxdepth,x+1,y-1,dontVisit);
-		
+		//System.out.println("radius:" + radius);
+		//System.out.println("sum:" + sum);
 		return sum;
 	}
 	

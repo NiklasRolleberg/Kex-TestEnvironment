@@ -378,6 +378,7 @@ public class Kex implements Runnable{
             
             if(sp.isDone()) {
             	sp.stop();
+            	//System.out.println("sp.isDone()");
             	break;
             }
             

@@ -42,7 +42,7 @@ public class NpBoat implements Runnable{
 		this.posX = minX + Math.random() * (maxX - minX);
 		this.posY = minY + Math.random() * (maxY - minY);
 		this.heading = Math.random() * Math.PI * 2;
-		this.speed = 5 + Math.random() * 10;
+		this.speed = 5 + Math.random() * 5;
 		
 		t =  new Thread(this);
 		t.start();
