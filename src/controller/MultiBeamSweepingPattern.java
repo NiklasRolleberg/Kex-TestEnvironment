@@ -79,7 +79,9 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 			
 			double depth = Math.abs(data.getDepth());
 			
-			if(depth < 3)
+			if(depth < 2)
+				kex.setSpeed(3);
+			else if(depth < 3)
 				kex.setSpeed(5);
 			else if(depth < 8)
 				kex.setSpeed(10);
@@ -166,9 +168,11 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 					
 				}
 			}
+			
 			sleep(dt);
 		}
 	}
+	
 	
 	/** Calculate next waypoint based on "element value"
 	 * @param ix
@@ -212,7 +216,7 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 			
 			
 			if( !new Double(t1).isNaN()) {
-				if(t1 > -0.5 && t1 < 2) {
+				if(t1 > -0.5 && t1 < 4) {
 					System.out.println("T1: " + t1);
 					double[] temp = calculateDirection(t1, P1, V0, P2, V2);
 					if(temp != null)
@@ -221,7 +225,7 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 			}
 				
 			if( !new Double(t2).isNaN()) {
-				if(t2 > -0.5 && t2 < 2) {
+				if(t2 > -0.5 && t2 < 4) {
 					System.out.println("T2: " + t2);
 					double[] temp = calculateDirection(t2, P1, V0, P2, V2);
 					if(temp != null)
@@ -281,7 +285,7 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 		int indexX = -1;
 		int indexY = -1;
 		
-		double radius = Math.max((Math.abs(data.getDepth())*(sonarRatio/(2.0))), 1.5*delta);
+		double radius = Math.max((Math.abs(data.getDepth())*(sonarRatio/(2.0))), 1.5*delta);;
 		
 		for(int k = 0;k<targets.size();k++) {
 			
@@ -300,7 +304,7 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 		if(indexX == -1)
 			return null;
 		
-		//System.out.println("New destination chosen: (" +i[index] + "," + j[index] + ") , value:" + max);
+		System.out.println("New destination chosen: (" +indexX + "," + indexY + ") , value:" + max);
 	
 		return new int[] {indexX, indexY};
 	}
@@ -364,17 +368,18 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 				continue;
 			
 			//check if there are boats at this position
-			int boats = 0;
+			boolean boat = false;
 			for(NpBoat npb : kex.otherBoats) {
 				
 		        if(Math.abs(element.xCoord-npb.posX) < delta && Math.abs(element.yCoord-npb.posY) < delta) {
 		        	//System.out.println("Boat close");
-		        	boats += 1;
+		        	boat = true;
+		        	break;
 		        }
 			}
 			
-			if(boats != 0) {
-				sum-= (100*boats) / Math.max(1,d);
+			if(boat) {
+				sum-= 200 / Math.max(1,d);
 				continue;
 			}
 			

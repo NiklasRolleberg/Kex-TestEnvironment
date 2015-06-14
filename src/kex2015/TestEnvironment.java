@@ -40,7 +40,7 @@ public class TestEnvironment {
 		}
 		
 		//otherBoats.add(new NpBoat(new double[]{polygonX.get(index),polygonY.get(index)},-Math.PI/2, 10, polygonX,polygonY));
-		for(int i = 0; i< 10;i++) {
+		for(int i = 0; i< 2;i++) {
 			otherBoats.add(new NpBoat(polygonX,polygonY));
 		}
 		
@@ -52,7 +52,7 @@ public class TestEnvironment {
 		//polygon
 		int[] endPos = {1,3};
 
-		kex = new Kex(boat, polygonX, polygonY, otherBoats , 5 , endPos , 200); //100
+		kex = new Kex(boat, polygonX, polygonY, otherBoats , 10 , endPos , 100); //100
 				
 		/**Create view*/
 		view = new View(map, boat, otherBoats, 20 , polygonX, polygonY);

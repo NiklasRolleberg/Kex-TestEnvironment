@@ -54,17 +54,26 @@ public class GoToPoint {
 	 * distance / -1 if fail
 	 */
 	public double GO(int startX, int startY, int stopX, int stopY) {
-		//this.startX = startX;
-		//this.startY = startY;
-		//this.stopX = stopX;
-		//this.stopY = stopY;
 		
 		ArrayList<SearchElement> path = null;
 		
 		if(startX == stopX && startY == stopY) {
 			System.out.println("Already at target point");
-			return -1;
+			return -1;		
 		}
+		
+		
+		
+		
+		// TODO Find a path
+		
+		// TODO try to follow that path
+			// TODO give points in path for boat to travel to.
+			// TODO check distance to other boats
+				// TODO if distance is close, calculate the risk of collision
+					// TODO if risk is high, calculate a new path
+		// TODO When the end of the path is reached, return the distance traveled.
+		
 		
 		try {
 			path = Astar(kex.elementMatrix[startX][startY],kex.elementMatrix[stopX][stopY]);
@@ -106,12 +115,23 @@ public class GoToPoint {
 				targetX = path.get(index).xCoord;
 				targetY = path.get(index).yCoord;
 				kex.setWaypoint(targetX, targetY);
+				
+				
+				
 			}
 			sleep(100);
 		}
 		System.out.println("Target reached");
 		kex.setSpeed(0);
 		return dist;
+	}
+	
+	
+	private double adaptSpeed(SearchElement previous, SearchElement next) {
+		
+		
+		
+		return 15;
 	}
 
 	
@@ -132,7 +152,7 @@ public class GoToPoint {
 	 * @return
 	 * path, or null if no path was found 
 	 */
-	public ArrayList<SearchElement> Astar(SearchElement startElement, SearchElement stopElement ) {
+	public ArrayList<SearchElement> Astar(SearchElement startElement, SearchElement stopElement) {
 		if(stopElement.status != 1)
 			return null;
 		
