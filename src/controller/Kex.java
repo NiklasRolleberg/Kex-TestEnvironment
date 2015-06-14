@@ -660,7 +660,7 @@ public class Kex implements Runnable{
             ArrayList<ArrayList<Double>> convexCell = PolygonLib.findConvexHull(tempListX,tempListY);
             
             //create new cell
-            if(tempListX.size() > 100 && !(sp instanceof MultiBeamSweepingPattern)) {
+            if(tempListX.size() > 100){// && !(sp instanceof MultiBeamSweepingPattern)) {
             	ArrayList<Double> xpos = new ArrayList<Double>(convexCell.get(0).size());
             	ArrayList<Double> ypos = new ArrayList<Double>(convexCell.get(0).size());
             	for(int i=convexCell.get(0).size()-1; i>=0; i--) {

@@ -3,8 +3,6 @@ package controller;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-import javax.print.attribute.standard.MediaSize.Other;
-
 import kex2015.NpBoat;
 
 public class MultiBeamSweepingPattern extends SearchPattern {

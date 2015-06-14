@@ -2,6 +2,8 @@ package controller;
 
 import java.util.ArrayList;
 
+import kex2015.NpBoat;
+
 public class GoToPoint {
 	
 	Kex kex;
@@ -14,7 +16,7 @@ public class GoToPoint {
 		
 		ArrayList<SearchElement> path = null;
 		try {
-			path = Astar(kex.elementMatrix[startX][startY],kex.elementMatrix[stopX][stopY]);
+			path = Astar(kex.elementMatrix[startX][startY],kex.elementMatrix[stopX][stopY],null);
 		}
 		catch(Exception e) {
 			System.out.println("Distance: A* failed: " + e);
@@ -66,29 +68,25 @@ public class GoToPoint {
 		
 		
 		// TODO Find a path
-		
-		// TODO try to follow that path
-			// TODO give points in path for boat to travel to.
-			// TODO check distance to other boats
-				// TODO if distance is close, calculate the risk of collision
-					// TODO if risk is high, calculate a new path
-		// TODO When the end of the path is reached, return the distance traveled.
-		
-		
 		try {
-			path = Astar(kex.elementMatrix[startX][startY],kex.elementMatrix[stopX][stopY]);
+			path = Astar(kex.elementMatrix[startX][startY],kex.elementMatrix[stopX][stopY], null);
 		}
 		catch(Exception e) {
 			System.out.println("A* failed " + e);
 			return -1;
 		}
-			
+		
 		//No path found
 		if(path == null) {
 			System.out.println("no path found");
 			return -1;
 		}
+				
 		
+		
+		kex.elementMatrix[stopX][stopY].targeted = true;
+		double travelSpeed = 15;
+		// TODO try to follow that path
 		//follow the path
 		int index = path.size()-1;
 		double targetX = path.get(index).xCoord;
@@ -98,7 +96,7 @@ public class GoToPoint {
 		double dist = 0;
 		while (index >= 0) {
 			kex.setWaypoint(targetX, targetY);
-			kex.setSpeed(15);
+			kex.setSpeed(travelSpeed);
 			data = kex.getData();
 			double dx = targetX-data[0];
 			double dy = targetY-data[1];
@@ -116,24 +114,108 @@ public class GoToPoint {
 				targetY = path.get(index).yCoord;
 				kex.setWaypoint(targetX, targetY);
 				
-				
+				//check if a collision is about to happen;
+				double d = 0;
+				for(int i = index; i>0 && (index - i)<2;i--) {
+					
+					double t = d/travelSpeed;
+					
+					double[] pos1 = {path.get(i).xCoord, path.get(i).yCoord};
+					double[] pos2 = {path.get(i+1).xCoord, path.get(i+1).yCoord};
+					
+					d += Math.sqrt( (pos2[0]-pos1[0])*(pos2[0]-pos1[0]) + (pos2[1]-pos1[1])*(pos2[1]-pos1[1])  );
+					
+					
+					if(willCollide(pos1, pos2, t, travelSpeed)) {
+						//calculate a new path
+						System.out.println("calculating new path");
+						try {
+							ArrayList<SearchElement> a = new ArrayList<SearchElement>();
+							a.add(kex.elementMatrix[path.get(i+1).x][path.get(i+1).y]);
+							kex.elementMatrix[path.get(i+1).x][path.get(i+1).y].status = 42;
+							path = Astar(kex.elementMatrix[path.get(i).x][path.get(i).y],kex.elementMatrix[stopX][stopY], a);
+							index = path.size()-1;
+							break;
+						}
+						catch(Exception e) {
+							System.out.println("A* failed " + e);
+							//return -1;
+						}
+					}
+				}
 				
 			}
 			sleep(100);
 		}
+		
+		
+		
+			// TODO give points in path for boat to travel to.
+			// TODO check distance to other boats
+				// TODO if distance is close, calculate the risk of collision
+					// TODO if risk is high, calculate a new path
+		// TODO When the end of the path is reached, return the distance traveled.
+		
+
 		System.out.println("Target reached");
 		kex.setSpeed(0);
 		return dist;
 	}
 	
 	
-	private double adaptSpeed(SearchElement previous, SearchElement next) {
+	/** Calculates if a collision is about to happen between two coordinates
+	 * @param startpos
+	 * 			pos1
+	 * @param targetPos
+	 * 			pos2
+	 * @param time
+	 * 			time until the boat reaches pos1
+	 * @return
+	 */
+	private boolean willCollide(double[] startpos, double[] targetPos, double time, double speed) {
 		
-		
-		
-		return 15;
+		for(NpBoat other : kex.otherBoats) {
+			
+			//calculate time and direction.
+			
+			double[] P1 = startpos; //current boatPos
+			double V0 = speed;
+			
+			double[] P2 = {other.posX, other.posY};
+			double[] V2 = {other.speed * Math.cos(other.heading) , other.speed * Math.sin(other.heading)};
+			P2[0] += V2[0]*time;
+			P2[1] += V2[1]*time;
+			
+			double P2P1x =  P2[0]-P1[0];
+			double P2P1y =  P2[1]-P1[1];
+			
+			double over = P2P1x*P2P1x + P2P1y*P2P1y;
+			
+			double under_1 = -1* ( (P2P1x*V2[0]) + (P2P1y*V2[1]));
+			
+			double under_2 = Math.sqrt( under_1*under_1 - over * ( (V2[0]*V2[0] + V2[1]*V2[1])  - V0) ); 
+			
+			
+			
+			double t1 = over / (under_1 + under_2);
+			double t2 = over / (under_1 - under_2);
+			
+			
+			if( !new Double(t1).isNaN()) {
+				if(t1 > -0.5 && t1 < 4) {
+					return true;
+				}
+			}
+				
+			if( !new Double(t2).isNaN()) {
+				if(t2 > -0.5 && t2 < 4) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
-
+	
 	
 	private void sleep(long delay) {
 		try {
@@ -152,7 +234,7 @@ public class GoToPoint {
 	 * @return
 	 * path, or null if no path was found 
 	 */
-	public ArrayList<SearchElement> Astar(SearchElement startElement, SearchElement stopElement) {
+	public ArrayList<SearchElement> Astar(SearchElement startElement, SearchElement stopElement, ArrayList<SearchElement> avoid) {
 		if(stopElement.status != 1)
 			return null;
 		
@@ -161,6 +243,9 @@ public class GoToPoint {
 		
 		ArrayList<SearchElement> closedSet = new ArrayList<SearchElement>();
 		ArrayList<SearchElement> openSet = new ArrayList<SearchElement>();
+		
+		if (avoid != null)
+			closedSet.addAll(avoid);
 		
 		SearchElement[][] came_from = new SearchElement[maxX][maxY]; 
 		double[][] g_score = new double[maxX][maxY];
