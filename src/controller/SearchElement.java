@@ -13,8 +13,8 @@ public class SearchElement{
     int x;
     int y;
     
-    //false = not targeted before, true = targeted before
-    boolean targeted = false;
+    //times targeted
+    int targeted = 0; // 
     
     ArrayList<SearchElement> neighbour = new ArrayList<SearchElement>();
 

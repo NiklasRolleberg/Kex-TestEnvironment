@@ -12,6 +12,94 @@ public class GoToPoint {
 		this.kex = kex;
 	}
 	
+	/** Use Dijkstra to calculate the cost of each element
+	 * @param targetX
+	 * 			x-index for target
+	 * @param targetY
+	 * 			Y-index for target
+	 * @return
+	 * 			nx x ny matrix with costs
+	 */
+	public double[][] calculateCost(int targetX, int targetY) {
+		//double[][] costMatrix = new double[kex.nx][kex.ny];
+		
+		if(kex.elementMatrix[targetX][targetY].status != 1)
+			System.out.println("Target is unknown ("+targetX + " , " + targetY + ")");
+			
+			//return null;
+		
+		System.out.println("Calculating cost matrix");
+		
+		int maxX = kex.nx;
+		int maxY = kex.ny;
+		
+		ArrayList<SearchElement> closedSet = new ArrayList<SearchElement>();
+		ArrayList<SearchElement> openSet = new ArrayList<SearchElement>();
+		
+		SearchElement[][] came_from = new SearchElement[maxX][maxY]; 
+		double[][] g_score = new double[maxX][maxY];
+		double[][] f_score = new double[maxX][maxY];
+		
+		for(int i=0;i < maxX;i++) {
+			for(int j=0;j < maxY;j++) {
+				g_score[i][j] = -1;
+			}
+		}
+				
+		
+		openSet.add(kex.elementMatrix[targetX][targetY]);
+		
+		g_score[kex.elementMatrix[targetX][targetY].x][kex.elementMatrix[targetX][targetY].y] = 0;
+		f_score[kex.elementMatrix[targetX][targetY].x][kex.elementMatrix[targetX][targetY].y] = 0;//heuristic_cost_estimate(startElement, stopElement);
+		
+		while(!openSet.isEmpty()) {
+			//find node with lowest f_score value
+			
+			double min = Double.MAX_VALUE;
+			SearchElement current =  null;
+			for(SearchElement n:openSet) {
+				if(f_score[n.x][n.y] <= min) {
+					min = f_score[n.x][n.y];
+					//System.out.println(min);
+					current = n;
+				}
+			}
+			
+			openSet.remove(current);
+			closedSet.add(current);
+			
+			//itterate through neighbours
+			for(SearchElement n:current.neighbour) {
+				if(closedSet.contains(n) || n.status != 1)
+					continue;
+
+				
+				double dx = n.xCoord-current.x;
+				double dy = n.yCoord-current.y;
+				
+				double tentative_g_score;
+				if (g_score[current.x][current.y] != -1)
+					tentative_g_score = g_score[current.x][current.y] + Math.sqrt(dx*dx + dy*dy);
+				else
+					tentative_g_score = Math.sqrt(dx*dx + dy*dy);
+				
+				if (!openSet.contains(n) || tentative_g_score < g_score[n.x][n.y]) {
+					came_from[n.x][n.y] = current;
+					g_score[n.x][n.y] = tentative_g_score;
+					f_score[n.x][n.y] = tentative_g_score;// + (m * heuristic_cost_estimate(n, stopElement));
+					
+					//System.out.println("g_score updated: " + tentative_g_score);
+					
+					if(!openSet.contains(n)) 
+					{
+						openSet.add(n);
+					}
+				}
+			}
+		}
+		return g_score;
+	}
+	
 	public double distance (int startX, int startY, int stopX, int stopY) {
 		
 		ArrayList<SearchElement> path = null;
@@ -41,7 +129,7 @@ public class GoToPoint {
 		}
 		
 		System.out.println("Path found: (" + startX + " , " + startY + ") -> (" + stopX + " , " + stopY + ")" );
-		if(kex.elementMatrix[stopX][stopY].targeted)
+		if(kex.elementMatrix[stopX][stopY].targeted != 0)
 			dist*=10;
 		
 		return dist;
@@ -57,6 +145,109 @@ public class GoToPoint {
 	 */
 	public double GO(int startX, int startY, int stopX, int stopY) {
 		
+		double distance = 0;
+		
+		// calculate the cost matrix (cost 0 = target)
+		double[][] costMatrix = this.calculateCost(stopX, stopY);
+		
+    	// DEBUG SAK
+    	for(int i=0;i<kex.nx;i++) {
+    		for(int j=0;j<kex.ny;j++) {
+    			
+    			if(i==startX && j==startY)
+    				System.out.print("S \t");
+    			else if(i==stopX && j==stopY)
+    				System.out.print("G \t");
+    			else if(costMatrix[i][j] >=0)
+    				System.out.print("0 \t");
+    			else
+    				System.out.print("- \t");
+    		}
+    		System.out.println("");
+    	}
+    	System.out.println("\n\n");
+
+		
+		
+		//find current index
+		int cX = kex.elementMatrix[startX][startY].x;
+		int cY = kex.elementMatrix[startX][startY].y;
+		
+		double targetX = kex.elementMatrix[startX][startY].xCoord;
+		double targetY = kex.elementMatrix[startX][startY].yCoord;
+		
+		/*double targetX = kex.elementMatrix[stopX][stopY].xCoord;
+		double targetY = kex.elementMatrix[stopX][stopY].yCoord;
+		int cX = kex.elementMatrix[stopX][stopY].x;
+		int cY = kex.elementMatrix[stopX][stopY].y;*/
+		
+		kex.setWaypoint(targetX, targetY);
+		kex.setSpeed(15);
+		
+		double data[] = kex.getData();
+		while(true) {
+			data = kex.getData();
+			double dx = targetX - data[0];
+			double dy = targetY - data[1];
+			
+			//target reached, pick a new target
+			if(Math.sqrt(dx*dx + dy*dy) < 3) {
+				distance += Math.sqrt(dx*dx + dy*dy);
+				
+				if(cX == stopX && cY == stopY) {
+					System.out.println("Target Reached");
+					kex.elementMatrix[cX][cY].targeted += 1;
+					return distance;
+				}
+				
+				int[] xIndex = {cX+1, cX-1, cX+0, cX+0,    cX+1, cX-1, cX+1, cX-1};
+				int[] yIndex = {cY+0, cY+0, cY+1, cY-1,    cY+1, cY-1, cY-1, cY+1};
+				
+				double min = Double.MAX_VALUE;
+				int index = -1;
+				
+				for(int i=0;i<8;i++) {
+					if(xIndex[i] < 0 || xIndex[i] >= kex.nx)
+						continue;
+					if(yIndex[i] < 0 || yIndex[i] >= kex.ny)
+						continue;
+					
+					if(costMatrix[xIndex[i]][yIndex[i]] < min && costMatrix[xIndex[i]][yIndex[i]] != -1) {
+						min = costMatrix[xIndex[i]][yIndex[i]];
+						index = i;
+					}
+				
+				}
+				
+				if(index != -1) {
+					targetX = kex.elementMatrix[xIndex[index]][yIndex[index]].xCoord;
+					targetX = kex.elementMatrix[xIndex[index]][yIndex[index]].xCoord;
+					
+					kex.setWaypoint(targetX, targetY);
+					cX = kex.elementMatrix[xIndex[index]][yIndex[index]].x;
+					cY = kex.elementMatrix[xIndex[index]][yIndex[index]].y;
+				}
+				else{
+					System.out.println("Go failed");
+					
+					for(int i=0;i<8;i++) {
+						if(xIndex[i] < 0 || xIndex[i] >= kex.nx)
+							continue;
+						if(yIndex[i] < 0 || yIndex[i] >= kex.ny)
+							continue;
+						
+						System.out.println("Cost: " + costMatrix[xIndex[i]][yIndex[i]]);
+					
+					}
+					return -1;
+				}
+			}
+			
+			sleep(kex.dt);
+		}
+			
+
+		/*
 		ArrayList<SearchElement> path = null;
 		
 		if(startX == stopX && startY == stopY) {
@@ -159,7 +350,7 @@ public class GoToPoint {
 
 		System.out.println("Target reached");
 		kex.setSpeed(0);
-		return dist;
+		return dist;*/
 	}
 	
 	

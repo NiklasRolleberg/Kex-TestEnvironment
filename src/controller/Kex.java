@@ -349,6 +349,37 @@ public class Kex implements Runnable{
         double lastY = sensorData[1];
         
 		while(true){
+			
+			/*
+			System.out.println("scanning a litte bit");
+			
+	    	boat.setTargetSpeed(0);
+	    	try {
+				Thread.sleep(60000);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+	    	sp.stop();
+	    	boat.setTargetSpeed(0);
+	    	
+	    	int ix = (int)Math.round((boat.getPos()[0] - xMin) / dx);
+	        int iy = (int)Math.round((boat.getPos()[1] - yMin) / dy);
+	    	
+	    	
+	    	
+	    	
+	    	double[][] cost = gp.calculateCost(ix, iy);
+	    	
+	    	for(int i=0;i < nx; i++) {
+	    		for(int j=0;j<ny;j++) {
+	    			System.out.print((int)cost[i][j]+" \t");
+	    		}
+	    		System.out.println("");
+	    	}
+	    	
+	    	*/
+			
             sensorData = boat.getSensordata();
             //calc distance
             double dx = lastX-sensorData[0];
@@ -740,7 +771,113 @@ public class Kex implements Runnable{
     	
     	if(cellList.size() == 0) 
     		return null;
+
+    	//calculate cost matrix
+    	double[][] cost = gp.calculateCost(startX, startY);
     	
+    	// DEBUG SAK
+    	for(int i=0;i<nx;i++) {
+    		for(int j=0;j<ny;j++) {
+    			System.out.print((int)cost[i][j] + "\t");
+    		}
+    		System.out.println("");
+    	}
+    	System.out.println("\n\n");
+    	for(int i=0;i<nx;i++) {
+    		for(int j=0;j<ny;j++) {
+    			System.out.print(elementMatrix[i][j].status + "\t");
+    		}
+    		System.out.println("");
+    	}
+    	System.out.println("\n\n");
+    	for(int i=0;i<nx;i++) {
+    		for(int j=0;j<ny;j++) {
+    			String s = " ";
+    			if(elementMatrix[i][j].status != 1 && cost[i][j] != -1)
+    				s = "0";
+    			System.out.print(s + "\t");
+    		}
+    		System.out.println("");
+    	}
+    	
+    	
+    	
+    	
+    	//System.exit(0);
+    	/*
+    	for(int i=0;i<nx;i++) {
+    		for(int j=0;j<ny;j++) {
+    			System.out.println("Cost: " + cost[i][j]);
+    		}
+    	}*/
+    	
+    	//for all elements on boundarys of regions, check cost, and return coordinates or the one with the lowest cost
+    	
+    	//System.exit(0);
+    	//return null;
+    	
+    	double minCost = Double.MAX_VALUE;
+    	int cellIndex = -1;
+    	int minX = -1;
+    	int minY = -1;
+    	
+    	//compare the cost of all possible targets
+    	for(int i=0;i<cellList.size();i++) {
+    		SearchCell c = cellList.get(i);
+    		double ypos = c.minY()+1;
+    		while(ypos < c.maxY()) {
+    			double xpos1 = c.findX(ypos, true);
+        		double xpos2 = c.findX(ypos, false);
+        		int xIndex1 = (int) Math.round((xpos1 - xMin) / dx);
+        		int xIndex2 = (int) Math.round((xpos2 - xMin) / dx);
+        		int yIndex = (int) Math.round((ypos - yMin) / dy);
+        		
+        		
+        		if(xIndex1 == startX && yIndex == startY) {
+        			ypos+=this.delta/4;
+        			continue;
+        		}
+        		if(xIndex2 == startX && yIndex == startY){
+        			ypos+=this.delta/4;
+        			continue;
+        		}
+        		
+        		
+        		double cost1 = cost[xIndex1][yIndex];//gp.distance(startX, startY, xIndex1, yIndex);
+        		cost1 += 10000*elementMatrix[xIndex1][yIndex].targeted;
+        		
+        		double cost2 = cost[xIndex2][yIndex];//gp.distance(startX, startY, xIndex2, yIndex);
+        		cost2 += 1000*elementMatrix[xIndex1][yIndex].targeted;
+        		
+        		if(cost1 < minCost && cost1 != -1 && elementMatrix[xIndex1][yIndex].status == 1) {
+        			minCost = cost1;
+        			cellIndex = i;
+        			minX = xIndex1;
+        			minY = yIndex;
+        		}
+        		
+        		if(cost2 < minCost && cost2 != -1 && elementMatrix[xIndex2][yIndex].status == 1) {
+        			minCost = cost2;
+        			cellIndex = i;
+        			minX = xIndex1;
+        			minY = yIndex;
+        		}
+        		ypos += this.delta/4;
+    		}
+    	}
+    	
+    	if(cellIndex == -1)
+    		return null;
+
+    	System.out.println("new target found: " + minX + " " + minY);
+    	System.out.println("Cost: " + minCost);
+    	
+    	return new int[] {cellIndex, minX, minY};
+    	
+    	
+    	// TODO SKriv om
+    	
+    	/*
     	double minDistance = Double.MAX_VALUE;
     	int cellIndex = -1;
     	int minX = -1;
@@ -785,6 +922,7 @@ public class Kex implements Runnable{
     	//System.out.println("Distance: " + distance);
     	
     	return new int[] {cellIndex, minX, minY};
+    	*/
     }
 	
     
@@ -838,7 +976,7 @@ public class Kex implements Runnable{
     	
     	
 		startTime = System.currentTimeMillis();
-
+		
 		/**Start scanning the first cell */
 		int index = getCurrentSearchCell();
 		if(index == -1) {
