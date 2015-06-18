@@ -87,10 +87,6 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 				kex.setSpeed(20);
 			
 			
-			
-			//kex.setSpeed(Math.max(-data.getDepth()*3, 5));
-			
-			// TODO target reached?
 			double dx = targetX - data.getPosX();
 			double dy = targetY - data.getPosY();
 			
@@ -141,9 +137,7 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 			matrix[index[0]][index[1]].updateDepthData(data.getDepth());
 			
 			//Unvisited, but scanned by multibeam
-			//sonarRatio = 10.0; // scan width = 3*depth
 			double dist = Math.abs(data.getDepth()) * (sonarRatio/2.0); // distance scanned on each side
-			//System.out.println("Dist:" + dist);
 			double h = data.getHeading() - (Math.PI/2);
 			
 			for(int i=0;i<2;i++) {
@@ -182,7 +176,7 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 	 */
 	private int[] calculateNextWaypoint(int ix, int iy, int lastx, int lasty) {
 		
-		
+		System.out.print("Calculating next destination... \t");
 		//calculate time until collisions with other boats
 		//if close in time to collision, forbid the boat from traveling in the "collision direction(s)"
 		
@@ -299,10 +293,12 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 				}
 			}
 		}
-		if(indexX == -1)
+		if(indexX == -1) {
+			System.out.println("No destination found");
 			return null;
+		}
 		
-		System.out.println("New destination chosen: (" +indexX + "," + indexY + ") , value:" + max);
+		System.out.println("next destination chosen: (" +indexX + "," + indexY + ") , value:" + max);
 	
 		return new int[] {indexX, indexY};
 	}

@@ -350,36 +350,6 @@ public class Kex implements Runnable{
         
 		while(true){
 			
-			/*
-			System.out.println("scanning a litte bit");
-			
-	    	boat.setTargetSpeed(0);
-	    	try {
-				Thread.sleep(60000);
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-	    	sp.stop();
-	    	boat.setTargetSpeed(0);
-	    	
-	    	int ix = (int)Math.round((boat.getPos()[0] - xMin) / dx);
-	        int iy = (int)Math.round((boat.getPos()[1] - yMin) / dy);
-	    	
-	    	
-	    	
-	    	
-	    	double[][] cost = gp.calculateCost(ix, iy);
-	    	
-	    	for(int i=0;i < nx; i++) {
-	    		for(int j=0;j<ny;j++) {
-	    			System.out.print((int)cost[i][j]+" \t");
-	    		}
-	    		System.out.println("");
-	    	}
-	    	
-	    	*/
-			
             sensorData = boat.getSensordata();
             //calc distance
             double dx = lastX-sensorData[0];
@@ -409,7 +379,7 @@ public class Kex implements Runnable{
             
             if(sp.isDone()) {
             	sp.stop();
-            	//System.out.println("sp.isDone()");
+            	System.out.println("sp.isDone()");
             	break;
             }
             
@@ -424,7 +394,7 @@ public class Kex implements Runnable{
 	}
 	
 	/**  true if cell is connected to a scanned cell*/
-	private boolean BFS(SearchElement e) {
+	private boolean DFS(SearchElement e) {
 		
 		if(e.status == 1)
 			return true;
@@ -437,7 +407,7 @@ public class Kex implements Runnable{
 				continue;
 			
 			alreadyAdded.add(e.neighbour.get(i));
-			if(BFS(e.neighbour.get(i)))
+			if(DFS(e.neighbour.get(i)))
 				return true;
 		}
 		return false;	
@@ -452,14 +422,13 @@ public class Kex implements Runnable{
 			for(int j=0; j<ny; j++) {
 				if(elementMatrix[i][j].status == 0) {
 					alreadyAdded.clear();
-					if(!BFS(elementMatrix[i][j])) {
+					if(!DFS(elementMatrix[i][j])) {
 						elementMatrix[i][j].status = 2;
 						for(SearchElement s:alreadyAdded) {
 							s.status = 2;
                             visitedCells++;
 						}
 					}
-					//System.out.println(alreadyAdded.size());
 				}
 			}
 		}
@@ -775,7 +744,10 @@ public class Kex implements Runnable{
     	//calculate cost matrix
     	double[][] cost = gp.calculateCost(startX, startY);
     	
+    	
     	// DEBUG SAK
+    	System.out.println("\n\n--FINDCLOSEST--\n\n");
+    	/*
     	for(int i=0;i<nx;i++) {
     		for(int j=0;j<ny;j++) {
     			System.out.print((int)cost[i][j] + "\t");
@@ -798,23 +770,8 @@ public class Kex implements Runnable{
     			System.out.print(s + "\t");
     		}
     		System.out.println("");
-    	}
-    	
-    	
-    	
-    	
-    	//System.exit(0);
-    	/*
-    	for(int i=0;i<nx;i++) {
-    		for(int j=0;j<ny;j++) {
-    			System.out.println("Cost: " + cost[i][j]);
-    		}
     	}*/
     	
-    	//for all elements on boundarys of regions, check cost, and return coordinates or the one with the lowest cost
-    	
-    	//System.exit(0);
-    	//return null;
     	
     	double minCost = Double.MAX_VALUE;
     	int cellIndex = -1;
@@ -849,64 +806,15 @@ public class Kex implements Runnable{
         		double cost2 = cost[xIndex2][yIndex];//gp.distance(startX, startY, xIndex2, yIndex);
         		cost2 += 1000*elementMatrix[xIndex1][yIndex].targeted;
         		
-        		if(cost1 < minCost && cost1 != -1 && elementMatrix[xIndex1][yIndex].status == 1) {
+        		if(cost1 < minCost && cost1 != -1) { // && elementMatrix[xIndex1][yIndex].status == 1) {
         			minCost = cost1;
         			cellIndex = i;
         			minX = xIndex1;
         			minY = yIndex;
         		}
         		
-        		if(cost2 < minCost && cost2 != -1 && elementMatrix[xIndex2][yIndex].status == 1) {
+        		if(cost2 < minCost && cost2 != -1) { //&& elementMatrix[xIndex2][yIndex].status == 1) {
         			minCost = cost2;
-        			cellIndex = i;
-        			minX = xIndex1;
-        			minY = yIndex;
-        		}
-        		ypos += this.delta/4;
-    		}
-    	}
-    	
-    	if(cellIndex == -1)
-    		return null;
-
-    	System.out.println("new target found: " + minX + " " + minY);
-    	System.out.println("Cost: " + minCost);
-    	
-    	return new int[] {cellIndex, minX, minY};
-    	
-    	
-    	// TODO SKriv om
-    	
-    	/*
-    	double minDistance = Double.MAX_VALUE;
-    	int cellIndex = -1;
-    	int minX = -1;
-    	int minY = -1;
-    	
-    	//compare the distance of all possible targets
-    	for(int i=0;i<cellList.size();i++) {
-    		SearchCell c = cellList.get(i);
-    		double ypos = c.minY()+1;
-    		while(ypos < c.maxY()) {
-    			double xpos1 = c.findX(ypos, true);
-        		double xpos2 = c.findX(ypos, false);
-        		int xIndex1 = (int) Math.round((xpos1 - xMin) / dx);
-        		int xIndex2 = (int) Math.round((xpos2 - xMin) / dx);
-        		int yIndex = (int) Math.round((ypos - yMin) / dy);
-        		
-        		
-        		double dist1 = gp.distance(startX, startY, xIndex1, yIndex);
-        		double dist2 = gp.distance(startX, startY, xIndex2, yIndex);
-        		
-        		if(dist1 < minDistance && dist1 != -1) {
-        			minDistance = dist1;
-        			cellIndex = i;
-        			minX = xIndex1;
-        			minY = yIndex;
-        		}
-        		
-        		if(dist2 < minDistance && dist2 != -1) {
-        			minDistance = dist2;
         			cellIndex = i;
         			minX = xIndex2;
         			minY = yIndex;
@@ -918,11 +826,12 @@ public class Kex implements Runnable{
     	if(cellIndex == -1)
     		return null;
 
-    	//System.out.println("new target found: " + minX + " " + minY);
-    	//System.out.println("Distance: " + distance);
+    	System.out.println("new target found: " + minX + " " + minY);
+    	System.out.println("Cost: " + minCost);
+    	SearchElement se = elementMatrix[minX][minY];
+    	System.out.println("info: \nCoordinates: (" + se.xCoord + "," + se.yCoord + ") " + "\nStstus: " + se.status + "\nDepth:" + se.getRecordedDepth() + "\nTargeted: " + se.targeted);
     	
     	return new int[] {cellIndex, minX, minY};
-    	*/
     }
 	
     
@@ -988,27 +897,14 @@ public class Kex implements Runnable{
         cellList.remove(index);
         /**Scanning of the first cell complete*/
         
-        //idRegions();
-      	//draw.repaint();
-        //boolean a = false;
         while(true) {
         	
         	reworkSearchCells();
         	draw.repaint();
-        	//cellList.clear();
-        	//idRegions();
-        	//draw.repaint();
         	
-        	System.out.println("--------------------new regions-----------------");
-        	System.out.println("regions: " + cellList.size());
-        	
-        	/*
-        	try {
-				Thread.sleep(100000);
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}*/
+        	//System.out.println("--------------------new regions-----------------");
+        	//System.out.println("regions: " + cellList.size());
+
         	
         	//My position
         	int startX = (int)Math.round((boat.getPos()[0] - xMin) / dx);
@@ -1042,14 +938,16 @@ public class Kex implements Runnable{
         	}
 
         	/**Travel to that position*/
+        	System.out.println("Going to new position: (" + startX +" , " + startY + ") -> (" + target[1] + " , " + target[2] + ")");
         	double d = gp.GO(startX, startY, target[1], target[2]);        	
         	double time = ((System.currentTimeMillis() - startTime))/1000.0;
 
-        	System.out.println("Going to new position: (" + startX +" , " + startY + ") -> (" + target[1] + " , " + target[2] + ")");
           	if(d == -1)
     		{
-        		System.out.println("Cant go to that position");
+        		System.out.println("Could not go to that position");
+        		boat.setTargetSpeed(0);
         		break;
+        		
     		} else if(saveData){ //save distance
     			distance += d;
     			distData.add(distance);
