@@ -7,6 +7,7 @@ import kex2015.NpBoat;
 public class GoToPoint {
 	
 	Kex kex;
+	private double targetSpeed = 10;
 	
 	public GoToPoint(Kex kex) {
 		this.kex = kex;
@@ -162,7 +163,7 @@ public class GoToPoint {
 		*/
 		
 		kex.setWaypoint(targetX, targetY);
-		kex.setSpeed(15);
+		kex.setSpeed(targetSpeed);
 		boolean findNext = true;
 		double data[] = kex.getData();
 		while(true) {
@@ -185,8 +186,6 @@ public class GoToPoint {
 				int[] nextIndex = findNextWaypoint(costMatrix, tX,tY);
 				
 				if(nextIndex != null) {
-					
-					System.out.println("GO: next destination chosen: (" +nextIndex[0] + "," + nextIndex[1] + ")");
 					
 					targetX = kex.elementMatrix[nextIndex[0]][nextIndex[1]].xCoord;
 					targetY = kex.elementMatrix[nextIndex[0]][nextIndex[1]].yCoord;
@@ -217,6 +216,11 @@ public class GoToPoint {
 	 */
 	private int[] findNextWaypoint(double[][] cost, int x, int y) {
 		
+		/* V2
+		// 1) Calculate ~time until the bat reached the next target
+		double t = kex.delta / targetSpeed; //Simplified
+		
+		
 		int[] xIndex = {x+1, x-1, x+0, x+0,    x+1, x-1, x+1, x-1};
 		int[] yIndex = {y+0, y+0, y+1, y-1,    y+1, y-1, y-1, y+1};
 		
@@ -229,37 +233,44 @@ public class GoToPoint {
 			if(yIndex[i] < 0 || yIndex[i] >= kex.ny)
 				continue;
 			
+			//check if the position is going to be "clear" when the boat reaches it
+			boolean skip = false;
+			for(NpBoat b : kex.otherBoats) {
+				int ix = (int)Math.round((b.posX + t*b.speed*Math.cos(b.heading) - kex.xMin) / kex.dx);
+				int iy = (int)Math.round((b.posY + t*b.speed*Math.sin(b.heading) - kex.yMin) / kex.dy);
+				if(ix == xIndex[i] && iy == yIndex[i]) {
+					skip = true;
+					break;
+				}
+			}
+			
+			if(skip)
+				continue;
+				
 			if(cost[xIndex[i]][yIndex[i]] < min && cost[xIndex[i]][yIndex[i]] != -1) {
 				min = cost[xIndex[i]][yIndex[i]];
 				index = i;
 			}
 		}
+		
+		if(index == -1)
+			return null;
+		
 		return new int[] {xIndex[index],yIndex[index]};
-	}
-	
-	
-	/** Calculates if a collision is about to happen between two coordinates
-	 * @param startpos
-	 * 			pos1
-	 * @param targetPos
-	 * 			pos2
-	 * @param time
-	 * 			time until the boat reaches pos1
-	 * @return
-	 */
-	private boolean willCollide(double[] startpos, double[] targetPos, double time, double speed) {
+		*/
+		
+		
+		ArrayList<double[]> directionsToAvoid = new ArrayList<double[]>();
 		
 		for(NpBoat other : kex.otherBoats) {
 			
 			//calculate time and direction.
 			
-			double[] P1 = startpos; //current boatPos
-			double V0 = speed;
+			double[] P1 = {kex.boat.getPos()[0], kex.boat.getPos()[1]};
+			double V0 = targetSpeed;
 			
 			double[] P2 = {other.posX, other.posY};
 			double[] V2 = {other.speed * Math.cos(other.heading) , other.speed * Math.sin(other.heading)};
-			P2[0] += V2[0]*time;
-			P2[1] += V2[1]*time;
 			
 			double P2P1x =  P2[0]-P1[0];
 			double P2P1y =  P2[1]-P1[1];
@@ -277,21 +288,131 @@ public class GoToPoint {
 			
 			
 			if( !new Double(t1).isNaN()) {
-				if(t1 > -0.5 && t1 < 4) {
-					return true;
+				if(t1 > 0 && t1 < 3) {
+					System.out.println("T1: " + t1);
+					double[] temp = calculateDirection(t1, P1, V0, P2, V2);
+					if(temp != null)
+						directionsToAvoid.add(temp);
 				}
 			}
 				
 			if( !new Double(t2).isNaN()) {
-				if(t2 > -0.5 && t2 < 4) {
-					return true;
+				if(t2 > 0 && t2 < 3) {
+					System.out.println("T2: " + t2);
+					double[] temp = calculateDirection(t2, P1, V0, P2, V2);
+					if(temp != null)
+						directionsToAvoid.add(temp);
 				}
 			}
 		}
-		return false;
+		
+		//find neighbouring elements and copy to another list
+		ArrayList<SearchElement> targets = new ArrayList<SearchElement>();
+		int[] xIndex = {x+1, x-1, x+0, x+0,    x+1, x-1, x+1, x-1};
+		int[] yIndex = {y+0, y+0, y+1, y-1,    y+1, y-1, y-1, y+1};
+		
+		
+		for(int i=0;i<8;i++) {
+			if(xIndex[i] < 0 || xIndex[i] >= kex.nx)
+				continue;
+			if(yIndex[i] < 0 || yIndex[i] >= kex.ny)
+				continue;
+			
+			targets.add(kex.elementMatrix[xIndex[i]][yIndex[i]]);
+		}
+		
+		
+		for(int i=0;i<directionsToAvoid.size();i++) {
+			double[] e = directionsToAvoid.get(i);
+			for(double p=0.5;p<Math.min(2*kex.delta,30);p+=1) {
+				double xPos = kex.boat.getPos()[0] + e[0] * p;
+				double yPos = kex.boat.getPos()[1] + e[1] * p;
+				
+				int indexX = x; //(int)Math.round((xPos - kex.xMin) / kex.dx);
+		        int indexY = y; //(int)Math.round((yPos - kex.yMin) / kex.dy);
+		        
+		        //System.out.println("p: " + p + "\t" + x + "\t" + y);
+		        
+		        ArrayList<SearchElement> remove = new ArrayList<SearchElement>();
+		        
+		        for(SearchElement se : targets) {
+		        	if(se.x == indexX && se.y == indexY) {
+		        		remove.add(se);
+		        	}
+		        }
+		        
+		        for(int j=0;j<remove.size();j++) {
+		        	targets.remove(remove.get(j));
+		        	
+		        	String dir = "";
+		        	if(remove.get(j).x < indexX)
+		        		dir += "left ";
+		        	else if(remove.get(j).x > indexX)
+		        		dir += "right ";
+		        	
+		        	if(remove.get(j).y < indexY)
+		        		dir += "up ";
+		        	else if(remove.get(j).y > indexY)
+		        		dir += "down ";
+		        	
+		        	System.out.println("GO: Direction removed " + dir);
+		        }
+				
+			}
+			
+			
+		}
+		
+		double min = Double.MAX_VALUE;
+		int indexX = -1;
+		int indexY = -1;
+		
+		for(int k = 0;k<targets.size();k++) {
+			
+			int i = targets.get(k).x;
+			int j = targets.get(k).y;
+			
+			double value = cost[i][j];
+			if((value < min) && (value != -1)) {
+				min = value;
+				indexX = i;
+				indexY = j;
+			}
+		}
+		if(indexX == -1) {
+			System.out.println("No destination found");
+			return null;
+		}
+		
+		System.out.println("GO: next destination chosen: (" +indexX + "," + indexY + ") , value:" + min);
+	
+		return new int[] {indexX, indexY};
 	}
 	
+	/** Calculate the direction to collide with another boat
+	 * @param time
+	 * @param P1
+	 * @param V0
+	 * @param P2
+	 * @param V2
+	 * @return
+	 * direction (or null)
+	 */
+	private double[] calculateDirection(double time, double[] P1, double V0, double[] P2, double[] V2) {
+		
+		//calculate intersections point.
+		double[] PI = {P2[0] + V2[0] * time, P2[1] + V2[1] * time};
+		
+		double[] v = {PI[0]-P1[0] , PI[1]-P1[1]};
+		double dev = Math.sqrt(v[0]*v[0] + v[1]*v[1]);
+		double[] e = {v[0] / dev, v[1] / dev}; 
+		
+		//System.out.println("Direction: (" + e[0] + " , " + e[1] + ")");
+		
+		return e;
+	}
 	
+
 	private void sleep(long delay) {
 		try {
 			Thread.sleep(delay);

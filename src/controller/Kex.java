@@ -946,7 +946,12 @@ public class Kex implements Runnable{
     		{
         		System.out.println("Could not go to that position");
         		boat.setTargetSpeed(0);
-        		break;
+        		System.out.println("reCalculating areas, and trying again");
+        		cellList.clear();
+        		continue;
+        		
+        		
+        		//break;
         		
     		} else if(saveData){ //save distance
     			distance += d;
