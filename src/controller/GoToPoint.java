@@ -216,50 +216,6 @@ public class GoToPoint {
 	 */
 	private int[] findNextWaypoint(double[][] cost, int x, int y) {
 		
-		/* V2
-		// 1) Calculate ~time until the bat reached the next target
-		double t = kex.delta / targetSpeed; //Simplified
-		
-		
-		int[] xIndex = {x+1, x-1, x+0, x+0,    x+1, x-1, x+1, x-1};
-		int[] yIndex = {y+0, y+0, y+1, y-1,    y+1, y-1, y-1, y+1};
-		
-		double min = Double.MAX_VALUE;
-		int index = -1;
-		
-		for(int i=0;i<8;i++) {
-			if(xIndex[i] < 0 || xIndex[i] >= kex.nx)
-				continue;
-			if(yIndex[i] < 0 || yIndex[i] >= kex.ny)
-				continue;
-			
-			//check if the position is going to be "clear" when the boat reaches it
-			boolean skip = false;
-			for(NpBoat b : kex.otherBoats) {
-				int ix = (int)Math.round((b.posX + t*b.speed*Math.cos(b.heading) - kex.xMin) / kex.dx);
-				int iy = (int)Math.round((b.posY + t*b.speed*Math.sin(b.heading) - kex.yMin) / kex.dy);
-				if(ix == xIndex[i] && iy == yIndex[i]) {
-					skip = true;
-					break;
-				}
-			}
-			
-			if(skip)
-				continue;
-				
-			if(cost[xIndex[i]][yIndex[i]] < min && cost[xIndex[i]][yIndex[i]] != -1) {
-				min = cost[xIndex[i]][yIndex[i]];
-				index = i;
-			}
-		}
-		
-		if(index == -1)
-			return null;
-		
-		return new int[] {xIndex[index],yIndex[index]};
-		*/
-		
-		
 		ArrayList<double[]> directionsToAvoid = new ArrayList<double[]>();
 		
 		for(NpBoat other : kex.otherBoats) {
@@ -288,7 +244,7 @@ public class GoToPoint {
 			
 			
 			if( !new Double(t1).isNaN()) {
-				if(t1 > 0 && t1 < 3) {
+				if(t1 > 0 && t1 < 4) {
 					System.out.println("T1: " + t1);
 					double[] temp = calculateDirection(t1, P1, V0, P2, V2);
 					if(temp != null)
@@ -297,7 +253,7 @@ public class GoToPoint {
 			}
 				
 			if( !new Double(t2).isNaN()) {
-				if(t2 > 0 && t2 < 3) {
+				if(t2 > 0 && t2 < 4) {
 					System.out.println("T2: " + t2);
 					double[] temp = calculateDirection(t2, P1, V0, P2, V2);
 					if(temp != null)
@@ -328,8 +284,8 @@ public class GoToPoint {
 				double xPos = kex.boat.getPos()[0] + e[0] * p;
 				double yPos = kex.boat.getPos()[1] + e[1] * p;
 				
-				int indexX = x; //(int)Math.round((xPos - kex.xMin) / kex.dx);
-		        int indexY = y; //(int)Math.round((yPos - kex.yMin) / kex.dy);
+				int indexX = (int)Math.round((xPos - kex.xMin) / kex.dx);
+		        int indexY = (int)Math.round((yPos - kex.yMin) / kex.dy);
 		        
 		        //System.out.println("p: " + p + "\t" + x + "\t" + y);
 		        
@@ -345,14 +301,14 @@ public class GoToPoint {
 		        	targets.remove(remove.get(j));
 		        	
 		        	String dir = "";
-		        	if(remove.get(j).x < indexX)
+		        	if(remove.get(j).x < x)
 		        		dir += "left ";
-		        	else if(remove.get(j).x > indexX)
+		        	else if(remove.get(j).x > x)
 		        		dir += "right ";
 		        	
-		        	if(remove.get(j).y < indexY)
+		        	if(remove.get(j).y < y)
 		        		dir += "up ";
-		        	else if(remove.get(j).y > indexY)
+		        	else if(remove.get(j).y > y)
 		        		dir += "down ";
 		        	
 		        	System.out.println("GO: Direction removed " + dir);

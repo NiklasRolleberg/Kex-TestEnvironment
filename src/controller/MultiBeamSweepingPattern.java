@@ -208,7 +208,7 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 			
 			
 			if( !new Double(t1).isNaN()) {
-				if(t1 > -0.5 && t1 < 10) {
+				if(t1 > -0.5 && t1 < 4) {
 					System.out.println("T1: " + t1);
 					double[] temp = calculateDirection(t1, P1, V0, P2, V2);
 					if(temp != null)
@@ -217,7 +217,7 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 			}
 				
 			if( !new Double(t2).isNaN()) {
-				if(t2 > -0.5 && t2 < 10) {
+				if(t2 > -0.5 && t2 < 4) {
 					System.out.println("T2: " + t2);
 					double[] temp = calculateDirection(t2, P1, V0, P2, V2);
 					if(temp != null)
