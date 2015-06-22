@@ -621,9 +621,11 @@ public class Kex implements Runnable{
 	
     /**Identify new cells and add them to cellList*/
 	private void idRegions(){
-		
+		System.out.print("IdRegions..");
 		idLand();
+		System.out.print("id land");
         idCoastElements();
+        System.out.println("id costElements");
 		alreadyAdded.clear();
 		
         ArrayList<SearchElement> uncovered = getUncoveredElments();
@@ -643,6 +645,7 @@ public class Kex implements Runnable{
         ArrayList<Double> yRest = new ArrayList<Double>();
 
         //add extra elements to boundaries!
+        System.out.println("Extend boundaries");
         listOfLists = extendBoundaries(listOfLists);
 
         for (ArrayList<SearchElement> al : listOfLists){
@@ -657,7 +660,9 @@ public class Kex implements Runnable{
             tempListY.addAll(yRest);
 
             //get convex hull
+            System.out.print("Get convex hull: ");
             ArrayList<ArrayList<Double>> convexCell = PolygonLib.findConvexHull(tempListX,tempListY);
+            System.out.println("...Done");
             
             //create new cell
             if(tempListX.size() > 100){// && !(sp instanceof MultiBeamSweepingPattern)) {
@@ -707,13 +712,13 @@ public class Kex implements Runnable{
             for (SearchElement se : subRegion){
                 for (SearchElement seN : se.neighbour){
                     if (!neighbourList.get(cellIndex).contains(seN) && !subRegion.contains(seN) && seN.status!=99){
-                        //System.out.println(newE + " new elements in region " + cellIndex);
+                    	//System.out.println(newE + " new elements in region " + cellIndex);
                         newE++;
                         neighbourList.get(cellIndex).add(seN);
                     }
                 }
             }
-            newE = 1;
+            newE += 1;
             cellIndex++;
         }
 
@@ -899,8 +904,14 @@ public class Kex implements Runnable{
         
         while(true) {
         	
-        	reworkSearchCells();
+        	System.out.println("Clearing cellList");
+        	cellList.clear();
+        	
+        	idRegions();
         	draw.repaint();
+        	
+        	//reworkSearchCells();
+        	//draw.repaint();
         	
         	//System.out.println("--------------------new regions-----------------");
         	//System.out.println("regions: " + cellList.size());
