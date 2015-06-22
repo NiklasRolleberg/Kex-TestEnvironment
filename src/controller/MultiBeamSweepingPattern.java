@@ -48,18 +48,34 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 		int ix = iixy[0];
 		int iy = iixy[1];
 		
-		int[] last; 
+		int[] last = {-1,-1}; 
         int[] next = calculateNextWaypoint(ix,iy,-1,-1);
-        last = next;
+        
         if(next == null) {
-        	this.stop();
-        	return;
+			this.stop();
+			return;
+		}
+        
+        double targetX;
+        double targetY;
+        
+        if(next[0] == -123 && next[1] == -123) {
+			System.out.println("evasive maneuver");
+			
+			double[] newTarget = evasiveManeuver();
+			
+			targetX = newTarget[0];
+	        targetY = newTarget[1];
+	        
+	        xte.setWaypoint(targetX, targetY);
         }
-        double targetX = matrix[next[0]][next[1]].xCoord;
-        double targetY = matrix[next[0]][next[1]].yCoord;
-        
-        xte.setWaypoint(targetX, targetY);
-        
+	    else {
+	        last = next;
+	        targetX = matrix[next[0]][next[1]].xCoord;
+	        targetY = matrix[next[0]][next[1]].yCoord;
+	        
+	        xte.setWaypoint(targetX, targetY);
+	    }   
         // TODO chose element to go towards
 		// TODO go there
         //kex.setSpeed(15);
@@ -94,18 +110,17 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 				//target reached choosing new target
 				int[] current;
 				
+				current = getIndex(data.getPosX(), data.getPosY());
+				
 				//change status of scanned elements
 				if(!findNew) {
-					if(matrix[next[0]][next[1]].status == 0)
+					if(matrix[current[0]][current[1]].status == 0)
 						kex.visitedCells ++;
 					
-					matrix[next[0]][next[1]].status = 1;
+					matrix[current[0]][current[1]].status = 1;
 					//matrix[next[0]][next[1]].updateDepthData(data.getDepth());
-					current  = next;
-				} else {
-					//last = next;
-					current = getIndex(data.getPosX(), data.getPosY());
 				}
+			
 				findNew = false;
 				
 				if(matrix[current[0]][current[1]].timesVisited > 3*delta) {
@@ -114,17 +129,30 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 				}
 				
 				next = calculateNextWaypoint(current[0],current[1],last[0],last[1]);
-				last = current;
 				if(next == null) {
 					this.stop();
 					break;
 				}
 				
-		        targetX = matrix[next[0]][next[1]].xCoord;
-		        targetY = matrix[next[0]][next[1]].yCoord;
-		        
-		        xte.setWaypoint(targetX, targetY);
-
+				if(next[0] == -123 && next[1] == -123) {
+					System.out.println("evasive maneuver");
+					
+					double[] newTarget = evasiveManeuver();
+					
+					targetX = newTarget[0];
+			        targetY = newTarget[1];
+			        
+			        xte.setWaypoint(targetX, targetY);
+					
+				}
+				else {
+					
+					last = current;
+					
+			        targetX = matrix[next[0]][next[1]].xCoord;
+			        targetY = matrix[next[0]][next[1]].yCoord;   
+			        xte.setWaypoint(targetX, targetY);
+				}
 			}
 			
 			// TODO mark scanned elements (based on depth)
@@ -206,6 +234,10 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 			double t1 = over / (under_1 + under_2);
 			double t2 = over / (under_1 - under_2);
 			
+			// evasive maneuver
+			if( (t1>0 && t1 < 2) || (t1>0 && t1 < 2) || (Math.sqrt((P1[0]-P2[0])*(P1[0]-P2[0]) + (P1[1]-P2[1])*(P1[1]-P2[1])) < 10)) {	
+				return new int[]{-123, -123};
+			}
 			
 			if( !new Double(t1).isNaN()) {
 				if(t1 > -0.5 && t1 < 4) {
@@ -397,6 +429,117 @@ public class MultiBeamSweepingPattern extends SearchPattern {
 		//System.out.println("radius:" + radius);
 		//System.out.println("sum:" + sum);
 		return sum;
+	}
+	
+	/** Picks a direction to avoid crashing with other boats
+	 * @return
+	 */
+	private double[] evasiveManeuver() {
+		
+		int res = 100;
+		double min = 0;
+		double max = 2*Math.PI;
+		double step = max / ((double)res);
+		double[] angle = new double[100];
+		
+		double[] P1 = {data.getPosX(), data.getPosY()};
+		double V0 = data.getSpeed();
+		
+		for(NpBoat other : kex.otherBoats) {
+			
+			//calculate time and direction.			
+			double[] P2 = {other.posX, other.posY};
+			double[] V2 = {other.speed * Math.cos(other.heading) , other.speed * Math.sin(other.heading)};
+			double P2P1x =  P2[0]-P1[0];
+			double P2P1y =  P2[1]-P1[1];
+			double over = P2P1x*P2P1x + P2P1y*P2P1y;
+			double under_1 = -1* ( (P2P1x*V2[0]) + (P2P1y*V2[1]));	
+			double under_2 = Math.sqrt( under_1*under_1 - over * ( (V2[0]*V2[0] + V2[1]*V2[1])  - V0) ); 
+
+			double t1 = over / (under_1 + under_2);
+			double t2 = over / (under_1 - under_2);
+			
+			//(1) collision time
+			if(t1>0 && t1<2) {
+				double[] e = calculateDirection(t1, P1, V0, P2, V2);
+				double alpha = Math.acos(e[0]);
+				if(e[1]<=0)
+					alpha = -alpha;
+				if(alpha<0)
+					alpha += (Math.PI*2);
+				
+				//add cost for alpha in angle
+				for(int i=0;i<res;i++) {
+					double temp1 = i*step;
+					double den1 = Math.max(0.1,Math.abs(temp1 - alpha));
+					double den2 = Math.max(0.1,Math.abs(temp1 - (alpha-(Math.PI*2))));
+					double den3 = Math.max(0.1,Math.abs(temp1 - (alpha+(Math.PI*2))));
+					angle[i] += (1 / (den1*den1));
+					angle[i] += (1 / (den2*den2));
+					angle[i] += (1 / (den3*den3));
+				}
+				
+			}
+			
+			if(t2>0 && t2<2) {
+				double[] e = calculateDirection(t2, P1, V0, P2, V2);
+				double alpha = Math.acos(e[0]);
+				if(e[1]<=0)
+					alpha = -alpha;
+				if(alpha<0)
+					alpha += (Math.PI*2);
+				
+				//add cost for alpha in angle
+				for(int i=0;i<res;i++) {
+					double temp1 = i*step;
+					double den1 = Math.max(0.1,Math.abs(temp1 - alpha));
+					double den2 = Math.max(0.1,Math.abs(temp1 - (alpha-(Math.PI*2))));
+					double den3 = Math.max(0.1,Math.abs(temp1 - (alpha+(Math.PI*2))));
+					angle[i] += (1 / (den1*den1));
+					angle[i] += (1 / (den2*den2));
+					angle[i] += (1 / (den3*den3));
+				}
+			}	
+			//(2) distance
+			
+			if(Math.sqrt( (P1[0]-P2[0])*(P1[0]-P2[0]) + (P1[1]-P2[1])*(P1[1]-P2[1]) ) < 10) {
+				//calculate angle
+				double[] v = {P2[0]-P1[0] , P2[1]-P1[1]};
+				double dev = Math.sqrt(v[0]*v[0] + v[1]*v[1]);
+				double[] e = {v[0] / dev, v[1] / dev}; 
+				double alpha = Math.acos(e[0]);
+				if(e[1]<=0)
+					alpha = -alpha;
+				if(alpha<0)
+					alpha += (Math.PI*2);
+				
+				//add cost for alpha in angle
+				for(int i=0;i<res;i++) {
+					double temp1 = i*step;
+					double den1 = Math.max(0.1,Math.abs(temp1 - alpha));
+					double den2 = Math.max(0.1,Math.abs(temp1 - (alpha-(Math.PI*2))));
+					double den3 = Math.max(0.1,Math.abs(temp1 - (alpha+(Math.PI*2))));
+					angle[i] += (1 / (den1*den1));
+					angle[i] += (1 / (den2*den2));
+					angle[i] += (1 / (den3*den3));
+				}
+			}
+		}
+		
+		//find Min in angle
+		double minimum = Double.MAX_VALUE;
+		int index = -1;
+		for(int i=0;i<res;i++) {
+			//System.out.println("Angle: " + i*step + "\t cost"  + angle[i]);
+			if(angle[i] < minimum) {
+				minimum = angle[i];
+				index = i;
+			}
+		}
+		
+		System.out.println("Angle: " + index*step + "\t cost"  + angle[index]);
+		
+		return new double[]{P1[0] + delta*Math.cos(index*step),P1[1] + delta*Math.sin(index*step)};
 	}
 	
 	/**

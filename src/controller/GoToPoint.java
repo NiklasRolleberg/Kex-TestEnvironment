@@ -117,7 +117,7 @@ public class GoToPoint {
 		
 		// calculate the cost matrix (cost 0 = target)
 		double[][] costMatrix = this.calculateCost(stopX, stopY);
-		
+		kex.elementMatrix[stopX][stopY].targeted +=1;
     	// DEBUG SAK
 		System.out.println("GO: Going ("+startX + "," + stopY + ") -> ("+stopX + "," + stopY + ")" );
 		/*
@@ -178,7 +178,7 @@ public class GoToPoint {
 				
 				if(tX == stopX && tY == stopY) {
 					System.out.println("GO: Reached ("+stopX + "," + stopY + ") Distnace: " + distance );
-					kex.elementMatrix[tX][tY].targeted += 1;
+					//kex.elementMatrix[tX][tY].targeted += 1;
 					kex.setSpeed(0);
 					return distance;
 				}
@@ -187,15 +187,39 @@ public class GoToPoint {
 				
 				if(nextIndex != null) {
 					
-					targetX = kex.elementMatrix[nextIndex[0]][nextIndex[1]].xCoord;
-					targetY = kex.elementMatrix[nextIndex[0]][nextIndex[1]].yCoord;
-					
-					kex.setWaypoint(targetX, targetY);
-					tX = kex.elementMatrix[nextIndex[0]][nextIndex[1]].x;
-					tY = kex.elementMatrix[nextIndex[0]][nextIndex[1]].y;
+					if(nextIndex[0] == -123 && nextIndex[1] == -123) {
+						double[] targets = this.evasiveManeuver();
+						targetX = targets[0];
+						targetY = targets[1];
+						
+						kex.setWaypoint(targetX, targetY);
+						tX = (int)Math.round((targetX - kex.xMin) / kex.dx);
+				        tY = (int)Math.round((targetY - kex.yMin) / kex.dy);
+				        
+				        if (tX < 0 || tX >= kex.nx || tY < 0 || tY >= kex.ny) {
+				        	System.out.println("Go failed , maneuver not allowed");
+				        	return -1;
+				        }
+				        	
+				        if (kex.elementMatrix[tX][tY].status != 1) {
+				        	System.out.println("Go failed , maneuver not allowed");
+				        	return -1;
+				        }
+				        
+						
+					}
+					else {
+						targetX = kex.elementMatrix[nextIndex[0]][nextIndex[1]].xCoord;
+						targetY = kex.elementMatrix[nextIndex[0]][nextIndex[1]].yCoord;
+						
+						kex.setWaypoint(targetX, targetY);
+						tX = kex.elementMatrix[nextIndex[0]][nextIndex[1]].x;
+						tY = kex.elementMatrix[nextIndex[0]][nextIndex[1]].y;
+					}
 				}
 				else{
 					System.out.println("Go failed");	
+					kex.elementMatrix[tX][tY].targeted+=1;
 					return -1;
 				}
 			}
@@ -217,19 +241,23 @@ public class GoToPoint {
 	private int[] findNextWaypoint(double[][] cost, int x, int y) {
 		
 		ArrayList<double[]> directionsToAvoid = new ArrayList<double[]>();
+		double[] P1 = {kex.boat.getPos()[0], kex.boat.getPos()[1]};
+		double V0 = targetSpeed;
 		
 		for(NpBoat other : kex.otherBoats) {
 			
 			//calculate time and direction.
 			
-			double[] P1 = {kex.boat.getPos()[0], kex.boat.getPos()[1]};
-			double V0 = targetSpeed;
 			
 			double[] P2 = {other.posX, other.posY};
 			double[] V2 = {other.speed * Math.cos(other.heading) , other.speed * Math.sin(other.heading)};
 			
 			double P2P1x =  P2[0]-P1[0];
 			double P2P1y =  P2[1]-P1[1];
+			
+			//check distance
+			if(Math.sqrt(P2P1x*P2P1x + P2P1y*P2P1y) < 10)
+				return new int[]{-123,-123};
 			
 			double over = P2P1x*P2P1x + P2P1y*P2P1y;
 			
@@ -245,6 +273,10 @@ public class GoToPoint {
 			
 			if( !new Double(t1).isNaN()) {
 				if(t1 > 0 && t1 < 4) {
+					
+					if(t1 < 2)
+						return new int[]{-123,-123};
+					
 					System.out.println("T1: " + t1);
 					double[] temp = calculateDirection(t1, P1, V0, P2, V2);
 					if(temp != null)
@@ -254,6 +286,10 @@ public class GoToPoint {
 				
 			if( !new Double(t2).isNaN()) {
 				if(t2 > 0 && t2 < 4) {
+					
+					if(t2 < 2)
+						return new int[]{-123,-123};
+					
 					System.out.println("T2: " + t2);
 					double[] temp = calculateDirection(t2, P1, V0, P2, V2);
 					if(temp != null)
@@ -329,6 +365,7 @@ public class GoToPoint {
 			int j = targets.get(k).y;
 			
 			double value = cost[i][j];
+			
 			if((value < min) && (value != -1)) {
 				min = value;
 				indexX = i;
@@ -367,6 +404,118 @@ public class GoToPoint {
 		
 		return e;
 	}
+	
+	/** Picks a direction to avoid craching with other boats
+	 * @return
+	 */
+	private double[] evasiveManeuver() {
+		
+		int res = 100;
+		double min = 0;
+		double max = 2*Math.PI;
+		double step = max / ((double)res);
+		double[] angle = new double[100];
+		
+		double[] P1 = {kex.boat.getPos()[0], kex.boat.getPos()[0]};
+		double V0 = kex.boat.getSensordata()[3];
+		
+		for(NpBoat other : kex.otherBoats) {
+			
+			//calculate time and direction.			
+			double[] P2 = {other.posX, other.posY};
+			double[] V2 = {other.speed * Math.cos(other.heading) , other.speed * Math.sin(other.heading)};
+			double P2P1x =  P2[0]-P1[0];
+			double P2P1y =  P2[1]-P1[1];
+			double over = P2P1x*P2P1x + P2P1y*P2P1y;
+			double under_1 = -1* ( (P2P1x*V2[0]) + (P2P1y*V2[1]));	
+			double under_2 = Math.sqrt( under_1*under_1 - over * ( (V2[0]*V2[0] + V2[1]*V2[1])  - V0) ); 
+
+			double t1 = over / (under_1 + under_2);
+			double t2 = over / (under_1 - under_2);
+			
+			//(1) collision time
+			if(t1>0 && t1<2) {
+				double[] e = calculateDirection(t1, P1, V0, P2, V2);
+				double alpha = Math.acos(e[0]);
+				if(e[1]<=0)
+					alpha = -alpha;
+				if(alpha<0)
+					alpha += (Math.PI*2);
+				
+				//add cost for alpha in angle
+				for(int i=0;i<res;i++) {
+					double temp1 = i*step;
+					double den1 = Math.max(0.1,Math.abs(temp1 - alpha));
+					double den2 = Math.max(0.1,Math.abs(temp1 - (alpha-(Math.PI*2))));
+					double den3 = Math.max(0.1,Math.abs(temp1 - (alpha+(Math.PI*2))));
+					angle[i] += (1 / (den1*den1));
+					angle[i] += (1 / (den2*den2));
+					angle[i] += (1 / (den3*den3));
+				}
+				
+			}
+			
+			if(t2>0 && t2<2) {
+				double[] e = calculateDirection(t2, P1, V0, P2, V2);
+				double alpha = Math.acos(e[0]);
+				if(e[1]<=0)
+					alpha = -alpha;
+				if(alpha<0)
+					alpha += (Math.PI*2);
+				
+				//add cost for alpha in angle
+				for(int i=0;i<res;i++) {
+					double temp1 = i*step;
+					double den1 = Math.max(0.1,Math.abs(temp1 - alpha));
+					double den2 = Math.max(0.1,Math.abs(temp1 - (alpha-(Math.PI*2))));
+					double den3 = Math.max(0.1,Math.abs(temp1 - (alpha+(Math.PI*2))));
+					angle[i] += (1 / (den1*den1));
+					angle[i] += (1 / (den2*den2));
+					angle[i] += (1 / (den3*den3));
+				}
+			}	
+			//(2) distance
+			
+			if(Math.sqrt( (P1[0]-P2[0])*(P1[0]-P2[0]) + (P1[1]-P2[1])*(P1[1]-P2[1]) ) < 10) {
+				//calculate angle
+				double[] v = {P2[0]-P1[0] , P2[1]-P1[1]};
+				double dev = Math.sqrt(v[0]*v[0] + v[1]*v[1]);
+				double[] e = {v[0] / dev, v[1] / dev}; 
+				double alpha = Math.acos(e[0]);
+				if(e[1]<=0)
+					alpha = -alpha;
+				if(alpha<0)
+					alpha += (Math.PI*2);
+				
+				//add cost for alpha in angle
+				for(int i=0;i<res;i++) {
+					double temp1 = i*step;
+					double den1 = Math.max(0.1,Math.abs(temp1 - alpha));
+					double den2 = Math.max(0.1,Math.abs(temp1 - (alpha-(Math.PI*2))));
+					double den3 = Math.max(0.1,Math.abs(temp1 - (alpha+(Math.PI*2))));
+					angle[i] += (1 / (den1*den1));
+					angle[i] += (1 / (den2*den2));
+					angle[i] += (1 / (den3*den3));
+				}
+			}
+		}
+		
+		//find Min in angle
+		double minimum = Double.MAX_VALUE;
+		int index = -1;
+		for(int i=0;i<res;i++) {
+			//System.out.println("Angle: " + i*step + "\t cost"  + angle[i]);
+			if(angle[i] < minimum) {
+				minimum = angle[i];
+				index = i;
+			}
+		}
+		
+		System.out.println("Angle: " + index*step + "\t cost"  + angle[index]);
+		
+		return new double[]{P1[0] + kex.delta*Math.cos(index*step),P1[1] + kex.delta*Math.sin(index*step)};
+	}
+
 	
 
 	private void sleep(long delay) {

@@ -806,10 +806,30 @@ public class Kex implements Runnable{
         		
         		
         		double cost1 = cost[xIndex1][yIndex];//gp.distance(startX, startY, xIndex1, yIndex);
-        		cost1 += 10000*elementMatrix[xIndex1][yIndex].targeted;
+        		cost1 += 1000*elementMatrix[xIndex1][yIndex].targeted;
+    			boolean allScanned = true;
+    			for(SearchElement se : elementMatrix[xIndex1][yIndex].neighbour) {
+    				if(se.status == 0) {
+    					allScanned = false;
+    					break;
+    				}
+    			}
+    			if(allScanned)
+    				cost1 += 2000;
+    			
         		
         		double cost2 = cost[xIndex2][yIndex];//gp.distance(startX, startY, xIndex2, yIndex);
-        		cost2 += 1000*elementMatrix[xIndex1][yIndex].targeted;
+        		cost2 += 1000*elementMatrix[xIndex2][yIndex].targeted;
+        		for(SearchElement se : elementMatrix[xIndex2][yIndex].neighbour) {
+    				if(se.status == 0) {
+    					allScanned = false;
+    					break;
+    				}
+    			}
+    			if(allScanned)
+    				cost2 += 2000;
+        		
+        		
         		
         		if(cost1 < minCost && cost1 != -1) { // && elementMatrix[xIndex1][yIndex].status == 1) {
         			minCost = cost1;
@@ -904,15 +924,16 @@ public class Kex implements Runnable{
         
         while(true) {
         	
+        	
         	System.out.println("Clearing cellList");
         	cellList.clear();
         	
         	idRegions();
         	draw.repaint();
-        	
-        	//reworkSearchCells();
-        	//draw.repaint();
-        	
+        	/*
+        	reworkSearchCells();
+        	draw.repaint();
+        	*/
         	//System.out.println("--------------------new regions-----------------");
         	//System.out.println("regions: " + cellList.size());
 

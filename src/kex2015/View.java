@@ -322,12 +322,14 @@ public class View extends JFrame implements Runnable {
 				for(NpBoat npb: otherBoats) {
 					double[] pos = {npb.posX, npb.posY};
 					
-					dawBoat(g2d,pos, npb.heading, Color.ORANGE);
+					drawBoat(g2d,pos, npb.heading, Color.ORANGE);
 				}
 			} catch(Exception e) {
 				System.out.println("Thread interferance");
 			}
 			
+			g2d.setColor(Color.GREEN);
+			g2d.fillOval((int)X1-2, (int)Y1-2, 4, 4);
 			
 			//draw points for front sonar
 			/*
@@ -354,7 +356,7 @@ public class View extends JFrame implements Runnable {
 			*/
 		}
 		
-		private void dawBoat(Graphics2D g2d, double[] boatpos, double h, Color c) {
+		private void drawBoat(Graphics2D g2d, double[] boatpos, double h, Color c) {
 			
 			double X1 = (boatpos[0] - longStart)/stepLong;
 			double Y1 = (boatpos[1] - latStart)/stepLat;
@@ -393,7 +395,8 @@ public class View extends JFrame implements Runnable {
 			g2d.setColor(c);
 			g2d.fillPolygon(xPoints, yPoints, nPoints);
 			g2d.drawLine((int)X1, (int)Y1, (int)(X1 + Math.cos(h) *50), (int)(Y1 + Math.sin(h) * 50));
-			
+			g2d.setColor(Color.black);
+			g2d.drawOval((int)X1-1, (int)Y1-1, 2, 2);
 		}
 	}
 }
